@@ -4,6 +4,10 @@
 > **Date:** 2026-09-20
 > **Method:** Direct filesystem inspection and cross-document analysis. No code was written or modified.
 > **Scope limit:** Repository only. No live Supabase project, deployment, or CI system was queried.
+>
+> **Superseded in part:** Phase 1 (application foundation) was implemented after this baseline was
+> written. Sections 1–3 describe the pre-implementation state and are retained as the Phase 0 record.
+> For current status see `lib/status.ts`. All findings in sections 5–8 remain open and unaddressed.
 
 ---
 

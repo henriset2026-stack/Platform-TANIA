@@ -6,15 +6,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 1. Repository state — read this first
 
-**This repository contains specifications only. There is no application code yet.**
+**Phase 1 of 22 is complete. The application scaffold exists; no domain functionality does.**
 
-Verified state of the working directory:
+Present: Next.js 16 App Router shell (`app/`), `lib/status.ts`, unit tests, and the full toolchain.
 
-- No `package.json`, no `node_modules`, no `app/`, `lib/`, `supabase/`, or `tests/` directories.
-- No source files of any kind (`.ts`, `.tsx`, `.sql` migrations).
-- No `.env`, no CI config, no lint/test tooling.
+Not yet present: `supabase/` (no migrations), auth, RBAC enforcement, any domain model, any UI
+component system, any API route, any agent. `lib/status.ts` is the authoritative per-phase status —
+read it rather than inferring from the file tree, and update it in the same commit as the work it
+describes.
 
-The repository is seven Markdown/SQL specification documents plus five PNG design mockups in `Assets/`.
+Still absent as of Phase 1: `.env` (use `.env.example`), CI config, `middleware.ts`, `components/`,
+`agents/`, `types/`.
 
 Git is initialised and the `main` branch tracks
 `https://github.com/henriset2026-stack/Platform-TANIA` (private). Note that a **system-level**
@@ -24,10 +26,10 @@ local `credential.helper` override; leave it in place or `git fetch`/`push` will
 
 Consequences for how you work here:
 
-- **Do not claim to have inspected "the current implementation."** There isn't one. When a task says
-  "check the existing code," the honest answer is that the codebase is at Sprint 0.
-- The directory trees in `README.md` and in the PRD are **proposals, not reality**. Do not describe them
-  as the repository structure.
+- **Do not describe planned phases as implemented.** `lib/status.ts` gates this claim and its tests fail
+  if a phase claims completion without citing evidence, or claims completion out of order.
+- The directory trees in `README.md` and in the PRD are **proposals, not reality**. Compare against the
+  actual tree before describing repository structure.
 - If asked to implement a feature, the first real step is scaffolding the Next.js + Supabase project
   (Sprint 0, PRD line 3040) — say so rather than pretending to edit files that exist.
 - Treat the spec documents as live: they are edited between sessions. Re-check the file list rather than
@@ -43,24 +45,45 @@ with the Read tool before building UI — they are the only concrete source for 
 
 ## 2. Commands
 
-**There are none yet.** No build, lint, test, or dev command exists because no toolchain is installed.
-
-Do not run or suggest `npm run dev` / `npm test` / `npm run lint` as if they work — they will fail.
-`README.md` lists these under "Typical commands," but that section is aspirational.
-
-Once the Next.js app is scaffolded, record the **actual** scripts from `package.json` in this section.
-The PRD's test strategy (line 2858) expects four distinct suites, so the eventual command set must be
-able to run them independently:
-
-```text
-unit          → calculation engine, pure domain logic
-integration   → API route handlers
-rls           → policy tests executed as real role/scope combinations (PRD line 2875)
-e2e           → screen flows S01–S13
+```bash
+npm run dev         # Next.js dev server
+npm run build       # production build (fails on type errors)
+npm run verify      # typecheck + lint + test — run this before completing a phase
+npm run typecheck   # tsc --noEmit
+npm run lint        # eslint .
+npm test            # vitest run (unit only)
+npm run test:watch  # vitest watch
 ```
 
-RLS tests must run in CI against a real Postgres instance with `authenticated` JWTs — they cannot be
-mocked, because the thing under test is the database's own row filtering.
+`npm run verify` is the phase gate. Run it, and `npm run build`, before claiming a phase is done.
+
+### Pinned versions — do not "upgrade" these without checking
+
+Both pins were established by failure, not preference:
+
+- **TypeScript 6.0.3, not 7.x.** typescript-eslint refuses to load against the TS 7 API and lint dies
+  entirely with `typescript-eslint does not support TS 7.0`.
+- **ESLint 9.39.5, not 10.x.** `eslint-plugin-react`, vendored inside `eslint-config-next`, calls
+  `context.getFilename()`, removed in ESLint 10 — lint crashes on the first `.tsx` file. The package
+  declares `eslint: ">=9.0.0"`, which is wrong.
+
+Tailwind is v4: configuration lives in `app/globals.css` under `@theme`. There is no
+`tailwind.config.ts` and adding one will not do what the PRD blueprint implies.
+
+### Test suites
+
+Only `tests/unit/` runs today. `vitest.config.mts` already excludes `tests/rls/` and `tests/e2e/`, which
+arrive in later phases. PRD line 2858 expects four suites:
+
+```text
+unit          → calculation engine, pure domain logic          (Phase 1: present)
+integration   → API route handlers                             (PLANNED)
+rls           → policy tests as real role/scope combinations    (PLANNED, PRD line 2875)
+e2e           → screen flows S01–S13                            (PLANNED)
+```
+
+RLS tests must run against a real Postgres instance with `authenticated` JWTs — they cannot be mocked,
+because the thing under test is the database's own row filtering.
 
 ---
 

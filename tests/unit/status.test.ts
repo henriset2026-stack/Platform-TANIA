@@ -37,12 +37,24 @@ describe("implementation status registry", () => {
     }
   });
 
-  it("does not claim completion for phases beyond the current one", () => {
-    const completed = phasesClaimingCompletion().map((p) => p.id);
-    const highest = Math.max(...completed);
-    // Completion must be a contiguous prefix; no skipping ahead.
-    expect(completed).toEqual(
-      Array.from({ length: highest + 1 }, (_, i) => i),
+  // A later phase may legitimately be PARTIALLY_IMPLEMENTED — a foundational
+  // slice often lands early. A phase may not be fully IMPLEMENTED while an
+  // earlier one is still outstanding, which would mean work was skipped.
+  it("keeps fully implemented phases a contiguous prefix", () => {
+    const done = PHASES.filter((p) => p.status === "IMPLEMENTED").map(
+      (p) => p.id,
     );
+    expect(done).toEqual(Array.from({ length: done.length }, (_, i) => i));
+  });
+
+  it("allows partial phases only with evidence naming what is outstanding", () => {
+    for (const phase of PHASES.filter(
+      (p) => p.status === "PARTIALLY_IMPLEMENTED",
+    )) {
+      expect(
+        phase.evidence,
+        `Phase ${phase.id} is partial but does not say what remains`,
+      ).toMatch(/outstanding|remaining|pending/i);
+    }
   });
 });

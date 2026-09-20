@@ -1,10 +1,14 @@
 import type { Metadata } from "next";
-import "./globals.css";
+
+import "@/styles/globals.css";
 
 export const metadata: Metadata = {
-  title: "TANIA",
+  title: {
+    default: "TANIA",
+    template: "%s",
+  },
   description:
-    "Talent Intelligence, Analytics, Insight & Action — Chapter DPS, Telkom Indonesia",
+    "Talent Intelligence, Analytics, Insight & Action — Chapter Digital Product & Solution, Telkom Indonesia",
 };
 
 export default function RootLayout({

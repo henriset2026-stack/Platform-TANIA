@@ -38,12 +38,19 @@ export const PHASES: readonly Phase[] = [
     id: 1,
     name: "Application foundation",
     status: "IMPLEMENTED",
-    evidence: "package.json, tsconfig.json, eslint.config.mjs, vitest.config.ts, app/",
+    evidence:
+      "toolchain, app/ (App Router + error/loading boundaries), components/ (shadcn ui + layout shell), lib/, types/, hooks/, styles/",
   },
   { id: 2, name: "Supabase foundation", status: "PLANNED" },
   { id: 3, name: "Authentication + RBAC + RLS", status: "PLANNED" },
   { id: 4, name: "Core domain model", status: "PLANNED" },
-  { id: 5, name: "Design system", status: "PLANNED" },
+  {
+    id: 5,
+    name: "Design system",
+    status: "PARTIALLY_IMPLEMENTED",
+    evidence:
+      "shadcn/ui primitives + Telkom theme tokens in styles/globals.css; full system, tokens and documentation outstanding",
+  },
   { id: 6, name: "Executive dashboard", status: "PLANNED" },
   { id: 7, name: "Talent", status: "PLANNED" },
   { id: 8, name: "Capability", status: "PLANNED" },

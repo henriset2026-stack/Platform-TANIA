@@ -1,3 +1,7 @@
+import Link from "next/link";
+
+import { TaniaWordmark } from "@/components/brand/tania-wordmark";
+import { Button } from "@/components/ui/button";
 import { PHASES, statusCounts } from "@/lib/status";
 
 const STATUS_STYLES: Record<string, string> = {
@@ -12,18 +16,21 @@ export default function Home() {
 
   return (
     <main className="mx-auto max-w-3xl px-6 py-16">
-      <p className="text-sm font-medium tracking-widest text-[--color-telkom-blue] uppercase">
+      <p className="text-sm font-medium tracking-widest text-[var(--color-telkom-blue)] uppercase">
         Chapter DPS · Telkom Indonesia
       </p>
-      <h1 className="mt-2 text-4xl font-semibold text-[--color-telkom-navy]">
-        TANIA
-      </h1>
-      <p className="mt-2 text-slate-600">
-        Talent Intelligence, Analytics, Insight &amp; Action
-      </p>
+      <div className="mt-2 flex items-end justify-between gap-4">
+        <div>
+          <TaniaWordmark className="[&>span:first-child]:text-4xl" />
+          <p className="mt-2 text-slate-600">
+            Talent Intelligence, Analytics, Insight &amp; Action
+          </p>
+        </div>
+        <Button render={<Link href="/dashboard">Open dashboard</Link>} />
+      </div>
 
-      <section className="mt-10">
-        <h2 className="text-lg font-semibold text-[--color-telkom-navy]">
+      <section className="mt-12">
+        <h2 className="text-lg font-semibold text-[var(--color-telkom-navy)]">
           Implementation status
         </h2>
         <p className="mt-1 text-sm text-slate-600">

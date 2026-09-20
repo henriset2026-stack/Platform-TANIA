@@ -41,7 +41,13 @@ export const PHASES: readonly Phase[] = [
     evidence:
       "toolchain, app/ (App Router + error/loading boundaries), components/ (shadcn ui + layout shell), lib/, types/, hooks/, styles/",
   },
-  { id: 2, name: "Supabase foundation", status: "PLANNED" },
+  {
+    id: 2,
+    name: "Supabase foundation",
+    status: "PARTIALLY_IMPLEMENTED",
+    evidence:
+      "supabase/migrations/ (8 files), lib/supabase/{client,server,admin,middleware}.ts, lib/auth/session.ts, types/database.ts (hand-written); outstanding: no database exists, so migrations are unapplied, types are ungenerated and RLS is unverified",
+  },
   { id: 3, name: "Authentication + RBAC + RLS", status: "PLANNED" },
   { id: 4, name: "Core domain model", status: "PLANNED" },
   {

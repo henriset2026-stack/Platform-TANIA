@@ -37,6 +37,44 @@ a `value`.
 Navigation follows the same rule: `lib/navigation.ts` derives availability from `lib/status.ts`, so an
 unimplemented destination renders disabled rather than linking to a route that does not exist.
 
+## 2b. Supabase client architecture
+
+Three clients, and picking the wrong one is a security decision:
+
+| Module | Key | RLS | Use for |
+|---|---|---|---|
+| `lib/supabase/client.ts` | anon | **applies** | browser components |
+| `lib/supabase/server.ts` | anon + session cookie | **applies** | Server Components, Actions, Route Handlers — the default |
+| `lib/supabase/admin.ts` | service role | **BYPASSED** | provisioning and maintenance only |
+
+`lib/supabase/admin.ts` and `lib/env.server.ts` are the only modules allowed to read server-only
+secrets. Both import `server-only`, so a client component that pulls them in fails the build, and
+`eslint.config.mjs` allowlists exactly those two paths. **Never** reach for the admin client to make a
+denied query succeed — that is the CLAUDE.md §32 prohibition, and it removes the database as an
+enforcement layer. Never pass it to agent or tool code.
+
+`lib/auth/session.ts` builds the `AuthContext` (TANIA_RBAC_RLS_MATRIX.md §8) from four RPCs that all
+scope to `auth.uid()`. `requirePermission()` is an early gate for clean errors, **not** enforcement —
+RLS enforces. Use `getUser()`, never `getSession()`, for anything authorization-related: `getSession()`
+only reads a cookie.
+
+## 2c. Database state
+
+**No TANIA Supabase database exists.** The free tier is at its 2-project limit, so nothing was
+provisioned. Consequently:
+
+- `supabase/migrations/` (8 files) has **never been applied or validated**.
+- `types/database.ts` is **hand-written**, not generated. Replace it with
+  `supabase gen types typescript --project-id <ref>` output as soon as a project exists.
+- `tests/rls/` has **never run**. It skips when unconfigured rather than passing, because a green tick
+  against no database would be a fabricated result.
+
+Do not describe RLS as verified. `tests/unit/migrations.test.ts` asserts the migration *text* keeps the
+escalation path closed, which is a regression guard, not proof the database behaves that way.
+
+See `supabase/migrations/README.md` for the sequence and for the four deliberate divergences from
+`TANIA_SUPABASE_RLS.sql`.
+
 Git is initialised and the `main` branch tracks
 `https://github.com/henriset2026-stack/Platform-TANIA` (private). Note that a **system-level**
 `credential.helper = osxkeychain` shadows the `gh` helper on this machine, so this repository sets a

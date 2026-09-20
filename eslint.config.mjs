@@ -45,6 +45,12 @@ const config = [
     },
   },
   {
+    // The only modules permitted to read server-only secrets. Both import
+    // "server-only", so a client component that pulls them in fails the build.
+    files: ["lib/env.server.ts", "lib/supabase/admin.ts"],
+    rules: { "no-restricted-syntax": "off" },
+  },
+  {
     // Tests assert on the secret names themselves.
     files: ["tests/**/*.ts"],
     rules: { "no-restricted-syntax": "off" },

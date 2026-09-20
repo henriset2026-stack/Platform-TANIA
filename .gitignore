@@ -1,0 +1,38 @@
+# OS
+.DS_Store
+._*
+.Spotlight-V100
+.Trashes
+
+# Local working artifacts
+*.bak
+
+# Node / Next.js (for when the app is scaffolded)
+node_modules/
+.next/
+out/
+build/
+dist/
+*.tsbuildinfo
+
+# Environment & secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Supabase local
+.supabase/
+supabase/.temp/
+supabase/.branches/
+
+# Logs & coverage
+*.log
+npm-debug.log*
+coverage/
+.nyc_output/
+
+# Editors
+.vscode/
+.idea/

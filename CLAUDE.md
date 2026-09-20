@@ -8,15 +8,34 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Phase 1 of 22 is complete. The application scaffold exists; no domain functionality does.**
 
-Present: Next.js 16 App Router shell (`app/`), `lib/status.ts`, unit tests, and the full toolchain.
+Present: Next.js 16 App Router with `/` and `/dashboard`, error/loading/not-found boundaries, the
+application shell (sidebar + sheet navigation, SCALE strip), shadcn/ui primitives, `lib/`, `types/`,
+`hooks/`, `styles/`, and 19 unit tests.
 
-Not yet present: `supabase/` (no migrations), auth, RBAC enforcement, any domain model, any UI
-component system, any API route, any agent. `lib/status.ts` is the authoritative per-phase status —
-read it rather than inferring from the file tree, and update it in the same commit as the work it
-describes.
+Not yet present: `supabase/` (no migrations), authentication, RBAC enforcement, any domain model, any
+API route, any agent. **Every dashboard metric is deliberately empty** — see §2a.
 
-Still absent as of Phase 1: `.env` (use `.env.example`), CI config, `middleware.ts`, `components/`,
-`agents/`, `types/`.
+`lib/status.ts` is the authoritative per-phase status. Read it rather than inferring from the file
+tree, and update it in the same commit as the work it describes; its tests fail if a phase claims
+completion without evidence, or if a fully implemented phase sits ahead of an incomplete one.
+
+Still absent: `.env` (use `.env.example`), CI config, `middleware.ts`, `agents/`, `tools/`.
+
+## 2a. Placeholder data is structurally impossible
+
+`types/data.ts` models every displayable figure as a `DataPoint<T>` discriminated union. Only the
+`live` variant carries a `value`, and `live` requires `Provenance` (`source`, `asOf`, `validated`).
+There is no `mock`, `sample` or `demo` variant, and adding one would defeat the design.
+
+When a data source does not exist yet, use `notConnected(phase, requires)`. The UI renders it through
+`DataStateNotice` as a hatched, dashed-border empty state naming the phase that will supply it.
+
+**Do not introduce hard-coded numbers into a dashboard to "show the layout".** The layout is already
+demonstrable without them, and `tests/unit/data-provenance.test.ts` asserts no non-live variant carries
+a `value`.
+
+Navigation follows the same rule: `lib/navigation.ts` derives availability from `lib/status.ts`, so an
+unimplemented destination renders disabled rather than linking to a route that does not exist.
 
 Git is initialised and the `main` branch tracks
 `https://github.com/henriset2026-stack/Platform-TANIA` (private). Note that a **system-level**

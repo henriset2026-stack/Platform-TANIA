@@ -1,4 +1,4 @@
-import { CircleAlert, Database, Lock } from "lucide-react";
+import { CircleAlert, Database, Lock, PlugZap } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import type { DataPoint } from "@/types/data";
@@ -53,6 +53,14 @@ function describe(point: Exclude<DataPoint<unknown>, { state: "live" }>): {
         Icon: Database,
         title: "No data source",
         detail: `Phase ${point.requiredPhase} — requires ${point.requires}`,
+      };
+    case "not-integrated":
+      // Distinct from "no data source": this value can only ever come from
+      // another system, so the remedy is integration, not provisioning.
+      return {
+        Icon: PlugZap,
+        title: `${point.system} not integrated`,
+        detail: `${point.system} owns ${point.owns}. No value is shown because none can be derived here.`,
       };
     case "restricted":
       return {

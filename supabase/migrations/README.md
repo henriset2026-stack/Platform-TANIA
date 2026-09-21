@@ -32,6 +32,7 @@ files depend on objects created earlier.
 | 19 | `20260921100010_ai_service_domain_restrictions.sql` | extends the AI write ban across Phase 4 |
 | 20 | `20260921110001_performance_weights.sql` | `performance_dimensions`, `performance_weight_profiles`, profile dimensions + deferred sum-to-one trigger (Phase 9) |
 | 21 | `20260921120001_development_templates.sql` | `development_templates`, template activities + deferred hours trigger, `capability_upgrade_proposals` (Phase 10) |
+| 22 | `20260921130001_feasibility_and_budget.sql` | feasibility criteria/weights/assessments/scores/reviews, `project_budgets`, thresholds, reallocations, audit triggers (Phase 12) |
 
 Migration 9 is Phase 3. It only subtracts: RESTRICTIVE policies are AND-ed
 with the permissive ones, so it can never widen access.

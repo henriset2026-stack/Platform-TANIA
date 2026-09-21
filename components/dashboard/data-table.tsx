@@ -65,6 +65,14 @@ export function DataTable<T>({
       />
     );
   }
+  if (data.state === "not-integrated") {
+    return (
+      <EmptyState
+        title={`${data.system} not integrated`}
+        description={`${data.system} owns ${data.owns}.`}
+      />
+    );
+  }
   if (data.state === "not-connected") {
     return (
       <EmptyState

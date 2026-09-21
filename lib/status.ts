@@ -111,7 +111,13 @@ export const PHASES: readonly Phase[] = [
     evidence:
       "lib/calculations/workload.ts (utilization bands, capacity FTE, committed forecast), lib/calculations/matching.ts (10-dimension matcher producing match/evidence/gap/confidence/action), lib/workload/queries.ts, /workload, /assignments, /projects/[id], 26 unit tests; outstanding: no database so no population exists to match against, the candidate shortlist is not rendered on the project page, and assignment approval has no server action",
   },
-  { id: 12, name: "Project + Feasibility + Budget", status: "PLANNED" },
+  {
+    id: 12,
+    name: "Project + Feasibility + Budget",
+    status: "PARTIALLY_IMPLEMENTED",
+    evidence:
+      "migration 20260921130001 (feasibility criteria/weights/assessments/scores/reviews, project_budgets with a provenance CHECK, thresholds, reallocations, and audit_decision_change triggers that finally wire the audit log), lib/calculations/{feasibility,budget}.ts, types/integration.ts, /projects, /feasibility, /budget, 29 unit tests; outstanding: no database and no SAP integration so every financial figure is unavailable by design, and the decision/reallocation paths have no server actions",
+  },
   { id: 13, name: "AI Gateway", status: "PLANNED" },
   { id: 14, name: "RAG", status: "PLANNED" },
   { id: 15, name: "TANIA AI Assistant", status: "PLANNED" },

@@ -512,6 +512,43 @@ type CapabilityUpgradeProposalRow = {
   updated_at: Timestamp;
 };
 
+type FeasibilityAssessmentRow = {
+  id: UUID;
+  project_id: UUID | null;
+  organization_id: UUID;
+  title: string;
+  summary: string | null;
+  requester_id: UUID | null;
+  customer_name: string | null;
+  weight_profile_id: UUID | null;
+  stage: string;
+  total_score: number | null;
+  score_coverage: number | null;
+  scored_at: Timestamp | null;
+  decided_by: UUID | null;
+  decided_at: Timestamp | null;
+  decision_note: string | null;
+  created_by: UUID | null;
+  created_at: Timestamp;
+  updated_at: Timestamp;
+};
+
+type ProjectBudgetRow = {
+  id: UUID;
+  project_id: UUID;
+  fiscal_year: number;
+  currency: string;
+  planned_amount: number | null;
+  committed_amount: number | null;
+  realized_amount: number | null;
+  external_source: string | null;
+  external_reference: string | null;
+  external_synced_at: Timestamp | null;
+  created_by: UUID | null;
+  created_at: Timestamp;
+  updated_at: Timestamp;
+};
+
 // ===========================================================================
 // AI & agents (Phase 4)
 // ===========================================================================
@@ -773,6 +810,13 @@ export interface Database {
         CapabilityUpgradeProposalRow,
         "profile_id" | "capability_id" | "from_level" | "to_level" | "evidence_ids"
       >;
+
+      // Feasibility and budget (Phase 12).
+      feasibility_assessments: Table<
+        FeasibilityAssessmentRow,
+        "organization_id" | "title"
+      >;
+      project_budgets: Table<ProjectBudgetRow, "project_id" | "fiscal_year">;
 
       // AI & agents
       ai_usage: Table<AiUsageRow, "profile_id" | "tool_name" | "use_case">;

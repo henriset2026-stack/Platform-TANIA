@@ -40,6 +40,24 @@ export interface NotConnected {
   readonly requires: string;
 }
 
+/**
+ * The value lives in an external system that is not connected.
+ *
+ * Deliberately distinct from `not-connected`, which means TANIA's own
+ * database is unavailable. The two have different remedies: one is fixed by
+ * provisioning TANIA, the other by integrating a system somebody else owns.
+ * Collapsing them would tell an operator to fix the wrong thing, and would
+ * let a financial figure appear to be merely "coming soon" when in fact it
+ * can only ever come from SAP.
+ */
+export interface NotIntegrated {
+  readonly state: "not-integrated";
+  /** The system of record, e.g. "SAP". */
+  readonly system: string;
+  /** What that system owns, e.g. "budget realization". */
+  readonly owns: string;
+}
+
 /** The query ran but the user is not authorized to see the value. */
 export interface Restricted {
   readonly state: "restricted";
@@ -60,6 +78,7 @@ export interface Failed {
 export type DataPoint<T> =
   | LiveValue<T>
   | NotConnected
+  | NotIntegrated
   | Restricted
   | Empty
   | Failed;
@@ -69,6 +88,17 @@ export type DataState = DataPoint<unknown>["state"];
 /** True only when a real, sourced value is present. */
 export function isLive<T>(point: DataPoint<T>): point is LiveValue<T> {
   return point.state === "live";
+}
+
+/**
+ * Constructor for a value owned by an unintegrated external system.
+ *
+ * Financial figures in particular must never be fabricated: if SAP is not
+ * connected, the honest answer is that the number is unavailable, not zero
+ * and not an estimate.
+ */
+export function notIntegrated(system: string, owns: string): NotIntegrated {
+  return { state: "not-integrated", system, owns };
 }
 
 /** Convenience constructor for a not-yet-implemented data source. */

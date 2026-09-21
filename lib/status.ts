@@ -139,7 +139,13 @@ export const PHASES: readonly Phase[] = [
     evidence:
       "components/assistant/* (floating bottom-right avatar, compact and expanded panel, six PRD §80.3 states, conversation with evidence and citations, composer, error state), lib/assistant/{context,quick-actions}.ts, mounted in the app shell, 21 tests covering the untrusted-context boundary; outstanding: no LLM provider so every request returns NOT_CONFIGURED and no answer is ever produced, voice input is not built, and conversations are not persisted to ai_interactions",
   },
-  { id: 16, name: "Specialized Agents", status: "PLANNED" },
+  {
+    id: 16,
+    name: "Specialized Agents",
+    status: "PARTIALLY_IMPLEMENTED",
+    evidence:
+      "Performance Agent: agents/performance/{contract,analysis,tools,agent}.ts and lib/calculations/anomaly.ts, with 32 unit/authorization/integration tests; findings carry compile-time non-empty evidence tuples and isFinalRating is the literal false; outstanding: only one of the eleven PRD agents exists, no LLM provider so the agent never runs end to end, its tools are not registered in the global registry, and agent runs are still not persisted",
+  },
   { id: 17, name: "JARVIS Integration", status: "PLANNED" },
   { id: 18, name: "Voice / Avatar", status: "PLANNED" },
   { id: 19, name: "Audit + Observability", status: "PLANNED" },

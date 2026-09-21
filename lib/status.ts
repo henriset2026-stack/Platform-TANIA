@@ -76,7 +76,13 @@ export const PHASES: readonly Phase[] = [
     evidence:
       "lib/dashboard/{views,queries}.ts (real RLS-scoped Supabase queries), app/dashboard/page.tsx role-aware composition, workload/alerts/SCALE panels, 13 role-view tests; outstanding: no database so every metric resolves to not-connected, and the composite indices (performance, capability coverage, AI augmentation) need the calculation engine from Phases 8-13",
   },
-  { id: 7, name: "Talent", status: "PLANNED" },
+  {
+    id: 7,
+    name: "Talent",
+    status: "PARTIALLY_IMPLEMENTED",
+    evidence:
+      "app/talent (directory with server-side search, filters, pagination) and app/talent/[id] (Digital Talent Passport, 11 sections each sensitivity-gated), lib/talent/{filters,queries}.ts, 15 adversarial filter tests; outstanding: no database so every section resolves to not-connected, and the per-section authorization is unverified against real RLS",
+  },
   { id: 8, name: "Capability", status: "PLANNED" },
   { id: 9, name: "Performance", status: "PLANNED" },
   { id: 10, name: "Development", status: "PLANNED" },

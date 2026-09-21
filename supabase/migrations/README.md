@@ -19,6 +19,10 @@ files depend on objects created earlier.
 | 6 | `20260920120006_rls_core.sql` | RLS enablement, per-table grants, all policies |
 | 7 | `20260920120007_indexes.sql` | indexes on every policy-path column |
 | 8 | `20260920120008_rbac_catalog.sql` | role and permission reference data + role grants |
+| 9 | `20260921090001_ai_service_restrictions.sql` | `is_ai_service()`; RESTRICTIVE policies denying AI writes; no-self-grant on memberships |
+
+Migration 9 is Phase 3. It only subtracts: RESTRICTIVE policies are AND-ed
+with the permissive ones, so it can never widen access.
 
 ### Why this order
 

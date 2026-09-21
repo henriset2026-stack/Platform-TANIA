@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
+import { isPublicRoute, loginRedirectPath } from "@/lib/auth/routes";
 import type { Database } from "@/types/database";
 
 /**
@@ -39,7 +40,20 @@ export async function updateSession(request: NextRequest) {
 
   // getUser() revalidates the JWT with the auth server. getSession() only
   // reads the cookie and must not be trusted for authorization decisions.
-  await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  // Authentication gate only. This establishes *who* is calling; *what* they
+  // may see is decided at the server boundary and enforced by RLS. A signed-in
+  // user reaching a page proves nothing about their access to its data.
+  if (!user && !isPublicRoute(request.nextUrl.pathname)) {
+    const redirectUrl = new URL(
+      loginRedirectPath(request.nextUrl.pathname),
+      request.url,
+    );
+    return NextResponse.redirect(redirectUrl);
+  }
 
   return response;
 }

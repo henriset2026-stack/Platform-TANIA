@@ -75,6 +75,33 @@ escalation path closed, which is a regression guard, not proof the database beha
 See `supabase/migrations/README.md` for the sequence and for the four deliberate divergences from
 `TANIA_SUPABASE_RLS.sql`.
 
+## 2d. Authorization
+
+Two layers, and conflating them is the mistake to avoid:
+
+- **`lib/auth/policy.ts`** — pure, synchronous decisions over `(AuthContext, resource)`. No I/O, so the
+  whole matrix is unit-testable. This is a **gate**, so requests fail fast with a reason instead of
+  returning an empty result that reads like "no data".
+- **PostgreSQL RLS** — the **enforcement**. If the two ever disagree, RLS wins and the policy layer is
+  the bug. Never loosen a policy because a check in `policy.ts` already passed.
+
+Use `lib/auth/authorize.ts` (`can`, `canAccessChapter`, `canAccessSquad`, `canAccessTalent`) at server
+boundaries. Those wrappers read the resource through the caller's **RLS-scoped** client, so a row RLS
+hides is simply not found — the layers agree by construction. They never use the admin client: an
+authorization check that bypassed RLS to decide whether RLS applies would be circular.
+
+Deny by default everywhere. `lib/auth/routes.ts` protects any path not explicitly listed public, so a
+new route is private until someone opts it out.
+
+**AI identities are blocked twice.** `policy.ts` refuses any permission outside a read/analyse
+allowlist and refuses consequential approvals outright; migration `20260921090001` adds RESTRICTIVE
+policies so the database denies AI writes regardless of configured permissions. The same migration
+forbids granting a membership to yourself — privilege changes need a second person.
+
+**Known gap:** TANIA_RBAC_RLS_MATRIX.md §5 says EXECUTIVE reaches individual sensitive records with
+"explicit authorization" but specifies no mechanism. The policy therefore denies. Do not invent a
+permission for this — decide it in the matrix first.
+
 Git is initialised and the `main` branch tracks
 `https://github.com/henriset2026-stack/Platform-TANIA` (private). Note that a **system-level**
 `credential.helper = osxkeychain` shadows the `gh` helper on this machine, so this repository sets a

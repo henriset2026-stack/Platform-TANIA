@@ -126,4 +126,23 @@ describe("migration chain", () => {
       expect(ALL, `missing index on ${idx}`).toContain(`on public.${idx}`);
     }
   });
+  // Phase 3 — AI identities must be unable to write at the database level,
+  // not merely refused by lib/auth/policy.ts.
+  it("denies AI_SERVICE writes with RESTRICTIVE policies on every Phase 2 table", () => {
+    expect(SQL).toContain("create or replace function public.is_ai_service()");
+    for (const command of ["insert", "update", "delete"]) {
+      expect(
+        SQL,
+        `no restrictive ${command} guard for AI_SERVICE`,
+      ).toMatch(
+        new RegExp(`as restrictive for ${command}[\\s\\S]{0,160}is_ai_service`, "i"),
+      );
+    }
+  });
+
+  // Separation of duties: a privilege change always needs a second person.
+  it("forbids granting a membership to oneself", () => {
+    expect(SQL).toMatch(/memberships_no_self_grant_insert/);
+    expect(SQL).toMatch(/user_id <> auth\.uid\(\)/);
+  });
 });

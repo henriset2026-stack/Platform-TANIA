@@ -104,7 +104,13 @@ export const PHASES: readonly Phase[] = [
     evidence:
       "migration 20260921120001 (configurable development_templates with a deferred hours trigger, plus capability_upgrade_proposals whose CHECK forbids an evidence-free proposal), lib/calculations/development.ts, lib/development/queries.ts, /development, /development/[talentId], 24 unit tests; outstanding: no database so no template exists, the proposal decision path has no server action, and getDevelopmentPlans uses placeholder current/target levels until the capability join is wired",
   },
-  { id: 11, name: "Workload + Assignment", status: "PLANNED" },
+  {
+    id: 11,
+    name: "Workload + Assignment",
+    status: "PARTIALLY_IMPLEMENTED",
+    evidence:
+      "lib/calculations/workload.ts (utilization bands, capacity FTE, committed forecast), lib/calculations/matching.ts (10-dimension matcher producing match/evidence/gap/confidence/action), lib/workload/queries.ts, /workload, /assignments, /projects/[id], 26 unit tests; outstanding: no database so no population exists to match against, the candidate shortlist is not rendered on the project page, and assignment approval has no server action",
+  },
   { id: 12, name: "Project + Feasibility + Budget", status: "PLANNED" },
   { id: 13, name: "AI Gateway", status: "PLANNED" },
   { id: 14, name: "RAG", status: "PLANNED" },

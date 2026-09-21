@@ -83,7 +83,13 @@ export const PHASES: readonly Phase[] = [
     evidence:
       "app/talent (directory with server-side search, filters, pagination) and app/talent/[id] (Digital Talent Passport, 11 sections each sensitivity-gated), lib/talent/{filters,queries}.ts, 15 adversarial filter tests; outstanding: no database so every section resolves to not-connected, and the per-section authorization is unverified against real RLS",
   },
-  { id: 8, name: "Capability", status: "PLANNED" },
+  {
+    id: 8,
+    name: "Capability",
+    status: "PARTIALLY_IMPLEMENTED",
+    evidence:
+      "lib/calculations/capability.ts (deterministic gap, proven-level, priority and coverage engine, 401 lines), lib/capability/queries.ts, /capability, /capability/[id], /talent/[id]/capabilities, gap heatmap, 29 unit tests; outstanding: no database so every view resolves to not-connected, and the gap-priority ordinal weights are designed rather than PRD-specified",
+  },
   { id: 9, name: "Performance", status: "PLANNED" },
   { id: 10, name: "Development", status: "PLANNED" },
   { id: 11, name: "Workload + Assignment", status: "PLANNED" },

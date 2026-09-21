@@ -30,6 +30,7 @@ files depend on objects created earlier.
 | 17 | `20260921100008_domain_rls.sql` | RLS, grants and 63 policies for every Phase 4 table |
 | 18 | `20260921100009_domain_indexes.sql` | 55 indexes on foreign keys and policy paths |
 | 19 | `20260921100010_ai_service_domain_restrictions.sql` | extends the AI write ban across Phase 4 |
+| 20 | `20260921110001_performance_weights.sql` | `performance_dimensions`, `performance_weight_profiles`, profile dimensions + deferred sum-to-one trigger (Phase 9) |
 
 Migration 9 is Phase 3. It only subtracts: RESTRICTIVE policies are AND-ed
 with the permissive ones, so it can never widen access.

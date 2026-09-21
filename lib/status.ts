@@ -90,7 +90,13 @@ export const PHASES: readonly Phase[] = [
     evidence:
       "lib/calculations/capability.ts (deterministic gap, proven-level, priority and coverage engine, 401 lines), lib/capability/queries.ts, /capability, /capability/[id], /talent/[id]/capabilities, gap heatmap, 29 unit tests; outstanding: no database so every view resolves to not-connected, and the gap-priority ordinal weights are designed rather than PRD-specified",
   },
-  { id: 9, name: "Performance", status: "PLANNED" },
+  {
+    id: 9,
+    name: "Performance",
+    status: "PARTIALLY_IMPLEMENTED",
+    evidence:
+      "migration 20260921110001 (configurable weight profiles with a deferred sum-to-one constraint trigger), lib/calculations/performance.ts, types/claim.ts (FACT/ANALYSIS/INFERENCE/RECOMMENDATION), lib/performance/queries.ts, /performance, /performance/[talentId], /performance/reviews, 30 unit tests; outstanding: no database so no weighting model exists and no index can be computed, and the review server actions are not wired (the transition rules are pure and tested but no mutation path exists yet)",
+  },
   { id: 10, name: "Development", status: "PLANNED" },
   { id: 11, name: "Workload + Assignment", status: "PLANNED" },
   { id: 12, name: "Project + Feasibility + Budget", status: "PLANNED" },

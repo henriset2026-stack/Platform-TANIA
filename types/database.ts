@@ -363,6 +363,40 @@ type PerformanceReviewRow = {
   updated_at: Timestamp;
 }
 
+type PerformanceDimensionRow = {
+  id: UUID;
+  code: string;
+  name: string;
+  description: string | null;
+  sort_order: number;
+  active: boolean;
+  created_at: Timestamp;
+  updated_at: Timestamp;
+};
+
+type PerformanceWeightProfileRow = {
+  id: UUID;
+  code: string;
+  name: string;
+  description: string | null;
+  organization_id: UUID | null;
+  role_name: string | null;
+  period_id: UUID | null;
+  approved_by: UUID | null;
+  approved_at: Timestamp | null;
+  active: boolean;
+  created_by: UUID | null;
+  created_at: Timestamp;
+  updated_at: Timestamp;
+};
+
+type PerformanceWeightProfileDimensionRow = {
+  profile_id: UUID;
+  dimension_id: UUID;
+  weight: number;
+  created_at: Timestamp;
+};
+
 // ===========================================================================
 // Development (Phase 4)
 // ===========================================================================
@@ -651,6 +685,18 @@ export interface Database {
         "profile_id" | "period_id" | "reviewer_id"
       >;
 
+      // Configurable weighting (Phase 9). PRD §6.1 makes weights
+      // configuration, so they live in data rather than in a constant.
+      performance_dimensions: Table<PerformanceDimensionRow, "code" | "name">;
+      performance_weight_profiles: Table<
+        PerformanceWeightProfileRow,
+        "code" | "name"
+      >;
+      performance_weight_profile_dimensions: Table<
+        PerformanceWeightProfileDimensionRow,
+        "profile_id" | "dimension_id" | "weight"
+      >;
+
       // Development
       development_plans: Table<DevelopmentPlanRow, "profile_id" | "title">;
       learning_paths: Table<LearningPathRow, "development_plan_id" | "title">;
@@ -740,6 +786,8 @@ export type PerformancePeriod = Tables<"performance_periods">;
 export type PerformanceMetric = Tables<"performance_metrics">;
 export type PerformanceEvidence = Tables<"performance_evidence">;
 export type PerformanceReview = Tables<"performance_reviews">;
+export type PerformanceDimension = Tables<"performance_dimensions">;
+export type PerformanceWeightProfile = Tables<"performance_weight_profiles">;
 export type DevelopmentPlan = Tables<"development_plans">;
 export type LearningPath = Tables<"learning_paths">;
 export type LearningActivity = Tables<"learning_activities">;

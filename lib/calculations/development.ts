@@ -101,6 +101,16 @@ export interface DevelopmentTemplate {
   readonly totalHours: number;
   readonly activities: readonly TemplateActivity[];
   readonly approved: boolean;
+  /**
+   * Optional targeting. Null means the template is generic.
+   *
+   * Both are carried on the domain type rather than left in the database
+   * because template SELECTION depends on them: without the capability a
+   * caller can only pick a template by name, which is how someone ends up
+   * enrolled on a sprint for the wrong skill.
+   */
+  readonly capabilityId: string | null;
+  readonly targetLevel: number | null;
 }
 
 export type TemplateProblem =

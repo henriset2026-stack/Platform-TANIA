@@ -80,7 +80,7 @@ export async function listDevelopmentTemplates(): Promise<
     const [templates, activities] = await Promise.all([
       supabase
         .from("development_templates")
-        .select("id, code, name, methodology, total_hours, approved_by")
+        .select("id, code, name, methodology, total_hours, approved_by, capability_id, target_level")
         .eq("active", true)
         .order("name"),
       supabase
@@ -116,6 +116,8 @@ export async function listDevelopmentTemplates(): Promise<
         methodology: t.methodology,
         totalHours: Number(t.total_hours),
         approved: t.approved_by !== null,
+        capabilityId: t.capability_id,
+        targetLevel: t.target_level,
         activities: byTemplate.get(t.id) ?? [],
       })),
       provenance: provenance("supabase:development_templates"),

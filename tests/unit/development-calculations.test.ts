@@ -71,6 +71,8 @@ describe("framework vocabulary", () => {
 
 describe("template validation", () => {
   const base: DevelopmentTemplate = {
+    capabilityId: null,
+    targetLevel: null,
     id: "t1",
     code: "sprint",
     name: "Sprint",

@@ -20,6 +20,16 @@ files depend on objects created earlier.
 | 7 | `20260920120007_indexes.sql` | indexes on every policy-path column |
 | 8 | `20260920120008_rbac_catalog.sql` | role and permission reference data + role grants |
 | 9 | `20260921090001_ai_service_restrictions.sql` | `is_ai_service()`; RESTRICTIVE policies denying AI writes; no-self-grant on memberships |
+| 10 | `20260921100001_talent_and_work.sql` | `talent_profiles`, `projects`, `assignments`, `deliverables`; `can_access_project()` |
+| 11 | `20260921100002_capability.sql` | capability domains, capabilities, levels, requirements, talent capabilities, evidence |
+| 12 | `20260921100003_performance.sql` | periods, metrics, evidence, reviews |
+| 13 | `20260921100004_development.sql` | plans, learning paths, activities, evidence |
+| 14 | `20260921100005_ai_and_agents.sql` | `ai_usage`, `ai_assessments`, `ai_augmentation`, `ai_interactions`, `agent_runs`, `agent_tool_calls`, `recommendations` |
+| 15 | `20260921100006_business_impact.sql` | `business_impacts` |
+| 16 | `20260921100007_knowledge.sql` | pgvector; `knowledge_documents` |
+| 17 | `20260921100008_domain_rls.sql` | RLS, grants and 63 policies for every Phase 4 table |
+| 18 | `20260921100009_domain_indexes.sql` | 55 indexes on foreign keys and policy paths |
+| 19 | `20260921100010_ai_service_domain_restrictions.sql` | extends the AI write ban across Phase 4 |
 
 Migration 9 is Phase 3. It only subtracts: RESTRICTIVE policies are AND-ed
 with the permissive ones, so it can never widen access.
@@ -58,10 +68,26 @@ deliberate divergences:
 | §7.4 grants | `grant … on all tables in schema public to authenticated` | Per-table grants; default privileges revoked |
 | §7.5 indexes | none anywhere | 16 indexes on policy-path columns |
 
-Two further baseline findings are **out of Phase 2 scope** and remain open:
+Both remaining baseline findings are **closed in Phase 4**:
 
-- §7.2 `knowledge_documents` has no RLS — the table arrives in Phase 14 (RAG).
-- §7.6 `capability_levels` is unadministrable — the table arrives in Phase 8.
+- §7.2 `knowledge_documents` now has RLS, scoped by organization and
+  sensitivity, with ingestion restricted to `admin.integrations`.
+- §7.6 `capability_levels` now has a write policy under `admin.capabilities`,
+  so the L1–L5 framework is administrable.
+
+All six findings from `TANIA_IMPLEMENTATION_BASELINE.md` §7 are addressed in
+the migration source. **None is verified against a running database.**
+
+## Seed data
+
+`seed/01_reference.sql` holds PRD-defined framework data (capability levels
+§7.1, capability domains §7.2) and is safe in any environment. It seeds no
+performance weights: PRD §6.1 makes those configuration, not policy.
+
+`seed/02_dev_sample.sql` is fictional development data and refuses to run
+unless `-v tania_allow_sample_data=1` is passed, and aborts if any non-sample
+organization exists. It seeds no people: `profiles` is keyed to `auth.users`,
+so fictional talent would mean creating real loginable accounts.
 
 ## Scope
 

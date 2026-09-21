@@ -102,6 +102,55 @@ forbids granting a membership to yourself — privilege changes need a second pe
 "explicit authorization" but specifies no mechanism. The policy therefore denies. Do not invent a
 permission for this — decide it in the matrix first.
 
+## 2e. Domain model conventions
+
+35 tables, all with RLS. When adding one, follow these or explain why not:
+
+- `created_at` is **NOT NULL**. The PRD writes `timestamptz default now()`, which still permits an
+  explicit NULL and leaves records undatable.
+- `updated_at` plus a `set_updated_at` trigger on anything mutable.
+- `created_by` wherever the row records a human judgement (provenance).
+- CHECK constraints for every enumeration the PRD states in prose.
+- Index every foreign key — Postgres does not, and unindexed FKs slow both joins and cascades — plus
+  every column an RLS policy reads.
+
+**Soft delete is the exception, not the default.** Only evidence-bearing tables have `deleted_at`:
+`capability_evidence`, `performance_evidence`, `learning_evidence`, `business_impacts`. Those also have
+`DELETE` revoked, so evidence is withdrawn and never erased. Everywhere else, a `deleted_at` nothing
+needs is complexity without justification.
+
+**Approval pairing.** Anything approvable (`assignments`, `performance_reviews`, `development_plans`,
+`agent_runs`) carries `approved_by` + `approved_at` with a CHECK that they are set together. A row
+cannot claim approval without naming who gave it. `agent_runs` additionally cannot be `completed`
+while `human_approval_required and not human_approved`.
+
+**Provenance on claims.** `performance_evidence.origin` distinguishes `human` / `system` /
+`ai_generated`, and `validation_status` defaults to `pending`. An AI-generated claim is not a
+performance fact (CLAUDE.md §16). Likewise `talent_capabilities.assessment_status` starts
+`provisional` — certification is not capability.
+
+**Dynamic DDL is invisible to the guard tests.** `tests/unit/migrations.test.ts` reads migration text,
+so RLS enablement and policies must be written out per table, not generated in a `DO` loop. Loops are
+fine for triggers.
+
+**No performance weights anywhere.** PRD §6.1 makes them configuration; `weight` lives per metric per
+period and nothing is seeded.
+
+**`capability_requirements` is designed, not specified.** It appears only in the PRD ERD (§10.2) and is
+implied by the gap formula (§7.3). Its scope CHECK requires exactly one of organization / squad /
+project / role_name, so a gap calculation is never ambiguous.
+
+## 2f. Seed data
+
+`supabase/seed/01_reference.sql` — PRD framework data (capability levels, domains). Safe anywhere.
+
+`supabase/seed/02_dev_sample.sql` — fictional, and **refuses to run** without
+`-v tania_allow_sample_data=1`, aborting if any non-sample organization exists. It seeds **no people**:
+`profiles` is keyed to `auth.users`, so fictional talent would mean creating real loginable accounts.
+Sample users come from RLS test fixtures, which clean up after themselves.
+
+The DPS capability catalogue is real organizational content and is deliberately not invented here.
+
 Git is initialised and the `main` branch tracks
 `https://github.com/henriset2026-stack/Platform-TANIA` (private). Note that a **system-level**
 `credential.helper = osxkeychain` shadows the `gh` helper on this machine, so this repository sets a

@@ -28,6 +28,19 @@ const SQL = ALL.split("\n")
   })
   .join("\n");
 
+/** Every table the migration chain creates. */
+const PHASE4_TABLES = [
+  "talent_profiles", "projects", "assignments", "deliverables",
+  "capability_domains", "capabilities", "capability_levels",
+  "capability_requirements", "talent_capabilities", "capability_evidence",
+  "performance_periods", "performance_metrics", "performance_evidence",
+  "performance_reviews",
+  "development_plans", "learning_paths", "learning_activities", "learning_evidence",
+  "ai_usage", "ai_assessments", "ai_augmentation", "ai_interactions",
+  "agent_runs", "agent_tool_calls", "recommendations",
+  "business_impacts", "knowledge_documents",
+];
+
 /** Tables created by the Phase 2 chain. */
 const PHASE2_TABLES = [
   "organizations",
@@ -144,5 +157,112 @@ describe("migration chain", () => {
   it("forbids granting a membership to oneself", () => {
     expect(SQL).toMatch(/memberships_no_self_grant_insert/);
     expect(SQL).toMatch(/user_id <> auth\.uid\(\)/);
+  });
+  // ---------------------------------------------------------------------
+  // Phase 4
+  // ---------------------------------------------------------------------
+  it("enables row level security on every Phase 4 table", () => {
+    for (const table of PHASE4_TABLES) {
+      expect(SQL, `${table} has no ENABLE ROW LEVEL SECURITY`).toContain(
+        `alter table public.${table} enable row level security`,
+      );
+    }
+  });
+
+  it("creates every Phase 4 table exactly once", () => {
+    for (const table of PHASE4_TABLES) {
+      const matches = SQL.match(
+        new RegExp(`create table if not exists public\\.${table}\\b`, "g"),
+      );
+      expect(matches?.length, `${table} created ${matches?.length ?? 0} times`).toBe(1);
+    }
+  });
+
+  // Identity and audit tables belong to Phase 2 and must not be redefined.
+  it("does not redefine Phase 2 tables in Phase 4", () => {
+    for (const table of PHASE2_TABLES) {
+      const matches = SQL.match(
+        new RegExp(`create table if not exists public\\.${table}\\b`, "g"),
+      );
+      expect(matches?.length, `${table} duplicated`).toBe(1);
+    }
+  });
+
+  // TANIA_IMPLEMENTATION_BASELINE.md §7.2 — the RAG corpus must be protected.
+  it("protects knowledge_documents with RLS and restricts ingestion", () => {
+    expect(SQL).toContain("alter table public.knowledge_documents enable row level security");
+    const write = SQL.match(
+      /create policy knowledge_documents_write[\s\S]*?;/i,
+    )?.[0] ?? "";
+    expect(write).toMatch(/admin\.integrations/);
+  });
+
+  // §7.6 — capability_levels must be administrable, not read-only.
+  it("gives capability_levels a write policy", () => {
+    expect(SQL).toMatch(/capability_levels.*_admin|_admin.*capability_levels/s);
+    expect(SQL).toMatch(/admin\.capabilities/);
+  });
+
+  it("extends the AI write ban to Phase 4 tables", () => {
+    for (const table of [
+      "performance_evidence",
+      "talent_capabilities",
+      "business_impacts",
+      "knowledge_documents",
+    ]) {
+      expect(SQL, `${table} not in the AI write-ban list`).toContain(`'${table}'`);
+    }
+    expect(SQL).toMatch(/ai_no_insert_/);
+    expect(SQL).toMatch(/ai_no_approval_performance_reviews/);
+  });
+
+  // Evidence must be withdrawable, never erasable (rule 11).
+  it("soft-deletes evidence tables and revokes hard delete", () => {
+    for (const table of [
+      "capability_evidence",
+      "performance_evidence",
+      "learning_evidence",
+      "business_impacts",
+    ]) {
+      expect(SQL, `${table} has no deleted_at`).toMatch(
+        new RegExp(`create table if not exists public\\.${table}[\\s\\S]*?deleted_at timestamptz`),
+      );
+      expect(SQL, `${table} still allows hard delete`).toContain(
+        `revoke delete on public.${table} from authenticated`,
+      );
+    }
+  });
+
+  it("indexes every Phase 4 foreign key used by a policy", () => {
+    for (const idx of [
+      "assignments (project_id, profile_id)",
+      "talent_capabilities (profile_id)",
+      "performance_evidence (profile_id)",
+      "development_plans (profile_id)",
+      "agent_tool_calls (agent_run_id)",
+    ]) {
+      expect(SQL, `missing index on ${idx}`).toContain(`on public.${idx}`);
+    }
+  });
+
+  // PRD §6.1 / CLAUDE.md §16: weights are configuration, not policy.
+  it("seeds no performance dimension weights", () => {
+    const seed = readFileSync(
+      join(import.meta.dirname, "..", "..", "supabase", "seed", "01_reference.sql"),
+      "utf8",
+    );
+    expect(seed).not.toMatch(/insert into public\.performance_metrics/i);
+    expect(seed).not.toMatch(/\b0\.25\b|\b25%\b/);
+  });
+
+  // Sample data must be unable to reach a real database.
+  it("guards the development sample seed", () => {
+    const sample = readFileSync(
+      join(import.meta.dirname, "..", "..", "supabase", "seed", "02_dev_sample.sql"),
+      "utf8",
+    );
+    expect(sample).toMatch(/tania_allow_sample_data/);
+    expect(sample).toMatch(/REFUSED/);
+    expect(sample).not.toMatch(/insert into public\.profiles/i);
   });
 });

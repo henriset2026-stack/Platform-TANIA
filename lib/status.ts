@@ -55,7 +55,13 @@ export const PHASES: readonly Phase[] = [
     evidence:
       "lib/auth/{policy,authorize,routes,session}.ts, app/(auth)/login + app/auth/{callback,signout}, middleware route protection, migration 20260921090001 (AI_SERVICE restrictive policies); 69 policy tests pass; outstanding: no database, so tests/rls/ has never run and RLS enforcement is unverified; Entra SSO unconfigured; EXECUTIVE explicit-authorization mechanism unspecified",
   },
-  { id: 4, name: "Core domain model", status: "PLANNED" },
+  {
+    id: 4,
+    name: "Core domain model",
+    status: "PARTIALLY_IMPLEMENTED",
+    evidence:
+      "supabase/migrations/2026092110000{1..10} (27 tables, 63 policies, 55 indexes), types/database.ts covering 33 tables, supabase/seed/; outstanding: no database exists, so migrations are unapplied, types are ungenerated and RLS is unverified; capability_requirements is designed from the ERD rather than a PRD specification",
+  },
   {
     id: 5,
     name: "Design system",

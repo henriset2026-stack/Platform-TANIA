@@ -125,7 +125,13 @@ export const PHASES: readonly Phase[] = [
     evidence:
       "agents/core/{types,schema,tool-registry,pipeline}.ts, lib/ai/{provider,config,gateway}.ts, app/api/ai/chat, 31 security tests covering registry refusal, schema rejection, permission and AI-identity denial, confirmation gating, timeout and no-fabricated-execution; outstanding: no LLM provider is configured so the gateway refuses every request, the tool registry is deliberately empty, and agent runs are not yet persisted to agent_runs/agent_tool_calls",
   },
-  { id: 14, name: "RAG", status: "PLANNED" },
+  {
+    id: 14,
+    name: "RAG",
+    status: "PARTIALLY_IMPLEMENTED",
+    evidence:
+      "migration 20260921140001 (knowledge_chunks with denormalized ACL kept in step by trigger, and match_knowledge_chunks as SECURITY INVOKER so RLS filters during the index scan), lib/rag/{chunking,sanitize,retrieval,citations,queries}.ts, /knowledge, /knowledge/[id], 29 RAG tests; outstanding: no embedding model is selected so nothing can be embedded or searched, no HNSW index is created (it needs real volume and a chosen model), and there is no ingestion pipeline",
+  },
   { id: 15, name: "TANIA AI Assistant", status: "PLANNED" },
   { id: 16, name: "Specialized Agents", status: "PLANNED" },
   { id: 17, name: "JARVIS Integration", status: "PLANNED" },

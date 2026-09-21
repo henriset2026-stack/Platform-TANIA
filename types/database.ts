@@ -711,6 +711,22 @@ type KnowledgeDocumentRow = {
   deleted_at: Timestamp | null;
 }
 
+type KnowledgeChunkRow = {
+  id: UUID;
+  document_id: UUID;
+  chunk_index: number;
+  content: string;
+  start_offset: number | null;
+  end_offset: number | null;
+  token_count: number | null;
+  embedding: string | null;
+  organization_id: UUID | null;
+  sensitivity: string;
+  metadata: Json;
+  created_at: Timestamp;
+  deleted_at: Timestamp | null;
+};
+
 // ===========================================================================
 
 export interface Database {
@@ -842,6 +858,10 @@ export interface Database {
         KnowledgeDocumentRow,
         "title" | "source_type" | "content"
       >;
+      knowledge_chunks: Table<
+        KnowledgeChunkRow,
+        "document_id" | "chunk_index" | "content"
+      >;
     };
     Views: Record<never, never>;
     Functions: {
@@ -854,6 +874,30 @@ export interface Database {
       can_access_project: { Args: { target_id: string }; Returns: boolean };
       current_user_roles: { Args: Record<string, never>; Returns: string[] };
       current_user_permissions: { Args: Record<string, never>; Returns: string[] };
+      /**
+       * Authorized vector search. SECURITY INVOKER, so RLS filters during the
+       * index scan — results are already entitled and must not be filtered
+       * again by the caller.
+       */
+      match_knowledge_chunks: {
+        Args: {
+          query_embedding: string;
+          match_count?: number;
+          min_similarity?: number;
+          filter_organization_id?: string | null;
+          filter_source_type?: string | null;
+        };
+        Returns: {
+          chunk_id: string;
+          document_id: string;
+          document_title: string;
+          source_type: string;
+          source_uri: string | null;
+          chunk_index: number;
+          content: string;
+          similarity: number;
+        }[];
+      };
       record_audit_event: {
         Args: {
           p_action: string;
@@ -912,3 +956,4 @@ export type AgentToolCall = Tables<"agent_tool_calls">;
 export type Recommendation = Tables<"recommendations">;
 export type BusinessImpact = Tables<"business_impacts">;
 export type KnowledgeDocument = Tables<"knowledge_documents">;
+export type KnowledgeChunk = Tables<"knowledge_chunks">;

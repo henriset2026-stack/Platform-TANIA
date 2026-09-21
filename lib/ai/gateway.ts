@@ -17,6 +17,7 @@ import { toolRegistry } from "@/agents/core/tool-registry";
 import { toAgentAuthContext, type AgentAuthContext, type AgentDefinition, type AgentRunStatus, type AiResponse } from "@/agents/core/types";
 import { isAiService } from "@/lib/auth/policy";
 import { getAuthContext } from "@/lib/auth/session";
+import { describeContext, type PageContext } from "@/lib/assistant/context";
 import { AI_LIMITS, readAiConfig } from "@/lib/ai/config";
 import { resolveProvider, type ProviderMessage } from "@/lib/ai/provider";
 
@@ -25,6 +26,11 @@ export interface GatewayRequest {
   readonly intent?: string;
   readonly agent?: AgentDefinition;
   readonly sessionId?: string;
+  /**
+   * Validated page hint. Influences interpretation only: it carries no
+   * authority, and any entity it names is re-authorized wherever it is used.
+   */
+  readonly pageContext?: PageContext;
   /** Tool names a human has explicitly confirmed for this request. */
   readonly confirmations?: readonly string[];
 }
@@ -157,6 +163,9 @@ export async function handleGatewayRequest(
     const messages: readonly ProviderMessage[] = [
       { role: "system", content: agent.systemPrompt },
       { role: "system", content: describeScope(auth) },
+      ...(request.pageContext && describeContext(request.pageContext)
+        ? [{ role: "system" as const, content: describeContext(request.pageContext) }]
+        : []),
       { role: "user", content: message },
     ];
 

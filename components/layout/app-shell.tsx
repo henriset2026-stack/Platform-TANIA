@@ -1,3 +1,4 @@
+import { AssistantMount } from "@/components/assistant/assistant-mount";
 import { ScaleStrip } from "@/components/brand/scale-strip";
 import { TaniaWordmark } from "@/components/brand/tania-wordmark";
 import { SidebarNav } from "@/components/layout/sidebar-nav";
@@ -38,6 +39,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           {children}
         </main>
       </div>
+
+      {/* Persistent assistant, bottom-right on every shell page (PRD §80.2). */}
+      <AssistantMount />
     </div>
   );
 }

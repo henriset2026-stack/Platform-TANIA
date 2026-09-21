@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 
+import { parsePageContext } from "@/lib/assistant/context";
 import { handleGatewayRequest, type GatewayErrorCode } from "@/lib/ai/gateway";
 
 /**
@@ -34,6 +35,8 @@ interface ChatBody {
   intent?: unknown;
   sessionId?: unknown;
   confirmations?: unknown;
+  /** Untrusted page hint from the browser. Validated, never trusted. */
+  context?: unknown;
 }
 
 export async function POST(request: NextRequest) {
@@ -60,8 +63,15 @@ export async function POST(request: NextRequest) {
     ? body.confirmations.filter((c): c is string => typeof c === "string")
     : undefined;
 
+  // Parsed through an allowlist: an unrecognised kind degrades to "unknown"
+  // and a non-UUID entityId is dropped. Even when valid, the gateway
+  // re-authorizes anything it implies — a forged context can only make TANIA
+  // answer the wrong question, never reveal the wrong data.
+  const pageContext = parsePageContext(body.context);
+
   const outcome = await handleGatewayRequest({
     message: body.message,
+    pageContext,
     ...(typeof body.intent === "string" ? { intent: body.intent } : {}),
     ...(typeof body.sessionId === "string" ? { sessionId: body.sessionId } : {}),
     ...(confirmations ? { confirmations } : {}),

@@ -132,7 +132,13 @@ export const PHASES: readonly Phase[] = [
     evidence:
       "migration 20260921140001 (knowledge_chunks with denormalized ACL kept in step by trigger, and match_knowledge_chunks as SECURITY INVOKER so RLS filters during the index scan), lib/rag/{chunking,sanitize,retrieval,citations,queries}.ts, /knowledge, /knowledge/[id], 29 RAG tests; outstanding: no embedding model is selected so nothing can be embedded or searched, no HNSW index is created (it needs real volume and a chosen model), and there is no ingestion pipeline",
   },
-  { id: 15, name: "TANIA AI Assistant", status: "PLANNED" },
+  {
+    id: 15,
+    name: "TANIA AI Assistant",
+    status: "PARTIALLY_IMPLEMENTED",
+    evidence:
+      "components/assistant/* (floating bottom-right avatar, compact and expanded panel, six PRD §80.3 states, conversation with evidence and citations, composer, error state), lib/assistant/{context,quick-actions}.ts, mounted in the app shell, 21 tests covering the untrusted-context boundary; outstanding: no LLM provider so every request returns NOT_CONFIGURED and no answer is ever produced, voice input is not built, and conversations are not persisted to ai_interactions",
+  },
   { id: 16, name: "Specialized Agents", status: "PLANNED" },
   { id: 17, name: "JARVIS Integration", status: "PLANNED" },
   { id: 18, name: "Voice / Avatar", status: "PLANNED" },

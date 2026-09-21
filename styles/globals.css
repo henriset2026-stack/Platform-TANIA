@@ -9,11 +9,94 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* Telkom enterprise palette (CLAUDE.md §10). The full design system is Phase 5. */
+/* ==========================================================================
+   TANIA design tokens — Phase 5.
+
+   Derived from the mockups in Assets/ and CLAUDE.md §10. Components reference
+   these tokens, never raw hex, so the palette can move in one place.
+
+   Two sidebar treatments exist in the mockups: navy on the dashboards,
+   light on the homepage. Both are expressed here as surface tokens rather
+   than being hard-coded per component.
+   ========================================================================== */
 @theme {
+  /* Brand */
   --color-telkom-navy: #0b1f3a;
+  --color-telkom-navy-700: #16305a;
+  --color-telkom-navy-500: #1e4176;
   --color-telkom-blue: #0a5ab4;
+  --color-telkom-blue-600: #2563eb;
+  --color-telkom-blue-100: #dbeafe;
   --color-telkom-red: #e01a22;
+  --color-telkom-red-100: #fee2e2;
+
+  /* Semantic status. Four capability states, matching the heatmap legend
+     in the dashboard mockup: Strong / On Track / Need Attention / Critical Gap. */
+  --color-status-strong: #10b981;
+  --color-status-strong-bg: #d1fae5;
+  --color-status-ontrack: #3b82f6;
+  --color-status-ontrack-bg: #dbeafe;
+  --color-status-attention: #f59e0b;
+  --color-status-attention-bg: #fef3c7;
+  --color-status-critical: #ef4444;
+  --color-status-critical-bg: #fee2e2;
+  --color-status-neutral: #64748b;
+  --color-status-neutral-bg: #f1f5f9;
+
+  /* Surfaces */
+  --color-surface-app: #f8fafc;
+  --color-surface-card: #ffffff;
+  --color-surface-sidebar: var(--color-telkom-navy);
+  --color-surface-sidebar-fg: #e2e8f0;
+
+  /* Typography scale. One scale, used everywhere. */
+  --text-metric: 2rem;
+  --text-metric--line-height: 2.25rem;
+  --text-metric--font-weight: 600;
+
+  /* Radii — cards 12px, pills full, controls 8px, matching the mockups. */
+  --radius-card: 0.75rem;
+  --radius-control: 0.5rem;
+}
+
+/* Visible focus everywhere, never removed.
+   :focus-visible only, so pointer users do not see rings on click. */
+@layer base {
+  *:focus-visible {
+    outline: 2px solid var(--color-telkom-blue-600);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  /* Respect reduced-motion. Enterprise UI should not animate over a user's
+     accessibility preference. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/* Skip link: visible only when focused. */
+@layer components {
+  .skip-link {
+    position: absolute;
+    left: -9999px;
+    z-index: 100;
+  }
+  .skip-link:focus {
+    left: 1rem;
+    top: 1rem;
+    padding: 0.5rem 1rem;
+    background: var(--color-telkom-navy);
+    color: white;
+    border-radius: var(--radius-control);
+  }
 }
 
 :root {

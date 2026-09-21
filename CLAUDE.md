@@ -151,6 +151,44 @@ Sample users come from RLS test fixtures, which clean up after themselves.
 
 The DPS capability catalogue is real organizational content and is deliberately not invented here.
 
+## 2g. Design system
+
+Import composites from `@/components/dashboard` (barrel), primitives from `@/components/ui`.
+
+**Tokens, not hex.** `styles/globals.css` defines the Telkom palette, four capability status colours,
+surfaces, radii and the metric type scale. A test fails the build if a raw `#rrggbb` appears in
+`components/dashboard` or `components/brand`.
+
+**One focus treatment.** `*:focus-visible` in globals.css owns it. Do not add `focus-visible:outline-none`
+plus a bespoke ring — a test rejects suppressing the outline, and inconsistent focus is worse than none.
+
+**Colour is never the only signal.** `StatusBadge` always renders a text label plus a non-colour dot.
+Two scales exist and are deliberately separate: `CapabilityStatus` (Strong / On Track / Needs Attention /
+Critical Gap, matching the heatmap legend) and `WorkStatus`.
+
+**`DataTable` takes a `DataPoint<readonly T[]>`, not an array.** That is the point: a table cannot
+silently render an empty body when the truth is "not connected", "not authorized" or "failed". Those are
+different facts.
+
+**Required accessible names.** `ProgressMeter.label` and `DataTable.caption` are required props, not
+optional. An unlabelled progress bar or table is meaningless to a screen reader, so the type system
+refuses one. Icons are `aria-hidden`; a test enforces it.
+
+**`ChartCard` ships no charting library.** Picking one belongs with the first real chart (Phase 6). It
+does provide a `dataTable` slot for the chart's tabular equivalent — a chart that exists only as pixels
+is unreadable.
+
+**`EvidenceCard` always shows source, date, validation status and origin.** `origin: "ai_generated"` is
+rendered distinctly. Evidence without provenance is an assertion (CLAUDE.md §16).
+
+**TANIA is an AI employee, not a mascot.** `components/brand/tania-avatar.tsx` carries the six PRD §80.3
+presence states. The photorealistic portrait in the mockups is a **brand asset** passed via
+`portraitSrc`; the fallback is a restrained monogram. Do not generate a character. Motion is one pulse
+ring, disabled under `prefers-reduced-motion`.
+
+`/design-system` is the live reference. Data-bearing components appear there in **non-live states only** —
+a test asserts the showcase never fabricates a `live` data point.
+
 Git is initialised and the `main` branch tracks
 `https://github.com/henriset2026-stack/Platform-TANIA` (private). Note that a **system-level**
 `credential.helper = osxkeychain` shadows the `gh` helper on this machine, so this repository sets a

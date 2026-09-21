@@ -1,7 +1,7 @@
 import { Database } from "lucide-react";
 import type { Metadata } from "next";
 
-import { MetricCard } from "@/components/data/metric-card";
+import { MetricCard } from "@/components/dashboard/metric-card";
 import { Badge } from "@/components/ui/badge";
 import { notConnected } from "@/types/data";
 import type { DataPoint } from "@/types/data";

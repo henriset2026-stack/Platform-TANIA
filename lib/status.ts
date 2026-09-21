@@ -67,7 +67,7 @@ export const PHASES: readonly Phase[] = [
     name: "Design system",
     status: "PARTIALLY_IMPLEMENTED",
     evidence:
-      "shadcn/ui primitives + Telkom theme tokens in styles/globals.css; full system, tokens and documentation outstanding",
+      "styles/globals.css design tokens, components/ui (16 primitives), components/dashboard (14 components + barrel), components/brand/tania-avatar.tsx, app/design-system reference page, accessibility and token tests; outstanding: ChartCard has no chart renderer (Phase 6 picks the library), no automated axe or visual-regression check, and the official TANIA portrait asset is not yet supplied",
   },
   { id: 6, name: "Executive dashboard", status: "PLANNED" },
   { id: 7, name: "Talent", status: "PLANNED" },

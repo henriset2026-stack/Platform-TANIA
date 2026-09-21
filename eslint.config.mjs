@@ -45,9 +45,11 @@ const config = [
     },
   },
   {
-    // The only modules permitted to read server-only secrets. Both import
+    // The only modules permitted to read server-only secrets. All import
     // "server-only", so a client component that pulls them in fails the build.
-    files: ["lib/env.server.ts", "lib/supabase/admin.ts"],
+    // lib/ai/config.ts tests AI_GATEWAY_KEY for PRESENCE only and never
+    // returns its value.
+    files: ["lib/env.server.ts", "lib/supabase/admin.ts", "lib/ai/config.ts"],
     rules: { "no-restricted-syntax": "off" },
   },
   {

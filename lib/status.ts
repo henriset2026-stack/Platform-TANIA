@@ -118,7 +118,13 @@ export const PHASES: readonly Phase[] = [
     evidence:
       "migration 20260921130001 (feasibility criteria/weights/assessments/scores/reviews, project_budgets with a provenance CHECK, thresholds, reallocations, and audit_decision_change triggers that finally wire the audit log), lib/calculations/{feasibility,budget}.ts, types/integration.ts, /projects, /feasibility, /budget, 29 unit tests; outstanding: no database and no SAP integration so every financial figure is unavailable by design, and the decision/reallocation paths have no server actions",
   },
-  { id: 13, name: "AI Gateway", status: "PLANNED" },
+  {
+    id: 13,
+    name: "AI Gateway",
+    status: "PARTIALLY_IMPLEMENTED",
+    evidence:
+      "agents/core/{types,schema,tool-registry,pipeline}.ts, lib/ai/{provider,config,gateway}.ts, app/api/ai/chat, 31 security tests covering registry refusal, schema rejection, permission and AI-identity denial, confirmation gating, timeout and no-fabricated-execution; outstanding: no LLM provider is configured so the gateway refuses every request, the tool registry is deliberately empty, and agent runs are not yet persisted to agent_runs/agent_tool_calls",
+  },
   { id: 14, name: "RAG", status: "PLANNED" },
   { id: 15, name: "TANIA AI Assistant", status: "PLANNED" },
   { id: 16, name: "Specialized Agents", status: "PLANNED" },

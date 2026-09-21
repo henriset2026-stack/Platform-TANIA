@@ -6,6 +6,14 @@ export default defineConfig({
     alias: {
       // Mirrors the "@/*" path mapping in tsconfig.json.
       "@": fileURLToPath(new URL(".", import.meta.url)),
+      // `server-only` throws on import outside a React Server Component. It
+      // is a BUILD-TIME guard enforced by the Next.js bundler — `npm run
+      // build` is what proves a client component cannot import these modules.
+      // Stubbing it here lets server modules be unit tested without weakening
+      // that guarantee.
+      "server-only": fileURLToPath(
+        new URL("./tests/stubs/server-only.ts", import.meta.url),
+      ),
     },
   },
   test: {

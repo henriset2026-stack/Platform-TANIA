@@ -1,116 +1,261 @@
-import { Database } from "lucide-react";
+import {
+  FolderKanban,
+  GraduationCap,
+  Layers,
+  Sparkles,
+  Target,
+  TrendingUp,
+  Users,
+} from "lucide-react";
 import type { Metadata } from "next";
 
-import { MetricCard } from "@/components/dashboard/metric-card";
-import { Badge } from "@/components/ui/badge";
-import { notConnected } from "@/types/data";
-import type { DataPoint } from "@/types/data";
+import { AlertsPanel } from "@/app/dashboard/_components/alerts-panel";
+import { ScaleBanner } from "@/app/dashboard/_components/scale-banner";
+import { WorkloadPanel } from "@/app/dashboard/_components/workload-panel";
+import {
+  DataTable,
+  EmptyState,
+  MetricCard,
+  PageHeader,
+  SectionCard,
+  WorkStatusBadge,
+  type Column,
+} from "@/components/dashboard";
+import { getAuthContext } from "@/lib/auth/session";
+import {
+  getActiveProjects,
+  getAiAugmentation,
+  getAlerts,
+  getCapabilityCoverage,
+  getCapabilityGaps,
+  getPerformanceIndex,
+  getTalentHeadcount,
+  getValidatedBusinessImpact,
+  getWorkload,
+  type ProjectRow,
+} from "@/lib/dashboard/queries";
+import { isSectionVisible, resolveDashboardView } from "@/lib/dashboard/views";
+import { mapLive } from "@/types/data";
+import type { WorkStatus } from "@/types/status";
 
-export const metadata: Metadata = {
-  title: "Executive Dashboard · TANIA",
-};
+export const metadata: Metadata = { title: "Dashboard · TANIA" };
 
 /**
- * Executive Dashboard shell — TANIA_PRD_v2.0.md §26 (S02).
+ * S02 — Executive Dashboard (TANIA_PRD_v2.0.md §26).
  *
- * Every metric below is `not-connected`. No value is invented: the database,
- * RLS and domain services that would supply these numbers do not exist yet
- * (Phases 2-4, 8-12). The cards establish layout and the metric contract; the
- * DataPoint type makes it impossible to render a figure without provenance.
+ * Server component. Composition is role-aware: resolveDashboardView decides
+ * which sections this viewer sees and at what breadth. That is a rendering
+ * decision — the data behind each section is gated by RLS regardless, so a
+ * section shown in error yields an empty state rather than a leak.
+ *
+ * Every figure comes from a real query in lib/dashboard/queries.ts. With no
+ * Supabase project provisioned, those resolve to `not-connected` and the UI
+ * says so explicitly. Nothing here is sample data.
+ *
+ * The AI assistant is Phase 15 and is deliberately absent.
  */
-const DASHBOARD_METRICS: ReadonlyArray<{
-  label: string;
-  description: string;
-  point: DataPoint<number>;
-}> = [
-  {
-    label: "Talent Health Index",
-    description: "PRD §62 — composite of capability, performance and workload.",
-    point: notConnected(9, "performance_metrics + talent_profiles"),
-  },
-  {
-    label: "Capability Coverage",
-    description: "PRD §62 — share of required capabilities met at target level.",
-    point: notConnected(8, "capabilities + talent_capabilities"),
-  },
-  {
-    label: "Critical Capability Gaps",
-    description: "PRD §7.3 — required minus current, weighted by criticality.",
-    point: notConnected(8, "capability gap engine"),
-  },
-  {
-    label: "Development Progress",
-    description: "PRD §62 — completion across active development plans.",
-    point: notConnected(10, "development_plans + learning_evidence"),
-  },
-  {
-    label: "AI Augmentation Index",
-    description: "PRD §62 — measured AI leverage across the chapter.",
-    point: notConnected(13, "ai_usage + ai_augmentation"),
-  },
-  {
-    label: "Business Impact",
-    description: "PRD §35 — validated impact, human-approved only.",
-    point: notConnected(12, "business_impacts + validation workflow"),
-  },
-];
+export default async function DashboardPage() {
+  const context = await getAuthContext();
 
-export default function DashboardPage() {
-  return (
-    <div className="mx-auto max-w-6xl">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold text-[var(--color-telkom-navy)]">
-            Executive Dashboard
-          </h1>
-          <p className="mt-1 text-sm text-slate-600">
-            Chapter Digital Product &amp; Solution · Telkom Indonesia
-          </p>
-        </div>
-        <Badge variant="outline" className="h-6">
-          Shell only
-        </Badge>
-      </div>
-
-      <div
-        role="note"
-        className="mt-6 flex items-start gap-3 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3"
-      >
-        <Database
-          aria-hidden="true"
-          className="mt-0.5 size-4 shrink-0 text-amber-700"
+  // Unauthenticated callers are redirected by middleware. Reaching here
+  // without a context means the session could not be resolved.
+  if (!context) {
+    return (
+      <div className="mx-auto max-w-6xl">
+        <PageHeader title="Dashboard" />
+        <EmptyState
+          title="Not signed in"
+          description="Sign in with your Telkom account to see your dashboard."
         />
-        <div className="text-sm">
-          <p className="font-medium text-amber-900">
-            No data source is connected.
-          </p>
-          <p className="mt-0.5 text-amber-800">
-            This is the Phase 1 layout shell. No database, authentication or
-            domain service exists yet, so no figure is displayed. Every card
-            below states which phase will supply it. Nothing here is sample or
-            demonstration data.
-          </p>
-        </div>
       </div>
+    );
+  }
 
-      <section className="mt-8" aria-labelledby="chapter-intelligence">
+  const view = resolveDashboardView(context);
+
+  const [
+    headcount,
+    performance,
+    coverage,
+    gaps,
+    augmentation,
+    impact,
+    projects,
+    alerts,
+    workload,
+  ] = await Promise.all([
+    getTalentHeadcount(view, context),
+    getPerformanceIndex(view),
+    getCapabilityCoverage(view),
+    getCapabilityGaps(view),
+    getAiAugmentation(view),
+    getValidatedBusinessImpact(view),
+    getActiveProjects(view),
+    getAlerts(view, context),
+    getWorkload(view, context),
+  ]);
+
+  const projectColumns: readonly Column<ProjectRow>[] = [
+    { id: "name", header: "Project", cell: (p) => p.name },
+    {
+      id: "status",
+      header: "Status",
+      align: "end",
+      cell: (p) => <WorkStatusBadge status={normalizeStatus(p.status)} />,
+    },
+  ];
+
+  return (
+    <div className="mx-auto max-w-6xl space-y-6">
+      <PageHeader title={view.title} description={view.subtitle} />
+
+      <ScaleBanner />
+
+      {view.sections.length === 0 ? (
+        <EmptyState
+          title="No dashboard sections available"
+          description="Your account holds no read permissions for chapter intelligence. Contact an administrator if this is unexpected."
+        />
+      ) : null}
+
+      {/* Trend cards — the six domains. */}
+      <section aria-labelledby="chapter-intelligence">
         <h2
           id="chapter-intelligence"
-          className="text-sm font-medium tracking-wide text-slate-500 uppercase"
+          className="mb-3 text-sm font-medium tracking-wide text-slate-500 uppercase"
         >
           Chapter Intelligence
         </h2>
-        <div className="mt-3 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {DASHBOARD_METRICS.map((metric) => (
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {isSectionVisible(view, "talent_health") ? (
             <MetricCard
-              key={metric.label}
-              label={metric.label}
-              description={metric.description}
-              point={metric.point}
+              label="Talent Health"
+              icon={Users}
+              tone="info"
+              point={headcount}
+              description="Active people in scope."
             />
-          ))}
+          ) : null}
+          {isSectionVisible(view, "performance") ? (
+            <MetricCard
+              label="Performance"
+              icon={TrendingUp}
+              tone="success"
+              point={performance}
+              description="Weighted composite. Weights are configuration, not policy (PRD §6.1)."
+            />
+          ) : null}
+          {isSectionVisible(view, "capability") ? (
+            <MetricCard
+              label="Capability Coverage"
+              icon={Layers}
+              tone="info"
+              point={coverage}
+              description="Share of required capabilities met at target level."
+            />
+          ) : null}
+          {isSectionVisible(view, "workload") ? (
+            <MetricCard
+              label="Workload"
+              icon={GraduationCap}
+              tone="warning"
+              point={mapLive(workload, (rows) => rows.length)}
+              description="People with an active assignment."
+            />
+          ) : null}
+          {isSectionVisible(view, "ai_augmentation") ? (
+            <MetricCard
+              label="AI Augmentation"
+              icon={Sparkles}
+              tone="info"
+              point={augmentation}
+              description="Measured AI leverage across the chapter."
+            />
+          ) : null}
+          {isSectionVisible(view, "business_impact") ? (
+            <MetricCard
+              label="Business Impact"
+              icon={Target}
+              tone="success"
+              point={impact}
+              format={(v) =>
+                new Intl.NumberFormat("id-ID", {
+                  style: "currency",
+                  currency: "IDR",
+                  maximumFractionDigits: 0,
+                }).format(v)
+              }
+              description="Human-validated impact only (PRD §35)."
+            />
+          ) : null}
         </div>
       </section>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        {isSectionVisible(view, "workload") ? (
+          <WorkloadPanel
+            data={workload}
+            allowsDrilldown={view.allowsIndividualDrilldown}
+          />
+        ) : null}
+
+        {isSectionVisible(view, "alerts") ? <AlertsPanel data={alerts} /> : null}
+
+        {isSectionVisible(view, "critical_insights") ? (
+          <SectionCard
+            title="Capability Gaps"
+            description="Required level minus current proven level, prioritised by criticality and urgency (PRD §7.3)."
+          >
+            <DataTable
+              caption="Critical capability gaps"
+              columns={[
+                { id: "capability", header: "Capability", cell: (r) => r.capability },
+                {
+                  id: "gap",
+                  header: "Gap",
+                  align: "end",
+                  cell: (r) => `${r.currentLevel} → ${r.requiredLevel}`,
+                },
+              ]}
+              data={gaps}
+              getRowId={(r) => r.capability}
+              emptyTitle="No capability gaps recorded"
+            />
+          </SectionCard>
+        ) : null}
+
+        {isSectionVisible(view, "project_intelligence") ? (
+          <SectionCard
+            title="Project Intelligence"
+            description="Active and planned projects in scope."
+            action={<FolderKanban aria-hidden="true" className="size-4 text-slate-400" />}
+          >
+            <DataTable
+              caption="Active projects"
+              columns={projectColumns}
+              data={projects}
+              getRowId={(p) => p.id}
+              emptyTitle="No active projects"
+            />
+          </SectionCard>
+        ) : null}
+      </div>
     </div>
   );
+}
+
+/** Maps a database status string onto the WorkStatus vocabulary. */
+function normalizeStatus(status: string): WorkStatus {
+  switch (status) {
+    case "active":
+      return "in_progress";
+    case "completed":
+      return "completed";
+    case "cancelled":
+      return "cancelled";
+    case "on_hold":
+      return "at_risk";
+    default:
+      return "on_track";
+  }
 }

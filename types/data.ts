@@ -78,3 +78,23 @@ export function notConnected(
 ): NotConnected {
   return { state: "not-connected", requiredPhase, requires };
 }
+
+/**
+ * Derives a new DataPoint from a live one, preserving provenance.
+ *
+ * Exists so UI code never hand-constructs a `live` variant. Building one by
+ * hand is how an invented value gets a fabricated source attached to it; this
+ * can only transform a value that was already real, and the provenance it
+ * carries is the original measurement's.
+ */
+export function mapLive<T, U>(
+  point: DataPoint<T>,
+  transform: (value: T) => U,
+): DataPoint<U> {
+  if (point.state !== "live") return point;
+  return {
+    state: "live",
+    value: transform(point.value),
+    provenance: point.provenance,
+  };
+}

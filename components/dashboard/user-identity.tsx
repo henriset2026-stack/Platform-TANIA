@@ -26,10 +26,10 @@ export function UserIdentity({
   className,
 }: {
   name: string;
-  role?: string;
-  avatarUrl?: string;
+  role?: string | undefined;
+  avatarUrl?: string | undefined;
   size?: "sm" | "md";
-  className?: string;
+  className?: string | undefined;
 }) {
   return (
     <span className={cn("flex items-center gap-2.5", className)}>

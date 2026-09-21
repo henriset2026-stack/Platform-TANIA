@@ -69,7 +69,13 @@ export const PHASES: readonly Phase[] = [
     evidence:
       "styles/globals.css design tokens, components/ui (16 primitives), components/dashboard (14 components + barrel), components/brand/tania-avatar.tsx, app/design-system reference page, accessibility and token tests; outstanding: ChartCard has no chart renderer (Phase 6 picks the library), no automated axe or visual-regression check, and the official TANIA portrait asset is not yet supplied",
   },
-  { id: 6, name: "Executive dashboard", status: "PLANNED" },
+  {
+    id: 6,
+    name: "Executive dashboard",
+    status: "PARTIALLY_IMPLEMENTED",
+    evidence:
+      "lib/dashboard/{views,queries}.ts (real RLS-scoped Supabase queries), app/dashboard/page.tsx role-aware composition, workload/alerts/SCALE panels, 13 role-view tests; outstanding: no database so every metric resolves to not-connected, and the composite indices (performance, capability coverage, AI augmentation) need the calculation engine from Phases 8-13",
+  },
   { id: 7, name: "Talent", status: "PLANNED" },
   { id: 8, name: "Capability", status: "PLANNED" },
   { id: 9, name: "Performance", status: "PLANNED" },

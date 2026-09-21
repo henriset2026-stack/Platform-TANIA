@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { isLive, notConnected } from "../../types/data";
+import { isLive, mapLive, notConnected } from "../../types/data";
 import type { DataPoint } from "../../types/data";
 
 describe("data provenance contract", () => {
@@ -42,5 +42,34 @@ describe("data provenance contract", () => {
     for (const point of nonLive) {
       expect("value" in point).toBe(false);
     }
+  });
+});
+
+describe("mapLive", () => {
+  const live = {
+    state: "live" as const,
+    value: [1, 2, 3],
+    provenance: {
+      source: "supabase:assignments",
+      asOf: "2026-09-21T00:00:00.000Z",
+      validated: false,
+    },
+  };
+
+  it("transforms the value and keeps the original provenance", () => {
+    const mapped = mapLive(live, (rows) => rows.length);
+    if (!isLive(mapped)) throw new Error("expected live");
+    expect(mapped.value).toBe(3);
+    expect(mapped.provenance).toEqual(live.provenance);
+  });
+
+  it("passes non-live states through untouched", () => {
+    const point = notConnected(9, "assignments");
+    expect(mapLive(point, () => 1)).toEqual(point);
+  });
+
+  it("cannot invent provenance for a non-live point", () => {
+    const mapped = mapLive(notConnected(9, "assignments"), () => 42);
+    expect("value" in mapped).toBe(false);
   });
 });

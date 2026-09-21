@@ -17,6 +17,7 @@ import {
   type CriticalGap,
   type Criticality,
   type EvidenceInput,
+  type RequirementScope,
   type Urgency,
 } from "@/lib/calculations/capability";
 import { createClient } from "@/lib/supabase/server";
@@ -345,6 +346,193 @@ export async function getCapability(
         active: data.active,
       },
       provenance: provenance("supabase:capabilities"),
+    };
+  });
+}
+
+// ===========================================================================
+// Requirements and holders — inputs to the Capability Agent
+// ===========================================================================
+
+export interface CapabilityRequirementRow {
+  readonly requirementId: string;
+  readonly capabilityId: string;
+  readonly capabilityName: string;
+  readonly requiredLevel: number;
+  readonly criticality: Criticality;
+  readonly urgency: Urgency;
+  readonly scope: RequirementScope;
+  readonly headcountRequired: number | null;
+}
+
+/**
+ * Capability requirements visible to the caller.
+ *
+ * A scope filter narrows the read; it never widens it. Passing a projectId
+ * the caller cannot see returns nothing, because RLS filters the rows before
+ * this function ever sees them — the filter is a convenience for the reader,
+ * not a control.
+ */
+export async function listCapabilityRequirements(
+  options: {
+    organizationId?: string;
+    squadId?: string;
+    projectId?: string;
+    roleName?: string;
+  } = {},
+): Promise<DataPoint<readonly CapabilityRequirementRow[]>> {
+  return guarded("capability_requirements + capabilities", async () => {
+    const supabase = await createClient();
+    let q = supabase
+      .from("capability_requirements")
+      .select(
+        "id, capability_id, required_level, business_criticality, time_urgency, headcount_required, organization_id, squad_id, project_id, role_name, capabilities(name)",
+      );
+
+    if (options.organizationId) q = q.eq("organization_id", options.organizationId);
+    if (options.squadId) q = q.eq("squad_id", options.squadId);
+    if (options.projectId) q = q.eq("project_id", options.projectId);
+    if (options.roleName) q = q.eq("role_name", options.roleName);
+
+    const { data, error } = await q;
+    if (error) return failed(error.message);
+    if (!data || data.length === 0) return { state: "empty" };
+
+    return {
+      state: "live",
+      value: data.map((r) => ({
+        requirementId: r.id,
+        capabilityId: r.capability_id,
+        capabilityName:
+          (r as { capabilities?: { name?: string } }).capabilities?.name ??
+          "Unknown capability",
+        requiredLevel: r.required_level,
+        criticality: r.business_criticality as Criticality,
+        urgency: r.time_urgency as Urgency,
+        scope: toRequirementScope(r),
+        headcountRequired: r.headcount_required,
+      })),
+      provenance: provenance("supabase:capability_requirements"),
+    };
+  });
+}
+
+/**
+ * Maps the four nullable scope columns onto the discriminated union.
+ *
+ * The database CHECK guarantees exactly one is set, but this runs against a
+ * database that has never been provisioned (CLAUDE.md §2c), so the fallback
+ * is explicit rather than a non-null assertion: an unscoped row is reported
+ * as an organization scope of "unknown" instead of crashing a read.
+ */
+function toRequirementScope(row: {
+  organization_id: string | null;
+  squad_id: string | null;
+  project_id: string | null;
+  role_name: string | null;
+}): RequirementScope {
+  if (row.project_id) return { kind: "project", id: row.project_id };
+  if (row.squad_id) return { kind: "squad", id: row.squad_id };
+  if (row.organization_id) return { kind: "organization", id: row.organization_id };
+  if (row.role_name) return { kind: "role", roleName: row.role_name };
+  return { kind: "organization", id: "unknown" };
+}
+
+export interface CapabilityHolderRow {
+  readonly talentCapabilityId: string;
+  readonly talentId: string;
+  readonly displayName: string;
+  readonly capabilityId: string;
+  readonly claimedLevel: number;
+  readonly assessmentStatus: AssessmentStatus;
+  readonly evidence: readonly {
+    readonly evidenceId: string;
+    readonly sourceType: string;
+    readonly validationStatus: "pending" | "validated" | "rejected" | "withdrawn";
+    readonly occurredAt: string | null;
+  }[];
+}
+
+/**
+ * People holding the given capabilities, with their evidence.
+ *
+ * Three separate reads joined in TypeScript rather than one nested select:
+ * types/database.ts is hand-written with empty Relationships, so a nested
+ * embed across talent_capabilities → profiles resolves to `never`. Each read
+ * is independently RLS-scoped, so a person the caller cannot see drops out at
+ * the profiles read and their capability row is discarded here — the join
+ * cannot reintroduce someone the database hid.
+ */
+export async function getCapabilityHolders(
+  capabilityIds: readonly string[],
+): Promise<DataPoint<readonly CapabilityHolderRow[]>> {
+  if (capabilityIds.length === 0) return { state: "empty" };
+
+  return guarded("talent_capabilities + profiles + capability_evidence", async () => {
+    const supabase = await createClient();
+
+    const { data: held, error: heldError } = await supabase
+      .from("talent_capabilities")
+      .select("id, profile_id, capability_id, current_level, assessment_status")
+      .in("capability_id", [...capabilityIds]);
+
+    if (heldError) return failed(heldError.message);
+    if (!held || held.length === 0) return { state: "empty" };
+
+    const [people, evidence] = await Promise.all([
+      supabase
+        .from("profiles")
+        .select("id, full_name")
+        .in("id", held.map((h) => h.profile_id)),
+      supabase
+        .from("capability_evidence")
+        .select("id, talent_capability_id, source_type, validation_status, occurred_at")
+        .in("talent_capability_id", held.map((h) => h.id))
+        .is("deleted_at", null),
+    ]);
+
+    if (people.error) return failed(people.error.message);
+    if (evidence.error) return failed(evidence.error.message);
+
+    const nameById = new Map((people.data ?? []).map((p) => [p.id, p.full_name]));
+
+    const evidenceByCapability = new Map<
+      string,
+      CapabilityHolderRow["evidence"][number][]
+    >();
+    for (const row of evidence.data ?? []) {
+      const list = evidenceByCapability.get(row.talent_capability_id) ?? [];
+      list.push({
+        evidenceId: row.id,
+        sourceType: row.source_type,
+        validationStatus:
+          row.validation_status as CapabilityHolderRow["evidence"][number]["validationStatus"],
+        occurredAt: row.occurred_at,
+      });
+      evidenceByCapability.set(row.talent_capability_id, list);
+    }
+
+    const rows = held
+      // A capability row whose profile RLS hid is dropped, not rendered
+      // anonymously: naming a gap against someone the caller may not see
+      // would leak the fact of their existence.
+      .filter((h) => nameById.has(h.profile_id))
+      .map((h) => ({
+        talentCapabilityId: h.id,
+        talentId: h.profile_id,
+        displayName: nameById.get(h.profile_id) ?? "",
+        capabilityId: h.capability_id,
+        claimedLevel: h.current_level,
+        assessmentStatus: h.assessment_status as AssessmentStatus,
+        evidence: evidenceByCapability.get(h.id) ?? [],
+      }));
+
+    if (rows.length === 0) return { state: "empty" };
+
+    return {
+      state: "live",
+      value: rows,
+      provenance: provenance("supabase:talent_capabilities"),
     };
   });
 }

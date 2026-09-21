@@ -12,8 +12,12 @@
 
 import type { ClaimKind } from "@/types/claim";
 
-/** At least one element, checked at compile time. */
-export type NonEmpty<T> = readonly [T, ...T[]];
+// Shared with every other agent so the compile-time evidence guarantee is one
+// type rather than one per agent.
+export { toNonEmpty } from "@/agents/core/output";
+export type { NonEmpty, Uncertainty } from "@/agents/core/output";
+
+import type { NonEmpty, Uncertainty } from "@/agents/core/output";
 
 export interface EvidenceRef {
   /** performance_evidence.id — resolvable back to the row. */
@@ -45,21 +49,6 @@ export interface Finding {
    * a measured fact and never a decision.
    */
   readonly claimKind: Extract<ClaimKind, "ANALYSIS">;
-}
-
-/**
- * Something the agent could not determine.
- *
- * Uncertainties are a first-class part of the output rather than an omission.
- * An analysis that silently skips what it could not assess reads as more
- * complete than it is, and a reader cannot tell the difference between "no
- * problem here" and "no data here".
- */
-export interface Uncertainty {
-  readonly topic: string;
-  readonly reason: string;
-  /** What would resolve it. */
-  readonly resolvedBy: string;
 }
 
 export interface Recommendation {
@@ -111,9 +100,3 @@ export const FORBIDDEN_AGENT_ACTIONS: readonly string[] = [
   "terminate_employment",
   "export_sensitive_data",
 ];
-
-/** Helper: builds a non-empty evidence tuple, or null when there is none. */
-export function toNonEmpty<T>(items: readonly T[]): NonEmpty<T> | null {
-  const [first, ...rest] = items;
-  return first === undefined ? null : [first, ...rest];
-}

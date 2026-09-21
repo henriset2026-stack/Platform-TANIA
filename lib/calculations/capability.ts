@@ -356,6 +356,25 @@ export function buildCapabilityMatrix(
     );
 }
 
+/**
+ * Scope of a capability requirement — exactly one, mirroring the CHECK
+ * constraint on capability_requirements. A requirement with no scope, or with
+ * several, would make the gap ambiguous, and this type refuses to represent
+ * one.
+ *
+ * It lives here rather than in the agent contract so the dependency runs one
+ * way: agents depend on the domain, never the reverse.
+ */
+export type RequirementScope =
+  | { readonly kind: "organization"; readonly id: string }
+  | { readonly kind: "squad"; readonly id: string }
+  | { readonly kind: "project"; readonly id: string }
+  | { readonly kind: "role"; readonly roleName: string };
+
+export function describeScope(scope: RequirementScope): string {
+  return scope.kind === "role" ? `role ${scope.roleName}` : `${scope.kind} ${scope.id}`;
+}
+
 export interface CriticalGapInput {
   readonly capabilityId: string;
   readonly capabilityName: string;

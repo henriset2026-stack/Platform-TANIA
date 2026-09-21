@@ -144,7 +144,7 @@ export const PHASES: readonly Phase[] = [
     name: "Specialized Agents",
     status: "PARTIALLY_IMPLEMENTED",
     evidence:
-      "Performance Agent: agents/performance/{contract,analysis,tools,agent}.ts and lib/calculations/anomaly.ts, with 32 unit/authorization/integration tests; findings carry compile-time non-empty evidence tuples and isFinalRating is the literal false; outstanding: only one of the eleven PRD agents exists, no LLM provider so the agent never runs end to end, its tools are not registered in the global registry, and agent runs are still not persisted",
+      "Performance Agent (agents/performance/*, lib/calculations/anomaly.ts, 32 tests) and Capability Agent (agents/capability/*, lib/capability/queries.ts requirement and holder reads, 36 tests), sharing agents/core/{output,refusal}.ts; findings carry compile-time traceable bases, isFinalRating and upgradesCapability are literal false; outstanding: two of the eleven PRD agents exist, no LLM provider so neither runs end to end, their tools are not registered in the global registry, and agent runs are still not persisted",
   },
   { id: 17, name: "JARVIS Integration", status: "PLANNED" },
   { id: 18, name: "Voice / Avatar", status: "PLANNED" },

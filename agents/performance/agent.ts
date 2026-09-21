@@ -20,6 +20,7 @@
 
 import { PERFORMANCE_AGENT_TOOLS } from "@/agents/performance/tools";
 import { FORBIDDEN_AGENT_ACTIONS } from "@/agents/performance/contract";
+import { matchesForbiddenAction } from "@/agents/core/refusal";
 import { AI_LIMITS } from "@/lib/ai/config";
 import type { AgentDefinition } from "@/agents/core/types";
 
@@ -52,13 +53,7 @@ export const PERFORMANCE_AGENT: AgentDefinition = {
   ].join("\n"),
 };
 
-/**
- * Whether a requested action is one this agent must refuse.
- *
- * Matches on substring so a paraphrase like "please finalize the performance
- * rating for X" is caught, not only an exact tool name.
- */
+/** Whether a requested action is one this agent must refuse. */
 export function isForbiddenAction(request: string): boolean {
-  const normalized = request.toLowerCase().replace(/[\s-]+/g, "_");
-  return FORBIDDEN_AGENT_ACTIONS.some((action) => normalized.includes(action));
+  return matchesForbiddenAction(request, FORBIDDEN_AGENT_ACTIONS);
 }

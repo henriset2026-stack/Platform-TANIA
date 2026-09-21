@@ -6,20 +6,25 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 1. Repository state — read this first
 
-**Phase 1 of 22 is complete. The application scaffold exists; no domain functionality does.**
+**Phases 1–15 are implemented or partially implemented. Phases 16–22 are not.**
 
-Present: Next.js 16 App Router with `/` and `/dashboard`, error/loading/not-found boundaries, the
-application shell (sidebar + sheet navigation, SCALE strip), shadcn/ui primitives, `lib/`, `types/`,
-`hooks/`, `styles/`, and 19 unit tests.
+`lib/status.ts` is the authoritative per-phase status, and it is the only place that should be
+trusted on this question. Read it rather than inferring from the file tree or from this paragraph,
+and update it in the same commit as the work it describes; its tests fail if a phase claims
+completion without citing evidence, or if a fully implemented phase sits ahead of an incomplete one.
 
-Not yet present: `supabase/` (no migrations), authentication, RBAC enforcement, any domain model, any
-API route, any agent. **Every dashboard metric is deliberately empty** — see §2a.
+Present in outline: the application shell and design system, Supabase clients and 23 migrations,
+the authorization layer, the core domain model, the dashboard, talent / capability / performance /
+development / workload / project intelligence, the AI gateway, RAG, the assistant UI, and two of the
+eleven specified agents (`agents/performance/`, `agents/capability/`).
 
-`lib/status.ts` is the authoritative per-phase status. Read it rather than inferring from the file
-tree, and update it in the same commit as the work it describes; its tests fail if a phase claims
-completion without evidence, or if a fully implemented phase sits ahead of an incomplete one.
+Three things govern how far any of that can be trusted, and each has its own section below: **no
+database has ever been provisioned**, so no migration and no RLS policy has been executed (§2c);
+**no LLM provider is configured**, so no agent or assistant request ever produces an answer; and
+**every displayable figure is a `DataPoint<T>`**, so an unavailable metric renders as an explicit
+empty state rather than a number (§2a).
 
-Still absent: `.env` (use `.env.example`), CI config, `middleware.ts`, `agents/`, `tools/`.
+Still absent: `.env` (use `.env.example`), CI config, and `tools/`.
 
 ## 2a. Placeholder data is structurally impossible
 

@@ -408,6 +408,7 @@ type DevelopmentPlanRow = {
   objective: string | null;
   capability_id: UUID | null;
   capability_requirement_id: UUID | null;
+  template_id: UUID | null;
   source_capability_gap: string | null;
   status: string;
   start_date: DateOnly | null;
@@ -460,6 +461,56 @@ type LearningEvidenceRow = {
   deleted_at: Timestamp | null;
   deleted_by: UUID | null;
 }
+
+type DevelopmentTemplateRow = {
+  id: UUID;
+  code: string;
+  name: string;
+  description: string | null;
+  methodology: string;
+  total_hours: number;
+  capability_id: UUID | null;
+  target_level: number | null;
+  role_name: string | null;
+  organization_id: UUID | null;
+  active: boolean;
+  approved_by: UUID | null;
+  approved_at: Timestamp | null;
+  created_by: UUID | null;
+  created_at: Timestamp;
+  updated_at: Timestamp;
+};
+
+type DevelopmentTemplateActivityRow = {
+  id: UUID;
+  template_id: UUID;
+  sequence_no: number;
+  phase: string;
+  title: string;
+  activity_type: string;
+  estimated_hours: number;
+  requires_evidence: boolean;
+  created_at: Timestamp;
+};
+
+type CapabilityUpgradeProposalRow = {
+  id: UUID;
+  profile_id: UUID;
+  capability_id: UUID;
+  development_plan_id: UUID | null;
+  from_level: number;
+  to_level: number;
+  rationale: string | null;
+  evidence_ids: Json;
+  proposed_by: UUID | null;
+  proposed_by_agent: string | null;
+  status: string;
+  decided_by: UUID | null;
+  decided_at: Timestamp | null;
+  decision_note: string | null;
+  created_at: Timestamp;
+  updated_at: Timestamp;
+};
 
 // ===========================================================================
 // AI & agents (Phase 4)
@@ -709,6 +760,20 @@ export interface Database {
         "activity_id" | "profile_id" | "evidence_type"
       >;
 
+      // Configurable development curricula (Phase 10).
+      development_templates: Table<
+        DevelopmentTemplateRow,
+        "code" | "name" | "total_hours"
+      >;
+      development_template_activities: Table<
+        DevelopmentTemplateActivityRow,
+        "template_id" | "sequence_no" | "phase" | "title" | "activity_type" | "estimated_hours"
+      >;
+      capability_upgrade_proposals: Table<
+        CapabilityUpgradeProposalRow,
+        "profile_id" | "capability_id" | "from_level" | "to_level" | "evidence_ids"
+      >;
+
       // AI & agents
       ai_usage: Table<AiUsageRow, "profile_id" | "tool_name" | "use_case">;
       ai_assessments: Table<
@@ -792,6 +857,8 @@ export type DevelopmentPlan = Tables<"development_plans">;
 export type LearningPath = Tables<"learning_paths">;
 export type LearningActivity = Tables<"learning_activities">;
 export type LearningEvidence = Tables<"learning_evidence">;
+export type DevelopmentTemplateRecord = Tables<"development_templates">;
+export type CapabilityUpgradeProposal = Tables<"capability_upgrade_proposals">;
 export type AiUsage = Tables<"ai_usage">;
 export type AiAssessment = Tables<"ai_assessments">;
 export type AiAugmentation = Tables<"ai_augmentation">;

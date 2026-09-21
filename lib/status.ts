@@ -97,7 +97,13 @@ export const PHASES: readonly Phase[] = [
     evidence:
       "migration 20260921110001 (configurable weight profiles with a deferred sum-to-one constraint trigger), lib/calculations/performance.ts, types/claim.ts (FACT/ANALYSIS/INFERENCE/RECOMMENDATION), lib/performance/queries.ts, /performance, /performance/[talentId], /performance/reviews, 30 unit tests; outstanding: no database so no weighting model exists and no index can be computed, and the review server actions are not wired (the transition rules are pure and tested but no mutation path exists yet)",
   },
-  { id: 10, name: "Development", status: "PLANNED" },
+  {
+    id: 10,
+    name: "Development",
+    status: "PARTIALLY_IMPLEMENTED",
+    evidence:
+      "migration 20260921120001 (configurable development_templates with a deferred hours trigger, plus capability_upgrade_proposals whose CHECK forbids an evidence-free proposal), lib/calculations/development.ts, lib/development/queries.ts, /development, /development/[talentId], 24 unit tests; outstanding: no database so no template exists, the proposal decision path has no server action, and getDevelopmentPlans uses placeholder current/target levels until the capability join is wired",
+  },
   { id: 11, name: "Workload + Assignment", status: "PLANNED" },
   { id: 12, name: "Project + Feasibility + Budget", status: "PLANNED" },
   { id: 13, name: "AI Gateway", status: "PLANNED" },

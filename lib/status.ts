@@ -154,7 +154,13 @@ export const PHASES: readonly Phase[] = [
       "lib/jarvis/{contract,scope,redaction,transport,handoff}.ts with 37 tests: the JarvisHandoff contract, scope derived as user ∩ requested ∩ a transmittable allowlist that excludes every write/approve/export/admin permission, purpose-driven context minimisation with uuid redaction, audit-before-transmit that fails closed, a bounded deadline, and return-path validation that refuses evidence outside the handoff scope or claiming to be pre-validated; outstanding: JARVIS is not deployed and no endpoint is configured so the transport always reports unavailable and has never transmitted anything, no handoff has been persisted to agent_runs, and accepted evidence has no path into capability_evidence for a human to validate it through",
   },
   { id: 18, name: "Voice / Avatar", status: "PLANNED" },
-  { id: 19, name: "Audit + Observability", status: "PLANNED" },
+  {
+    id: 19,
+    name: "Audit + Observability",
+    status: "PARTIALLY_IMPLEMENTED",
+    evidence:
+      "migration 20260922100001 (session/correlation/latency/evidence on agent_runs, authorization_decision/risk_level/user_id on agent_tool_calls with agent_run_id made nullable so pre-run denials are recordable, rag_retrievals storing a query hash and never the text, RLS and indexes), lib/observability/{redact,metrics,recorder,queries}.ts, app/audit RBAC-gated viewer, 28 tests; redaction runs at the sink over every payload and caught a real bug where SUPABASE_SERVICE_ROLE_KEY escaped a word-boundary pattern; outstanding: no database exists so nothing has been written or read, the recorder is not yet called from the agent pipeline or the assistant so no run is opened in practice, ai_usage is modelled but not populated, and the viewer has no filtering or pagination beyond a 100-row cap",
+  },
   { id: 20, name: "Testing", status: "PLANNED" },
   { id: 21, name: "Production Hardening", status: "PLANNED" },
   { id: 22, name: "Deployment", status: "PLANNED" },

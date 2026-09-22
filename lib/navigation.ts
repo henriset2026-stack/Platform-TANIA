@@ -4,6 +4,7 @@ import {
   GraduationCap,
   Layers,
   LayoutDashboard,
+  ScrollText,
   Settings,
   Sparkles,
   Target,
@@ -94,6 +95,16 @@ export const PRIMARY_NAV: readonly NavItem[] = [
     icon: Sparkles,
     implementedInPhase: 15,
     permission: "ai.use",
+  },
+  {
+    id: "audit",
+    label: "Audit",
+    href: "/audit",
+    icon: ScrollText,
+    implementedInPhase: 19,
+    // admin.audit sees everything; ai.view_audit sees its own activity and is
+    // told so by the page. The stricter permission gates the nav entry.
+    permission: "admin.audit",
   },
   {
     id: "settings",

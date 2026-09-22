@@ -633,17 +633,55 @@ type AgentRunRow = {
   error_detail: string | null;
   started_at: Timestamp;
   completed_at: Timestamp | null;
+  // Phase 20 (migration 20260922100001).
+  session_id: string | null;
+  correlation_id: string | null;
+  latency_ms: number | null;
+  evidence_refs: Json;
 }
 
 type AgentToolCallRow = {
   id: UUID;
-  agent_run_id: UUID;
+  /**
+   * Nullable since migration 20260922100001: a call denied before a run was
+   * established must still be recordable, and those are the rows that matter
+   * most.
+   */
+  agent_run_id: UUID | null;
   tool_name: string;
   arguments: Json | null;
   result: Json | null;
   status: string;
   error_detail: string | null;
   duration_ms: number | null;
+  created_at: Timestamp;
+  // Phase 20 (migration 20260922100001).
+  user_id: UUID | null;
+  agent_name: string | null;
+  correlation_id: string | null;
+  session_id: string | null;
+  risk_level: string | null;
+  authorization_decision: string | null;
+  denial_reason: string | null;
+  evidence_refs: Json;
+  audited: boolean;
+}
+
+/** RAG retrieval telemetry. Stores a query hash, never the query text. */
+type RagRetrievalRow = {
+  id: UUID;
+  user_id: UUID | null;
+  correlation_id: string | null;
+  session_id: string | null;
+  query_hash: string;
+  query_length: number;
+  requested_match_count: number;
+  returned_chunk_count: number;
+  min_similarity: number | null;
+  top_similarity: number | null;
+  document_ids: Json;
+  injection_signal_count: number;
+  latency_ms: number | null;
   created_at: Timestamp;
 }
 
@@ -843,7 +881,11 @@ export interface Database {
       ai_augmentation: Table<AiAugmentationRow, "profile_id">;
       ai_interactions: Table<AiInteractionRow, "user_id">;
       agent_runs: Table<AgentRunRow, "agent_name" | "task_type">;
-      agent_tool_calls: Table<AgentToolCallRow, "agent_run_id" | "tool_name">;
+      rag_retrievals: Table<
+        RagRetrievalRow,
+        "query_hash" | "query_length" | "requested_match_count" | "returned_chunk_count"
+      >;
+      agent_tool_calls: Table<AgentToolCallRow, "tool_name">;
       recommendations: Table<
         RecommendationRow,
         "recommendation_type" | "title"

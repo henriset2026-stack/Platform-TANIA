@@ -144,7 +144,7 @@ export const PHASES: readonly Phase[] = [
     name: "Specialized Agents",
     status: "PARTIALLY_IMPLEMENTED",
     evidence:
-      "Performance Agent (agents/performance/*, 32 tests), Capability Agent (agents/capability/*, 36 tests) and Development Agent (agents/development/*, 41 tests), sharing agents/core/{output,refusal}.ts; isFinalRating, upgradesCapability and persisted are literal false, and drafted plans are objects rather than rows; outstanding: three of the eleven PRD agents exist, no LLM provider so none runs end to end, their tools are not registered in the global registry, agent runs are still not persisted, and no drafted plan has a committing path for a human to approve it through",
+      "Six agents: Performance, Capability and Development (agents/{performance,capability,development}/*) plus the DPS specialists Product, Solution and Business Case (agents/{product,solution,business-case}/*, agents/dps/*), sharing agents/core/{output,refusal,sourcing,approval,audit}.ts and lib/calculations/finance.ts; tool calls are now audited through agents/core/pipeline.ts and lib/audit/record.ts, and a consequential tool is refused rather than run when it cannot be audited; outstanding: five of the eleven PRD agents are still missing, no LLM provider so none runs end to end, no embedding provider so the knowledge search always reports not-integrated, their tools are not registered in the global registry, agent RUNS (as opposed to tool calls) are still not persisted to agent_runs, and no proposal has a committing path for a human to approve it through",
   },
   { id: 17, name: "JARVIS Integration", status: "PLANNED" },
   { id: 18, name: "Voice / Avatar", status: "PLANNED" },

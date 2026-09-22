@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { validateArguments } from "@/agents/core/schema";
 import { ToolRegistry, ToolRegistrationError, toolRegistry } from "@/agents/core/tool-registry";
 import { executeToolCall, requiresApproval } from "@/agents/core/pipeline";
+import type { AgentAuditEvent, AuditSink } from "@/agents/core/audit";
 import { RISK_LEVELS, type AgentAuthContext, type JsonSchema, type ToolDefinition } from "@/agents/core/types";
 import { UnconfiguredProvider, resolveProvider } from "@/lib/ai/provider";
 import { AI_LIMITS } from "@/lib/ai/config";
@@ -44,6 +45,16 @@ function auth(over: Partial<AgentAuthContext> = {}): AgentAuthContext {
     isAiService: false,
     ...over,
   };
+}
+
+/** A working audit sink that keeps what it was given, for assertions. */
+function recordingSink() {
+  const events: AgentAuditEvent[] = [];
+  const sink: AuditSink = async (event) => {
+    events.push(event);
+    return { ok: true, eventId: String(events.length) };
+  };
+  return { events, sink };
 }
 
 function options(registry: ToolRegistry, over: Record<string, unknown> = {}) {
@@ -257,9 +268,99 @@ describe("tool execution pipeline", () => {
     );
     const record = await executeToolCall(
       { toolName: "read_talent_summary", arguments: validArgs },
-      options(registry, { confirmations: new Set(["read_talent_summary"]) }),
+      options(registry, {
+        confirmations: new Set(["read_talent_summary"]),
+        audit: recordingSink().sink,
+      }),
     );
     expect(record.status).toBe("completed");
+    expect(record.audited).toBe(true);
+  });
+
+  // CLAUDE.md §16 rule 10. "The audit log was down" is not a defence for an
+  // unrecorded consequential action, so the action does not happen.
+  it("refuses a confirmed consequential tool when it cannot be audited", async () => {
+    const registry = new ToolRegistry();
+    let ran = false;
+    registry.register(
+      tool({
+        riskLevel: "HIGH",
+        requiresConfirmation: true,
+        requiredPermissions: ["talent.read"],
+        handler: async () => {
+          ran = true;
+          return { ok: true, result: {} };
+        },
+      }),
+    );
+    const record = await executeToolCall(
+      { toolName: "read_talent_summary", arguments: validArgs },
+      options(registry, { confirmations: new Set(["read_talent_summary"]) }),
+    );
+
+    expect(record.status).toBe("denied");
+    expect(record.errorDetail).toMatch(/cannot run unaudited/);
+    expect(ran, "a consequential tool must not run off the record").toBe(false);
+  });
+
+  // A LOW-risk read is not worth taking the assistant offline for, but the
+  // gap must be visible rather than assumed away.
+  it("lets a read proceed unaudited, and says so on the record", async () => {
+    const registry = new ToolRegistry();
+    registry.register(tool({ riskLevel: "LOW", requiresConfirmation: false }));
+    const record = await executeToolCall(
+      { toolName: "read_talent_summary", arguments: validArgs },
+      options(registry),
+    );
+
+    expect(record.status).toBe("completed");
+    expect(record.audited).toBe(false);
+    expect(record.auditFailure).toMatch(/No audit sink is configured/);
+  });
+
+  // A denied call is the most interesting row in the log: a run where the
+  // model kept trying an unauthorized action looks clean once denials are
+  // discarded.
+  it("audits denials as well as successes", async () => {
+    const registry = new ToolRegistry();
+    registry.register(tool({ requiredPermissions: ["talent.export"] }));
+    const { events, sink } = recordingSink();
+
+    await executeToolCall(
+      { toolName: "read_talent_summary", arguments: validArgs },
+      options(registry, { audit: sink, agentName: "test_agent" }),
+    );
+
+    expect(events.map((e) => e.action)).toEqual(["agent.tool.denied"]);
+    expect(events[0]?.agentName).toBe("test_agent");
+    expect(events[0]?.errorDetail).toMatch(/Missing permission/);
+  });
+
+  it("audits an unknown tool, so a refused attempt leaves a trace", async () => {
+    const { events, sink } = recordingSink();
+    await executeToolCall(
+      { toolName: "delete_everything", arguments: {} },
+      options(new ToolRegistry(), { audit: sink, allowedTools: ["delete_everything"] }),
+    );
+    expect(events).toHaveLength(1);
+    expect(events[0]?.toolName).toBe("delete_everything");
+    expect(events[0]?.status).toBe("denied");
+  });
+
+  it("does not let a throwing audit sink become a tool failure", async () => {
+    const registry = new ToolRegistry();
+    registry.register(tool());
+    const record = await executeToolCall(
+      { toolName: "read_talent_summary", arguments: validArgs },
+      options(registry, {
+        audit: () => {
+          throw new Error("audit exploded");
+        },
+      }),
+    );
+    expect(record.status).toBe("completed");
+    expect(record.audited).toBe(false);
+    expect(record.auditFailure).toBe("audit exploded");
   });
 
   // No fabricated execution.

@@ -19,8 +19,11 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["tests/**/*.test.ts", "tests/**/*.test.tsx"],
-    // RLS and e2e suites need a live database / browser and arrive in later
-    // phases; they are kept out of the default unit run.
+    // tests/unit, tests/integration, tests/security and tests/ai are hermetic
+    // and run here. tests/rls needs a live database and tests/e2e needs a
+    // running server, so both are run deliberately by their own scripts —
+    // a suite that silently no-ops inside `npm test` would report green for
+    // assertions that never executed.
     exclude: ["node_modules/**", ".next/**", "tests/rls/**", "tests/e2e/**"],
   },
 });

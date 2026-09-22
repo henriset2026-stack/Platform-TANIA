@@ -161,7 +161,13 @@ export const PHASES: readonly Phase[] = [
     evidence:
       "migration 20260922100001 (session/correlation/latency/evidence on agent_runs, authorization_decision/risk_level/user_id on agent_tool_calls with agent_run_id made nullable so pre-run denials are recordable, rag_retrievals storing a query hash and never the text, RLS and indexes), lib/observability/{redact,metrics,recorder,queries}.ts, app/audit RBAC-gated viewer, 28 tests; redaction runs at the sink over every payload and caught a real bug where SUPABASE_SERVICE_ROLE_KEY escaped a word-boundary pattern; outstanding: no database exists so nothing has been written or read, the recorder is not yet called from the agent pipeline or the assistant so no run is opened in practice, ai_usage is modelled but not populated, and the viewer has no filtering or pagination beyond a 100-row cap",
   },
-  { id: 20, name: "Testing", status: "PLANNED" },
+  {
+    id: 20,
+    name: "Testing",
+    status: "PARTIALLY_IMPLEMENTED",
+    evidence:
+      "five suites — tests/{unit,integration,security,ai} run hermetically in npm test (695 tests), tests/rls and tests/e2e are run deliberately by their own scripts and skip when unconfigured rather than passing; tests/README.md states what a green run does and does not prove; writing them closed three real gaps: no idempotency existed for consequential tool calls (agents/core/idempotency.ts), getAuthContext threw on missing configuration so a public endpoint returned an unhandled exception instead of its error contract, and the injection detector missed markdown-header smuggling, third-person privilege claims and exfiltration past a 30-character window; outstanding: RLS has still never executed against a database, there is no browser so screen flows S01-S13 have no automated coverage and no axe or visual-regression check exists, and the observability recorder is tested but still not called from the pipeline",
+  },
   { id: 21, name: "Production Hardening", status: "PLANNED" },
   { id: 22, name: "Deployment", status: "PLANNED" },
 ];

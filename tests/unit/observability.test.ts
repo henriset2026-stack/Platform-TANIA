@@ -309,6 +309,7 @@ describe("recorder: authorization decisions", () => {
       errorDetail: null,
       durationMs: 1,
       awaitingConfirmation: false,
+      replayed: false,
       audited: true,
       auditFailure: null,
       ...over,

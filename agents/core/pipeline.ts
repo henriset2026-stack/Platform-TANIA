@@ -17,6 +17,11 @@
 
 import { validateArguments } from "@/agents/core/schema";
 import {
+  idempotencyKey,
+  requiresIdempotency,
+  type IdempotencyStore,
+} from "@/agents/core/idempotency";
+import {
   requiresAuditBeforeExecution,
   unconfiguredAuditSink,
   type AgentAuditEvent,
@@ -44,6 +49,8 @@ export interface ToolCallRecord {
   readonly durationMs: number;
   /** Set when the call stopped because a human must confirm it. */
   readonly awaitingConfirmation: boolean;
+  /** True when this result was replayed rather than executed again. */
+  readonly replayed: boolean;
   /**
    * Whether this call reached the audit log.
    *
@@ -76,6 +83,12 @@ export interface PipelineOptions {
   readonly audit?: AuditSink;
   /** Recorded on each event so a run can be reconstructed from the log. */
   readonly agentName?: string;
+  /**
+   * Suppresses duplicate consequential calls (AGENTS.md §16). Omitting it
+   * means a retry re-executes, which is correct for reads and dangerous for
+   * anything that writes.
+   */
+  readonly idempotency?: IdempotencyStore;
 }
 
 /**
@@ -126,7 +139,9 @@ export async function executeToolCall(
    * rather than swallowed.
    */
   async function finish(
-    partial: Omit<ToolCallRecord, "durationMs" | "audited" | "auditFailure">,
+    partial: Omit<ToolCallRecord, "durationMs" | "audited" | "auditFailure" | "replayed"> & {
+      replayed?: boolean;
+    },
   ): Promise<ToolCallRecord> {
     const durationMs = Date.now() - startedAt;
     const { audited, auditFailure } = await recordAudit(sink, {
@@ -146,7 +161,13 @@ export async function executeToolCall(
       log("tool.audit_failed", { tool: partial.toolName, reason: auditFailure });
     }
 
-    return { ...partial, durationMs, audited, auditFailure };
+    return {
+      ...partial,
+      replayed: partial.replayed ?? false,
+      durationMs,
+      audited,
+      auditFailure,
+    };
   }
 
   const refuse = (toolName: string, args: unknown, reason: string) =>
@@ -258,7 +279,36 @@ export async function executeToolCall(
     }
   }
 
-  // --- 8. Execute --------------------------------------------------------
+  // --- 8. A consequential call is not executed twice --------------------
+  // Checked after authorization, never before: a replay must still be a call
+  // the caller is entitled to make, so a revoked permission stops a retry
+  // that an earlier grant allowed.
+  const dedupeKey =
+    options.idempotency && requiresIdempotency(tool)
+      ? idempotencyKey({
+          correlationId: auth.correlationId,
+          toolName: tool.name,
+          args: validation.value,
+        })
+      : null;
+
+  if (dedupeKey && options.idempotency) {
+    const previous = options.idempotency.get(dedupeKey);
+    if (previous) {
+      log("tool.replayed", { tool: tool.name });
+      return finish({
+        toolName: tool.name,
+        arguments: validation.value,
+        status: "completed",
+        result: previous.result,
+        errorDetail: null,
+        awaitingConfirmation: false,
+        replayed: true,
+      });
+    }
+  }
+
+  // --- 9. Execute --------------------------------------------------------
   const context: ToolExecutionContext = {
     auth,
     correlationId: auth.correlationId,
@@ -275,7 +325,7 @@ export async function executeToolCall(
       options.signal,
     );
 
-    // --- 9. Validate the result ----------------------------------------
+    // --- 10. Validate the result ---------------------------------------
     // A handler that returns a malformed outcome is a failure, not a success
     // with odd data.
     if (!outcome || typeof outcome !== "object" || !("ok" in outcome)) {
@@ -303,6 +353,18 @@ export async function executeToolCall(
     }
 
     log("tool.completed", { tool: tool.name, durationMs: Date.now() - startedAt });
+
+    // Recorded only on success. A failure may be retried, and a denial must be
+    // re-evaluated rather than replayed.
+    if (dedupeKey && options.idempotency) {
+      options.idempotency.set({
+        key: dedupeKey,
+        toolName: tool.name,
+        result: outcome.result,
+        recordedAt: Date.now(),
+      });
+    }
+
     return finish({
       toolName: tool.name,
       arguments: validation.value,

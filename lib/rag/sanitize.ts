@@ -32,8 +32,16 @@ const SUSPICIOUS_PATTERNS: readonly { readonly name: string; readonly re: RegExp
   { name: "instruction_override", re: /\b(ignore|disregard|forget)\b[^.]{0,40}\b(previous|prior|above|earlier)\b[^.]{0,20}\b(instruction|prompt|rule|direction)/i },
   { name: "role_reassignment", re: /\byou\s+are\s+now\b|\bact\s+as\s+(?:an?\s+)?(?:admin|administrator|superuser|system)/i },
   { name: "system_prompt_probe", re: /\b(system\s+prompt|your\s+instructions|reveal\s+your|repeat\s+the\s+above)\b/i },
-  { name: "privilege_claim", re: /\b(you\s+(?:now\s+)?have|grant(?:ed)?\s+(?:me|yourself))\b[^.]{0,30}\b(permission|access|admin|privilege)/i },
-  { name: "exfiltration", re: /\b(send|post|email|upload|transmit)\b[^.]{0,30}\b(https?:\/\/|to\s+the\s+following)/i },
+  // Third-person phrasing ("the user has been granted admin") is as common as
+  // second-person and was previously missed.
+  { name: "privilege_claim", re: /\b(you\s+(?:now\s+)?have|grant(?:ed)?\s+(?:me|yourself)|(?:has|have)\s+been\s+granted)\b[^.]{0,40}\b(permission|access|admin|privilege|role)/i },
+  // The window was 30 characters, which a single extra clause cleared:
+  // "send the contents of this document to https://..." went undetected.
+  { name: "exfiltration", re: /\b(send|post|email|upload|transmit)\b[^.]{0,60}\b(https?:\/\/|to\s+the\s+following)/i },
+  // Instruction smuggling under a heading. Deliberately requires an
+  // instruction word rather than any heading, so an architecture document
+  // titled "## System Architecture" is not flagged every time it is read.
+  { name: "instruction_smuggling", re: /(^|\n)\s*(#{1,6}|\*{2,}|={2,}|-{3,})\s*(new\s+|updated\s+|revised\s+|additional\s+)?(instruction|directive|rule|command)s?\b/i },
   { name: "tool_coercion", re: /\b(call|invoke|execute|run)\b[^.]{0,20}\b(tool|function|command|query)\b/i },
   { name: "fence_escape", re: /<\/?(?:untrusted_document|system|instructions)>/i },
 ];

@@ -2,7 +2,7 @@
   "name": "tania",
   "version": "0.1.0",
   "private": true,
-  "description": "TANIA — Talent Intelligence, Analytics, Insight & Action. Chapter DPS, Telkom Indonesia.",
+  "description": "TANIA \u2014 Talent Intelligence, Analytics, Insight & Action. Chapter DPS, Telkom Indonesia.",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -13,8 +13,12 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:unit": "vitest run tests/unit",
-    "verify": "npm run typecheck && npm run lint && npm run test",
-    "test:rls": "vitest run --config vitest.rls.config.mts"
+    "test:integration": "vitest run tests/integration",
+    "test:security": "vitest run tests/security",
+    "test:ai": "vitest run tests/ai",
+    "test:rls": "vitest run --config vitest.rls.config.mts",
+    "test:e2e": "vitest run --config vitest.e2e.config.mts",
+    "verify": "npm run typecheck && npm run lint && npm run test"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",

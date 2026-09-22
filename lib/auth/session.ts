@@ -38,6 +38,20 @@ export async function getCurrentUser() {
  * caller can only ever assemble their own context.
  */
 export async function getAuthContext(): Promise<AuthContext | null> {
+  // No project configured means no session can exist, so null is the honest
+  // answer and deny-by-default follows from it. Without this the client
+  // constructor throws on the missing variable, and a public endpoint answers with an
+  // unhandled exception — a 500 with a stack trace — instead of its error
+  // contract. Note this is NOT the same as the RPC failure below, which is
+  // still thrown: there, a session exists and its scope could not be
+  // resolved, and returning an empty context would silently under-authorize.
+  if (
+    !process.env.NEXT_PUBLIC_SUPABASE_URL ||
+    !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  ) {
+    return null;
+  }
+
   const supabase = await createClient();
 
   const {

@@ -146,7 +146,13 @@ export const PHASES: readonly Phase[] = [
     evidence:
       "Six agents: Performance, Capability and Development (agents/{performance,capability,development}/*) plus the DPS specialists Product, Solution and Business Case (agents/{product,solution,business-case}/*, agents/dps/*), sharing agents/core/{output,refusal,sourcing,approval,audit}.ts and lib/calculations/finance.ts; tool calls are now audited through agents/core/pipeline.ts and lib/audit/record.ts, and a consequential tool is refused rather than run when it cannot be audited; outstanding: five of the eleven PRD agents are still missing, no LLM provider so none runs end to end, no embedding provider so the knowledge search always reports not-integrated, their tools are not registered in the global registry, agent RUNS (as opposed to tool calls) are still not persisted to agent_runs, and no proposal has a committing path for a human to approve it through",
   },
-  { id: 17, name: "JARVIS Integration", status: "PLANNED" },
+  {
+    id: 17,
+    name: "JARVIS Integration",
+    status: "PARTIALLY_IMPLEMENTED",
+    evidence:
+      "lib/jarvis/{contract,scope,redaction,transport,handoff}.ts with 37 tests: the JarvisHandoff contract, scope derived as user ∩ requested ∩ a transmittable allowlist that excludes every write/approve/export/admin permission, purpose-driven context minimisation with uuid redaction, audit-before-transmit that fails closed, a bounded deadline, and return-path validation that refuses evidence outside the handoff scope or claiming to be pre-validated; outstanding: JARVIS is not deployed and no endpoint is configured so the transport always reports unavailable and has never transmitted anything, no handoff has been persisted to agent_runs, and accepted evidence has no path into capability_evidence for a human to validate it through",
+  },
   { id: 18, name: "Voice / Avatar", status: "PLANNED" },
   { id: 19, name: "Audit + Observability", status: "PLANNED" },
   { id: 20, name: "Testing", status: "PLANNED" },

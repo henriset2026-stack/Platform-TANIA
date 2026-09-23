@@ -19,6 +19,7 @@ import { isAiService } from "@/lib/auth/policy";
 import { getAuthContext } from "@/lib/auth/session";
 import { describeContext, type PageContext } from "@/lib/assistant/context";
 import { AI_LIMITS, readAiConfig } from "@/lib/ai/config";
+import { aiRateLimiter } from "@/lib/ai/rate-limit";
 import { resolveProvider, type ProviderMessage } from "@/lib/ai/provider";
 
 export interface GatewayRequest {
@@ -40,6 +41,7 @@ export type GatewayOutcome =
   | { readonly ok: false; readonly code: GatewayErrorCode; readonly message: string; readonly correlationId: string };
 
 export type GatewayErrorCode =
+  | "RATE_LIMITED"
   | "UNAUTHENTICATED"
   | "FORBIDDEN"
   | "NOT_CONFIGURED"
@@ -121,6 +123,19 @@ export async function handleGatewayRequest(
   const authContext = await getAuthContext();
   if (!authContext) {
     return { ok: false, code: "UNAUTHENTICATED", message: "Sign in to use TANIA.", correlationId };
+  }
+
+  // Budgeted per authenticated user, here rather than in the route, because
+  // this is the one place the identity is known and authorization already
+  // happened. Anonymous callers never reach it — they were refused above.
+  const budget = aiRateLimiter.consume(authContext.userId);
+  if (!budget.allowed) {
+    return {
+      ok: false,
+      code: "RATE_LIMITED",
+      message: `Too many requests. Try again in ${budget.retryAfterSeconds}s.`,
+      correlationId,
+    };
   }
 
   const agent = request.agent ?? DEFAULT_AGENT;

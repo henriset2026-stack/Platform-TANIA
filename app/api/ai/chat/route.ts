@@ -28,6 +28,7 @@ const STATUS: Record<GatewayErrorCode, number> = {
   NOT_CONFIGURED: 503,
   PROVIDER_ERROR: 502,
   TIMEOUT: 504,
+  RATE_LIMITED: 429,
 };
 
 interface ChatBody {

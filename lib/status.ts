@@ -168,7 +168,13 @@ export const PHASES: readonly Phase[] = [
     evidence:
       "five suites — tests/{unit,integration,security,ai} run hermetically in npm test (695 tests), tests/rls and tests/e2e are run deliberately by their own scripts and skip when unconfigured rather than passing; tests/README.md states what a green run does and does not prove; writing them closed three real gaps: no idempotency existed for consequential tool calls (agents/core/idempotency.ts), getAuthContext threw on missing configuration so a public endpoint returned an unhandled exception instead of its error contract, and the injection detector missed markdown-header smuggling, third-person privilege claims and exfiltration past a 30-character window; outstanding: RLS has still never executed against a database, there is no browser so screen flows S01-S13 have no automated coverage and no axe or visual-regression check exists, and the observability recorder is tested but still not called from the pipeline",
   },
-  { id: 21, name: "Production Hardening", status: "PLANNED" },
+  {
+    id: 21,
+    name: "Production Hardening",
+    status: "PARTIALLY_IMPLEMENTED",
+    evidence:
+      "TANIA_PRODUCTION_READINESS_REPORT.md audits the repository against the five source documents and classifies 14 findings; the two HIGH issues found are fixed — security response headers in next.config.mjs (X-Frame-Options, nosniff, Referrer-Policy, Permissions-Policy, HSTS, poweredByHeader off) and a per-user token-bucket budget on the AI gateway returning 429, both covered by tests/security/hardening.security.test.ts; outstanding and BLOCKING: C-1, the RLS enforcement layer has never executed because no database has been provisioned, so every policy, constraint and index remains unexecuted text and tests/rls has never run; also open are H-1 (no CSP, deliberately not guessed at without a browser to verify it), and MEDIUM findings on cluster-wide rate limiting, 83 unindexed foreign keys, provider retry, recorder wiring and a duplicate correlation column",
+  },
   { id: 22, name: "Deployment", status: "PLANNED" },
 ];
 

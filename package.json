@@ -18,7 +18,9 @@
     "test:ai": "vitest run tests/ai",
     "test:rls": "vitest run --config vitest.rls.config.mts",
     "test:e2e": "vitest run --config vitest.e2e.config.mts",
-    "verify": "npm run typecheck && npm run lint && npm run test"
+    "verify": "npm run typecheck && npm run lint && npm run test",
+    "db:seed": "node scripts/db.mjs seed",
+    "db:reset": "node scripts/db.mjs reset"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",

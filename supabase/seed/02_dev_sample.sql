@@ -25,7 +25,13 @@
 
 do $$
 begin
-  if exists (select 1 from public.organizations where code not like 'SAMPLE-%') then
+  -- DEMO- is accepted too, so this file and 03_demo_dataset.sql can coexist
+  -- in one development database without either mistaking the other for real
+  -- data.
+  if exists (
+    select 1 from public.organizations
+    where code not like 'SAMPLE-%' and code not like 'DEMO-%'
+  ) then
     raise exception 'REFUSED: database contains non-sample organizations; this looks like a real environment.';
   end if;
 end;

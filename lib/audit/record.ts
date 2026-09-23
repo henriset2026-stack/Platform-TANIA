@@ -63,7 +63,8 @@ export function createAuditSink(): AuditSink {
       const { data, error } = await supabase.rpc("record_audit_event", {
         p_action: event.action,
         p_resource_type: event.resourceType,
-        p_resource_id: event.resourceId,
+        // Absent parameters take the SQL default (null).
+        ...(event.resourceId ? { p_resource_id: event.resourceId } : {}),
         p_before_data: null,
         p_after_data: {
           agent: event.agentName,
@@ -76,7 +77,7 @@ export function createAuditSink(): AuditSink {
         // The column is uuid; a non-uuid correlation id is dropped rather
         // than failing the whole write, since losing the audit row is worse
         // than losing the correlation.
-        p_request_id: UUID_RE.test(event.correlationId) ? event.correlationId : null,
+        ...(UUID_RE.test(event.correlationId) ? { p_request_id: event.correlationId } : {}),
       });
 
       if (error) return { ok: false, error: error.message };

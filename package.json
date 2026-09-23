@@ -2,7 +2,7 @@
   "name": "tania",
   "version": "0.1.0",
   "private": true,
-  "description": "TANIA \u2014 Talent Intelligence, Analytics, Insight & Action. Chapter DPS, Telkom Indonesia.",
+  "description": "TANIA — Talent Intelligence, Analytics, Insight & Action. Chapter DPS, Telkom Indonesia.",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -25,7 +25,7 @@
   "dependencies": {
     "@base-ui/react": "^1.8.0",
     "@supabase/ssr": "^0.12.7",
-    "@supabase/supabase-js": "^2.116.0",
+    "@supabase/supabase-js": "^2.117.1",
     "class-variance-authority": "^0.7.1",
     "cn": "^0.3.0",
     "lucide-react": "^1.47.0",

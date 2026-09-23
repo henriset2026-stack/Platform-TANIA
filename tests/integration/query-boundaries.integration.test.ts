@@ -62,7 +62,9 @@ describe("integration: query modules degrade explicitly", () => {
         // Unconfigured must surface as a named state, never as live data.
         expect(result.state, `${specifier}.${name}`).not.toBe("live");
       }
-    });
+      // The dynamic import runs inside the test, so a cold module graph counts
+      // against the timeout; the 5s default flaked on a slow disk.
+    }, 20_000);
   }
 });
 

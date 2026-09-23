@@ -28,10 +28,12 @@ import {
   getAlerts,
   getCapabilityCoverage,
   getCapabilityGaps,
+  getChapterSummaries,
   getPerformanceIndex,
   getTalentHeadcount,
   getValidatedBusinessImpact,
   getWorkload,
+  type ChapterSummaryRow,
   type ProjectRow,
 } from "@/lib/dashboard/queries";
 import { isSectionVisible, resolveDashboardView } from "@/lib/dashboard/views";
@@ -83,6 +85,7 @@ export default async function DashboardPage() {
     projects,
     alerts,
     workload,
+    chapterTotals,
   ] = await Promise.all([
     getTalentHeadcount(view, context),
     getPerformanceIndex(view),
@@ -93,7 +96,20 @@ export default async function DashboardPage() {
     getActiveProjects(view),
     getAlerts(view, context),
     getWorkload(view, context),
+    getChapterSummaries(view),
   ]);
+
+  const showChapterTotals = view.scope === "aggregate" || view.scope === "platform";
+  // A withheld figure says so; it never renders as 0 or a dash that reads as zero.
+  const withheld = (value: number | null) => (value === null ? "Hidden (under 5)" : String(value));
+  const chapterColumns: readonly Column<ChapterSummaryRow>[] = [
+    { id: "chapter", header: "Chapter", cell: (r) => r.organizationName },
+    { id: "headcount", header: "Active people", align: "end", cell: (r) => String(r.activeHeadcount) },
+    { id: "assessed", header: "Capability-assessed", align: "end", cell: (r) => withheld(r.talentsAssessed) },
+    { id: "assignments", header: "Active assignments", align: "end", cell: (r) => withheld(r.activeAssignments) },
+    { id: "overallocated", header: "Over-allocated", align: "end", cell: (r) => withheld(r.overallocatedPeople) },
+    { id: "projects", header: "Active projects", align: "end", cell: (r) => String(r.activeProjects) },
+  ];
 
   const projectColumns: readonly Column<ProjectRow>[] = [
     { id: "name", header: "Project", cell: (p) => p.name },
@@ -220,6 +236,22 @@ export default async function DashboardPage() {
               data={gaps}
               getRowId={(r) => r.capability}
               emptyTitle="No capability gaps recorded"
+            />
+          </SectionCard>
+        ) : null}
+
+        {showChapterTotals ? (
+          <SectionCard
+            title="Chapter Totals"
+            description="Counts only, computed in the database. Figures describing fewer than five people are withheld."
+            action={<Users aria-hidden="true" className="size-4 text-slate-400" />}
+          >
+            <DataTable
+              caption="Totals per chapter"
+              columns={chapterColumns}
+              data={chapterTotals}
+              getRowId={(r) => r.organizationId}
+              emptyTitle="No chapters in scope"
             />
           </SectionCard>
         ) : null}

@@ -1,8 +1,27 @@
 # RLS test suite
 
-**Status: NOT RUN.** No TANIA Supabase database exists yet, so none of these
-assertions has ever executed. Nothing in this directory should be cited as
-evidence that RLS works.
+**Status: 57/57 passing** against project `hcyaqbgbwfxzutamceoq`
+(2026-09-24): all **15** rows of TANIA_RBAC_RLS_MATRIX.md §9.
+
+- *Executive → aggregate* goes through `chapter_summary()` and
+  `chapter_capability_summary()`. The tests also check that a figure over
+  fewer than five people is withheld, and that talents, other chapters' leads
+  and AI identities get nothing.
+- *Manager → approve subordinate review* is tested as development-plan
+  approval, the approval §4 gives MANAGER. That MANAGER cannot approve a
+  performance review is tested too.
+
+Cite this suite only for the rows it exercises.
+
+Rules the suite now holds itself to, each learned from the first live run:
+
+- A denial asserts SQLSTATE `42501`, not "some error". A foreign-key failure is
+  not an RLS denial.
+- No test returns early for lack of data. Fixtures are created in `beforeAll`.
+- A denial that depends on one specific policy has a control proving the same
+  actor is otherwise allowed. See the SUPER_ADMIN self-grant pair.
+- `afterAll` throws on any cleanup error. Squads are deleted before
+  organizations (`ON DELETE RESTRICT`).
 
 These tests cannot be mocked. The subject under test is PostgreSQL's own row
 filtering, so they require a real database and real `authenticated` JWTs.
@@ -12,11 +31,12 @@ filtering, so they require a real database and real `authenticated` JWTs.
 Requires a Supabase project with the Phase 2 migrations applied:
 
 ```bash
-export NEXT_PUBLIC_SUPABASE_URL=...
-export NEXT_PUBLIC_SUPABASE_ANON_KEY=...
-export SUPABASE_SERVICE_ROLE_KEY=...        # test fixtures only, never app code
+# .env.local holds the three variables; vitest does not load it itself.
+set -a; . ./.env.local; set +a
 npm run test:rls
 ```
+
+`SUPABASE_SERVICE_ROLE_KEY` is for test fixtures only, never app code.
 
 They are excluded from `npm test` by `vitest.config.mts` so the unit suite
 stays hermetic.

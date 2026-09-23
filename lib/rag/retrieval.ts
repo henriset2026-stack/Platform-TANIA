@@ -107,8 +107,9 @@ export async function retrieveAuthorizedChunks(
       query_embedding: `[${queryEmbedding.join(",")}]`,
       match_count: matchCount,
       min_similarity: options.minSimilarity ?? RETRIEVAL_LIMITS.defaultMinSimilarity,
-      filter_organization_id: options.organizationId ?? null,
-      filter_source_type: options.sourceType ?? null,
+      // Absent filters take the SQL default (null), meaning "no filter".
+      ...(options.organizationId ? { filter_organization_id: options.organizationId } : {}),
+      ...(options.sourceType ? { filter_source_type: options.sourceType } : {}),
     });
 
     if (error) return failed(error.message);

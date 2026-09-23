@@ -174,6 +174,61 @@ export async function getCapabilityGaps(
 }
 
 // ===========================================================================
+// Chapter totals — the executive aggregate path
+// ===========================================================================
+
+export interface ChapterSummaryRow {
+  readonly organizationId: string;
+  readonly organizationName: string;
+  /** True when the chapter has fewer than 5 active people. */
+  readonly suppressed: boolean;
+  readonly activeHeadcount: number;
+  /** null when suppressed: the figure would describe identifiable people. */
+  readonly talentsAssessed: number | null;
+  readonly activeAssignments: number | null;
+  readonly overallocatedPeople: number | null;
+  readonly activeProjects: number;
+}
+
+/**
+ * Per-chapter totals from chapter_summary() (migration 20260924100003).
+ *
+ * EXECUTIVE cannot read the rows behind these figures, by design (matrix §9),
+ * so a direct count through RLS would return 0 and read as "nothing to
+ * report". The function counts as definer and returns totals only, with
+ * figures over fewer than five people withheld. Offered at the aggregate and
+ * platform scopes; the database decides which chapters each caller gets.
+ */
+export async function getChapterSummaries(
+  view: DashboardView,
+): Promise<DataPoint<readonly ChapterSummaryRow[]>> {
+  if (view.scope !== "aggregate" && view.scope !== "platform") {
+    return { state: "restricted", reason: "Chapter totals are an executive and platform view." };
+  }
+  return guarded("chapter_summary() — migration 20260924100003", async () => {
+    const supabase = await createClient();
+    const { data, error } = await supabase.rpc("chapter_summary");
+    if (error) return failed(error.message);
+    if (!data || data.length === 0) return { state: "empty" };
+
+    return {
+      state: "live",
+      value: data.map((row) => ({
+        organizationId: row.organization_id,
+        organizationName: row.organization_name,
+        suppressed: row.suppressed,
+        activeHeadcount: row.active_headcount,
+        talentsAssessed: row.talents_assessed,
+        activeAssignments: row.active_assignments,
+        overallocatedPeople: row.overallocated_people,
+        activeProjects: row.active_projects,
+      })),
+      provenance: provenance("supabase:chapter_summary()"),
+    };
+  });
+}
+
+// ===========================================================================
 // Performance
 // ===========================================================================
 

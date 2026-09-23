@@ -1,8 +1,10 @@
 # TANIA migration sequence
 
-**Applied to: nothing.** No TANIA Supabase project exists. These migrations
-have never been executed, and no statement in them has been validated by a
-database. Treat every claim below as intent, not as verified behaviour.
+**Applied to: `hcyaqbgbwfxzutamceoq`, 2026-09-24.** All 24 migrations ran
+cleanly in order: 52 tables, RLS on all of them, 253 policies, and a clean
+`supabase db lint`. `tests/rls/` passes 57/57 against it, covering all 15
+matrix rows (see tests/rls/README.md). Treat access-control claims
+outside those rows as intent until they are tested.
 
 ## Order
 
@@ -34,6 +36,10 @@ files depend on objects created earlier.
 | 21 | `20260921120001_development_templates.sql` | `development_templates`, template activities + deferred hours trigger, `capability_upgrade_proposals` (Phase 10) |
 | 22 | `20260921130001_feasibility_and_budget.sql` | feasibility criteria/weights/assessments/scores/reviews, `project_budgets`, thresholds, reallocations, audit triggers (Phase 12) |
 | 23 | `20260921140001_knowledge_chunks.sql` | `knowledge_chunks`, ACL sync triggers, `match_knowledge_chunks` (SECURITY INVOKER) (Phase 14) |
+| 24 | `20260922100001_observability.sql` | run/tool-call observability columns, `rag_retrievals` (Phase 20) |
+| 25 | `20260924100001_performance_review_approval_guard.sql` | trigger: deciding a review needs `approve_review`, in scope, as yourself (found by `tests/rls`) |
+| 26 | `20260924100002_approval_guards.sql` | the same guard for `development_plans` and `assignments` |
+| 27 | `20260924100003_chapter_aggregates.sql` | `chapter_summary()`, `chapter_capability_summary()`: executive totals, suppressed below 5 people |
 
 Migration 9 is Phase 3. It only subtracts: RESTRICTIVE policies are AND-ed
 with the permissive ones, so it can never widen access.
@@ -55,8 +61,8 @@ supabase gen types typescript --project-id <ref> > types/database.ts
 npm run test:rls
 ```
 
-`types/database.ts` is currently **hand-written** and must be replaced with
-generated output once a database exists.
+`types/database.ts` is generated. Regenerating it drops the named aliases at the
+bottom of the file, so re-append them.
 
 ## Relationship to TANIA_SUPABASE_RLS.sql
 

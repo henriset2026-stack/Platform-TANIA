@@ -158,6 +158,41 @@ describe("migration chain", () => {
     expect(SQL).toMatch(/memberships_no_self_grant_insert/);
     expect(SQL).toMatch(/user_id <> auth\.uid\(\)/);
   });
+
+  // A reviewer once approved their own submission and forged approved_by
+  // (tests/rls/matrix-extended.rls.test.ts). Only a trigger sees OLD and NEW.
+  it("guards performance review decisions with a trigger", () => {
+    expect(SQL).toMatch(
+      /create trigger performance_reviews_guard_decision\s+before insert or update on public\.performance_reviews/i,
+    );
+    expect(SQL).toMatch(/has_permission\('performance\.approve_review'\)/);
+    expect(SQL).toMatch(/new\.approved_by is distinct from auth\.uid\(\)/);
+  });
+
+  it("guards development plan and assignment approvals the same way", () => {
+    expect(SQL).toMatch(
+      /create trigger development_plans_guard_approval\s+before insert or update on public\.development_plans/i,
+    );
+    expect(SQL).toMatch(/has_permission\('development\.approve'\)/);
+    expect(SQL).toMatch(
+      /create trigger assignments_guard_approval\s+before insert or update on public\.assignments/i,
+    );
+    expect(SQL).toMatch(/has_permission\('assignment\.approve'\)/);
+  });
+
+  // Executive aggregates: no caller-supplied scope, AI excluded, and nothing
+  // below five people (TANIA_RBAC_RLS_MATRIX.md §9 "Executive → aggregate").
+  it("exposes chapter aggregates without parameters, AI access, or small groups", () => {
+    for (const fn of ["chapter_summary", "chapter_capability_summary"]) {
+      const body = ALL.match(
+        new RegExp(`create or replace function public\\.${fn}\\(\\)[\\s\\S]*?\\$\\$[\\s\\S]*?\\$\\$`, "i"),
+      )?.[0];
+      expect(body, `${fn} must exist and take no parameters`).toBeTruthy();
+      expect(body).toMatch(/not public\.is_ai_service\(\)/);
+      expect(body).toMatch(/has_permission\('report\.read'\)/);
+      expect(body).toMatch(/< 5 then null/);
+    }
+  });
   // ---------------------------------------------------------------------
   // Phase 4
   // ---------------------------------------------------------------------

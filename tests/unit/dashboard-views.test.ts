@@ -8,14 +8,15 @@ import {
   resolveScope,
 } from "@/lib/dashboard/views";
 import type { AuthContext } from "@/lib/auth/session";
+import { getChapterSummaries } from "@/lib/dashboard/queries";
 import type { Role } from "@/types/authorization";
 
 /**
  * Role-aware dashboard composition.
  *
  * These verify what each role SEES. They do not verify access — RLS does
- * that, and tests/rls/ has never run. A section rendered in error would show
- * an empty state, not another chapter's data.
+ * that, and tests/rls/ verifies it against a live database. A section
+ * rendered in error would show an empty state, not another chapter's data.
  */
 
 const CHAPTER = "org-dps";
@@ -137,5 +138,18 @@ describe("view copy", () => {
       ] as Role[][]
     ).map((roles) => resolveDashboardView(context(roles, ALL_READS)).title);
     expect(new Set(titles).size).toBe(titles.length);
+  });
+});
+
+describe("chapter totals (executive aggregate path)", () => {
+  it("is refused below the aggregate and platform scopes, not returned empty", async () => {
+    const view = resolveDashboardView(context(["CHAPTER_LEAD"], ALL_READS));
+    expect((await getChapterSummaries(view)).state).toBe("restricted");
+  });
+
+  it("reports not-connected rather than zero when no database is configured", async () => {
+    const view = resolveDashboardView(context(["EXECUTIVE"], [...ALL_READS, "report.read"]));
+    expect(view.scope).toBe("aggregate");
+    expect((await getChapterSummaries(view)).state).toBe("not-connected");
   });
 });

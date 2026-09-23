@@ -6,7 +6,9 @@ import type { Database } from "@/types/database";
 /**
  * RLS across all four verbs, plus cross-scope access.
  *
- * STATUS: NEVER RUN. No TANIA database exists (CLAUDE.md §2c).
+ * First run green 2026-09-24 against project hcyaqbgbwfxzutamceoq. That run
+ * showed two evidence tests returning early on an empty database and
+ * asserting nothing; they now build their own fixtures.
  *
  * tests/rls/matrix.rls.test.ts covers SELECT against the §9 matrix. This adds
  * the write verbs, which are where the damaging failures live: a missing
@@ -38,6 +40,10 @@ describe.skipIf(!configured)("RLS: SELECT, INSERT, UPDATE, DELETE", () => {
   let managerA: Actor;
   let managerB: Actor;
   let talentA: Actor;
+  let domainId: string;
+  let capabilityId: string;
+  let outsideCapabilityId: string;
+  let evidenceId: string;
   const createdUserIds: string[] = [];
 
   async function makeActor(label: string, roleCode: string, orgId: string): Promise<Actor> {
@@ -106,13 +112,63 @@ describe.skipIf(!configured)("RLS: SELECT, INSERT, UPDATE, DELETE", () => {
 
     await admin.from("profiles").update({ squad_id: squadA }).eq("id", talentA.id);
     await admin.from("squads").update({ manager_id: managerA.id }).eq("id", squadA);
+
+    // Evidence fixtures. Without them the evidence tests have nothing to act
+    // on, and on an empty database they used to return early and pass.
+    const { data: domain, error: domainError } = await admin
+      .from("capability_domains")
+      .insert({ name: `CRUD domain ${stamp}`, code: `CRUD-DOM-${stamp}` })
+      .select("id")
+      .single();
+    if (domainError) throw new Error(`domain fixture: ${domainError.message}`);
+    domainId = domain.id;
+
+    const { data: capability, error: capabilityError } = await admin
+      .from("capabilities")
+      .insert({ domain_id: domainId, name: `CRUD capability ${stamp}`, code: `CRUD-CAP-${stamp}` })
+      .select("id")
+      .single();
+    if (capabilityError) throw new Error(`capability fixture: ${capabilityError.message}`);
+    capabilityId = capability.id;
+
+    const { data: held, error: heldError } = await admin
+      .from("talent_capabilities")
+      .insert([
+        { profile_id: talentA.id, capability_id: capabilityId },
+        { profile_id: managerB.id, capability_id: capabilityId },
+      ])
+      .select("id, profile_id");
+    if (heldError) throw new Error(`talent_capabilities fixture: ${heldError.message}`);
+    const insideId = held.find((row) => row.profile_id === talentA.id)!.id;
+    outsideCapabilityId = held.find((row) => row.profile_id === managerB.id)!.id;
+
+    const { data: evidence, error: evidenceError } = await admin
+      .from("capability_evidence")
+      .insert({ talent_capability_id: insideId, source_type: "project_deliverable", title: "fixture" })
+      .select("id")
+      .single();
+    if (evidenceError) throw new Error(`evidence fixture: ${evidenceError.message}`);
+    evidenceId = evidence.id;
   });
 
+  // Cleanup failures throw: fixtures leaking into a shared project is a
+  // defect, not noise. Deleting users cascades profiles → talent_capabilities
+  // → capability_evidence; squads go before organizations (ON DELETE RESTRICT).
   afterAll(async () => {
     for (const id of createdUserIds) {
-      await admin.auth.admin.deleteUser(id).catch(() => undefined);
+      const { error } = await admin.auth.admin.deleteUser(id);
+      if (error) throw new Error(`deleteUser ${id}: ${error.message}`);
     }
-    await admin.from("organizations").delete().in("id", [chapterA, chapterB]);
+    const steps = [
+      () => admin.from("capabilities").delete().eq("id", capabilityId),
+      () => admin.from("capability_domains").delete().eq("id", domainId),
+      () => admin.from("squads").delete().in("organization_id", [chapterA, chapterB]),
+      () => admin.from("organizations").delete().in("id", [chapterA, chapterB]),
+    ];
+    for (const step of steps) {
+      const { error } = await step();
+      if (error) throw new Error(`cleanup: ${error.message}`);
+    }
   });
 
   // --- SELECT -----------------------------------------------------------
@@ -128,18 +184,12 @@ describe.skipIf(!configured)("RLS: SELECT, INSERT, UPDATE, DELETE", () => {
 
   // --- INSERT -----------------------------------------------------------
   it("INSERT: a talent cannot create capability evidence for someone else", async () => {
-    const { data: held } = await admin
-      .from("talent_capabilities")
-      .select("id")
-      .limit(1);
-    if (!held || held.length === 0) return;
-
     const { error } = await talentA.client.from("capability_evidence").insert({
-      talent_capability_id: held[0]!.id,
+      talent_capability_id: outsideCapabilityId,
       source_type: "project_deliverable",
       title: "forged",
     });
-    expect(error, "an insert outside scope must be refused").not.toBeNull();
+    expect(error?.code, "an insert outside scope must be refused by RLS").toBe("42501");
   });
 
   it("INSERT: nobody can write an audit row directly", async () => {
@@ -149,7 +199,7 @@ describe.skipIf(!configured)("RLS: SELECT, INSERT, UPDATE, DELETE", () => {
       user_id: managerA.id,
     } as never);
     // Direct INSERT is revoked; rows arrive only via record_audit_event().
-    expect(error).not.toBeNull();
+    expect(error?.code).toBe("42501");
   });
 
   // --- UPDATE -----------------------------------------------------------
@@ -179,18 +229,16 @@ describe.skipIf(!configured)("RLS: SELECT, INSERT, UPDATE, DELETE", () => {
 
   // --- DELETE -----------------------------------------------------------
   it("DELETE: evidence is withdrawn, never erased", async () => {
-    const { data: evidence } = await admin
-      .from("capability_evidence")
-      .select("id")
-      .limit(1);
-    if (!evidence || evidence.length === 0) return;
+    // managerA manages talentA's squad, so can read this evidence — the
+    // refusal must come from the revoked DELETE, not from invisibility.
+    const visible = await managerA.client.from("capability_evidence").select("id").eq("id", evidenceId);
+    expect(visible.data?.length, "fixture must be visible to the manager").toBe(1);
 
-    const { error, data } = await managerA.client
-      .from("capability_evidence")
-      .delete()
-      .eq("id", evidence[0]!.id)
-      .select("id");
-    expect(error !== null || (data ?? []).length === 0).toBe(true);
+    const { error } = await managerA.client.from("capability_evidence").delete().eq("id", evidenceId);
+    expect(error?.code, "DELETE on evidence must be refused").toBe("42501");
+
+    const survived = await admin.from("capability_evidence").select("id").eq("id", evidenceId);
+    expect(survived.data?.length, "the evidence row was erased").toBe(1);
   });
 
   it("DELETE: an audit row cannot be removed by anyone", async () => {
@@ -218,6 +266,6 @@ describe.skipIf(!configured)("RLS: SELECT, INSERT, UPDATE, DELETE", () => {
     });
     // Migration 20260921090001 forbids granting a membership to yourself:
     // a privilege change needs a second person.
-    expect(error, "self-granted membership must be refused").not.toBeNull();
+    expect(error?.code, "self-granted membership must be refused by RLS").toBe("42501");
   });
 });

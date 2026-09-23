@@ -6,7 +6,10 @@ import type { Database } from "@/types/database";
 /**
  * RLS enforcement of TANIA_RBAC_RLS_MATRIX.md §9.
  *
- * STATUS: NEVER RUN. No TANIA database exists.
+ * First run green 2026-09-24 against project hcyaqbgbwfxzutamceoq.
+ *
+ * Denials assert SQLSTATE 42501 rather than "any error": an insert that fails
+ * on a foreign key would otherwise pass as an RLS denial.
  *
  * tests/unit/policy.test.ts proves the decision logic in lib/auth/policy.ts.
  * It cannot prove PostgreSQL agrees, and the application layer is explicitly
@@ -41,6 +44,7 @@ describe.skipIf(!configured)("RLS authorization matrix", () => {
   let talentA: Actor;
   let talentB: Actor;
   let chapterLead: Actor;
+  let superAdmin: Actor;
   const createdUserIds: string[] = [];
 
   async function makeActor(label: string, roleCode: string, organizationId: string): Promise<Actor> {
@@ -93,6 +97,7 @@ describe.skipIf(!configured)("RLS authorization matrix", () => {
     talentA = await makeActor("talent-a", "TALENT", chapterDps);
     talentB = await makeActor("talent-b", "TALENT", chapterDps);
     chapterLead = await makeActor("lead", "CHAPTER_LEAD", chapterDps);
+    superAdmin = await makeActor("super", "SUPER_ADMIN", chapterDps);
 
     const { data: sa } = await admin.from("squads")
       .insert({ organization_id: chapterDps, name: "Squad A", code: `sa-${stamp}`, manager_id: managerA.id })
@@ -107,11 +112,17 @@ describe.skipIf(!configured)("RLS authorization matrix", () => {
     await admin.from("profiles").update({ squad_id: squadB }).eq("id", talentB.id);
   });
 
+  // Cleanup failures throw: fixtures leaking into a shared project is a
+  // defect, not noise. Squads go before organizations (ON DELETE RESTRICT).
   afterAll(async () => {
     for (const id of createdUserIds) {
-      await admin.auth.admin.deleteUser(id).catch(() => undefined);
+      const { error } = await admin.auth.admin.deleteUser(id);
+      if (error) throw new Error(`deleteUser ${id}: ${error.message}`);
     }
-    await admin.from("organizations").delete().in("id", [chapterDps, chapterOther]);
+    const squads = await admin.from("squads").delete().in("id", [squadA, squadB]);
+    if (squads.error) throw new Error(`delete squads: ${squads.error.message}`);
+    const orgs = await admin.from("organizations").delete().in("id", [chapterDps, chapterOther]);
+    if (orgs.error) throw new Error(`delete organizations: ${orgs.error.message}`);
   });
 
   it("talent reads own profile", async () => {
@@ -152,17 +163,41 @@ describe.skipIf(!configured)("RLS authorization matrix", () => {
       organization_id: chapterDps,
       role_id: superRole!.id,
     });
-    expect(error, "self-escalation was NOT denied").toBeTruthy();
+    expect(error?.code, "self-escalation was NOT denied by RLS").toBe("42501");
   });
 
-  it("an administrator cannot grant a membership to themselves", async () => {
+  it("a chapter lead without admin.users cannot grant memberships", async () => {
     const { data: role } = await admin.from("roles").select("id").eq("code", "MANAGER").single();
     const { error } = await chapterLead.client.from("organization_memberships").insert({
-      user_id: chapterLead.id,
-      organization_id: chapterDps,
+      user_id: talentB.id,
+      organization_id: chapterOther,
       role_id: role!.id,
     });
-    expect(error, "self-grant was NOT denied").toBeTruthy();
+    expect(error?.code, "membership grant was NOT denied by RLS").toBe("42501");
+  });
+
+  // The pair below isolates the RESTRICTIVE no-self-grant policy
+  // (20260921090001). A SUPER_ADMIN passes the permissive insert policy, so
+  // the only thing that can refuse their own row is the self-grant ban; the
+  // control proves the same actor is otherwise allowed.
+  it("a SUPER_ADMIN cannot grant a membership to themselves", async () => {
+    const { data: role } = await admin.from("roles").select("id").eq("code", "MANAGER").single();
+    const { error } = await superAdmin.client.from("organization_memberships").insert({
+      user_id: superAdmin.id,
+      organization_id: chapterOther,
+      role_id: role!.id,
+    });
+    expect(error?.code, "self-grant was NOT denied by RLS").toBe("42501");
+  });
+
+  it("control: a SUPER_ADMIN can grant a membership to someone else", async () => {
+    const { data: role } = await admin.from("roles").select("id").eq("code", "MANAGER").single();
+    const { error } = await superAdmin.client.from("organization_memberships").insert({
+      user_id: talentB.id,
+      organization_id: chapterOther,
+      role_id: role!.id,
+    });
+    expect(error, "the control grant failed, so the self-grant denial proves nothing").toBeNull();
   });
 
   it("anonymous callers read nothing", async () => {

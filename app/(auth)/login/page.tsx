@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import { TaniaWordmark } from "@/components/brand/tania-wordmark";
 import { Button } from "@/components/ui/button";
 
+import { signInWithEntra } from "./actions";
+
 export const metadata: Metadata = { title: "Sign in · TANIA" };
 
 const ERRORS: Record<string, string> = {
@@ -22,9 +24,9 @@ const ERRORS: Record<string, string> = {
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; next?: string }>;
 }) {
-  const { error } = await searchParams;
+  const { error, next } = await searchParams;
   const configured = Boolean(
     process.env.NEXT_PUBLIC_SUPABASE_URL &&
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
@@ -47,9 +49,13 @@ export default async function LoginPage({
       ) : null}
 
       <div className="mt-8">
-        <Button className="w-full" disabled={!configured}>
-          Sign in with Microsoft Entra ID
-        </Button>
+        <form action={signInWithEntra}>
+          {/* Validated again server-side; only same-origin paths survive. */}
+          <input type="hidden" name="next" value={next ?? "/dashboard"} />
+          <Button type="submit" className="w-full" disabled={!configured}>
+            Sign in with Microsoft Entra ID
+          </Button>
+        </form>
         {!configured ? (
           <p className="mt-3 text-xs text-slate-500">
             Single sign-on is not configured in this environment. Set the

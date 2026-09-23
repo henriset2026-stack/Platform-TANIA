@@ -28,6 +28,15 @@ export function isPublicRoute(pathname: string): boolean {
   return PUBLIC_PREFIXES.some((prefix) => pathname.startsWith(prefix));
 }
 
+/**
+ * API paths answer an unauthenticated caller with a 401, never a redirect: a
+ * 307 replays a POST against the login page and the client receives HTML
+ * with status 200 in place of the JSON error contract.
+ */
+export function isApiRoute(pathname: string): boolean {
+  return pathname === "/api" || pathname.startsWith("/api/");
+}
+
 /** Where to send an unauthenticated caller, preserving their destination. */
 export function loginRedirectPath(pathname: string): string {
   const safe = pathname.startsWith("/") && !pathname.startsWith("//");

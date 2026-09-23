@@ -83,6 +83,42 @@ the first time.
 **Until then nobody should state that TANIA enforces RLS.** The accurate
 phrasing is that RLS is designed and unverified.
 
+**Update 2026-09-24 — half closed.** All 24 migrations were applied to project
+`hcyaqbgbwfxzutamceoq`, and every one ran clean on the first attempt, contrary
+to the expectation above. The database now has 52 tables with RLS on all of
+them, 253 policies, no RLS-enabled table without a policy, and a clean
+`supabase db lint`. `types/database.ts` is now generated. Five type errors
+surfaced against the real schema, all in how optional RPC arguments were
+passed; they are fixed.
+
+**Update 2026-09-24, later — RLS executed.** `npm run test:rls` passes 25/25.
+Every policy it touches denied on the first run. The suite did not hold up as
+well: 2 tests returned early on the empty database and asserted nothing, 1
+"denial" was a foreign-key failure on a random UUID, the self-grant tests never
+reached the self-grant policy, and the fixtures leaked into the project. All of
+that is fixed. Denials now assert SQLSTATE `42501`, and the RESTRICTIVE
+no-self-grant policy is isolated by a SUPER_ADMIN test with a control.
+
+**Update 2026-09-24, extended matrix.** §9 has 15 rows, not 13. The eight
+untested ones now have tests: 46/47 pass. The first run found a **HIGH**
+defect. A reviewer holding only `performance.submit_review` (MANAGER, even
+TALENT) could approve their own submission, and could record the approval
+under another person's name. Migration `20260924100001` adds a trigger that
+requires `approve_review`, in scope, under the caller's own identity; re-run
+green. Still open: *Executive → aggregate* fails (no aggregate path exists
+under RLS), and *Manager → approve subordinate review* contradicts §4.
+
+**Update 2026-09-24, decisions — C-1 CLOSED for staging.** Both rows were
+decided and implemented: executive totals via definer aggregate functions
+with small-group suppression (`20260924100003`), and manager approval read
+as `development.approve`. The same approval defect was then found and fixed
+on `development_plans` and `assignments` (`20260924100002`). `npm run
+test:rls` passes **57/57**, all 15 matrix rows. C-1 stays open for
+*production*, which has no database yet (docs/DEPLOYMENT.md §9).
+
+Before the decisions, C-1 was not closed until those two rows were decided. Earlier text: the
+suite covered 7 of the 13 rows in the §9 matrix.
+
 ---
 
 ## HIGH

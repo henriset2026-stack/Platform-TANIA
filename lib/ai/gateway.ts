@@ -21,6 +21,7 @@ import { describeContext, type PageContext } from "@/lib/assistant/context";
 import { AI_LIMITS, readAiConfig } from "@/lib/ai/config";
 import { aiRateLimiter } from "@/lib/ai/rate-limit";
 import { resolveProvider, type ProviderMessage } from "@/lib/ai/provider";
+import { logger } from "@/lib/observability/logger";
 
 export interface GatewayRequest {
   readonly message: string;
@@ -300,7 +301,5 @@ function logEvent(
 ): void {
   // Structured and correlated (CLAUDE.md §24). Arguments are deliberately not
   // logged: they may carry personal data.
-  console.warn(
-    JSON.stringify({ correlationId, event, ...(detail ?? {}) }),
-  );
+  logger.info(`ai.gateway.${event}`, { correlationId, ...(detail ?? {}) });
 }

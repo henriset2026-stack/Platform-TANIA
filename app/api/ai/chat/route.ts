@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 
 import { parsePageContext } from "@/lib/assistant/context";
 import { handleGatewayRequest, type GatewayErrorCode } from "@/lib/ai/gateway";
+import { logger } from "@/lib/observability/logger";
 
 /**
  * POST /api/ai/chat — TANIA_PRD_v2.0.md §21.
@@ -41,6 +42,7 @@ interface ChatBody {
 }
 
 export async function POST(request: NextRequest) {
+  const startedAt = Date.now();
   let body: ChatBody;
   try {
     body = (await request.json()) as ChatBody;
@@ -76,6 +78,14 @@ export async function POST(request: NextRequest) {
     ...(typeof body.intent === "string" ? { intent: body.intent } : {}),
     ...(typeof body.sessionId === "string" ? { sessionId: body.sessionId } : {}),
     ...(confirmations ? { confirmations } : {}),
+  });
+
+  // Outcome only: the message and the answer may carry personal data.
+  logger.info("api.ai.chat", {
+    correlationId: outcome.ok ? outcome.run.correlationId : outcome.correlationId,
+    status: outcome.ok ? outcome.run.status : "error",
+    ...(outcome.ok ? {} : { code: outcome.code }),
+    durationMs: Date.now() - startedAt,
   });
 
   if (!outcome.ok) {

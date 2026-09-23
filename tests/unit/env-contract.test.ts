@@ -29,6 +29,12 @@ const PRD_ENV_KEYS = [
   "JARVIS_API_KEY",
 ];
 
+/**
+ * Not in the PRD: added for deployment (docs/DEPLOYMENT.md). Listed separately
+ * so the PRD set above stays a faithful copy of §73.
+ */
+const DEPLOYMENT_ENV_KEYS = ["SITE_URL", "LOG_LEVEL"];
+
 /** The only variables permitted to reach browser code. */
 const PUBLIC_ALLOWLIST = new Set([
   "NEXT_PUBLIC_SUPABASE_URL",
@@ -38,8 +44,8 @@ const PUBLIC_ALLOWLIST = new Set([
 describe("environment contract", () => {
   const keys = parseEnvKeys(".env.example");
 
-  it("declares exactly the variable set specified by the PRD", () => {
-    expect([...keys].sort()).toEqual([...PRD_ENV_KEYS].sort());
+  it("declares exactly the PRD variable set plus the deployment additions", () => {
+    expect([...keys].sort()).toEqual([...PRD_ENV_KEYS, ...DEPLOYMENT_ENV_KEYS].sort());
   });
 
   it("commits no values", () => {

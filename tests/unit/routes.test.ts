@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { isPublicRoute, loginRedirectPath, PUBLIC_ROUTES } from "@/lib/auth/routes";
+import { isApiRoute, isPublicRoute, loginRedirectPath, PUBLIC_ROUTES } from "@/lib/auth/routes";
 
 describe("route protection", () => {
   it("protects application routes by default", () => {
@@ -39,5 +39,22 @@ describe("route protection", () => {
       `next=${encodeURIComponent("/dashboard")}`,
     );
     expect(loginRedirectPath("//evil.test")).not.toContain("evil.test");
+  });
+});
+
+describe("API routes answer 401, not a redirect", () => {
+  it("recognises API paths", () => {
+    expect(isApiRoute("/api")).toBe(true);
+    expect(isApiRoute("/api/ai/chat")).toBe(true);
+  });
+
+  it("does not mistake a page for an API path", () => {
+    expect(isApiRoute("/apis")).toBe(false);
+    expect(isApiRoute("/dashboard")).toBe(false);
+    expect(isApiRoute("/talent/api")).toBe(false);
+  });
+
+  it("keeps every API path private", () => {
+    expect(isPublicRoute("/api/ai/chat")).toBe(false);
   });
 });

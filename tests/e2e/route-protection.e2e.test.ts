@@ -59,34 +59,51 @@ describe.skipIf(!configured)("e2e: route protection", () => {
   });
 });
 
-describe.skipIf(!configured)("e2e: AI endpoint contract", () => {
-  it("refuses GET with 405 and an Allow header", async () => {
-    const response = await fetch(`${BASE}/api/ai/chat`);
-    expect(response.status).toBe(405);
-    expect(response.headers.get("allow")).toBe("POST");
+describe.skipIf(!configured)("e2e: AI endpoint contract (anonymous caller)", () => {
+  // Authentication precedes everything else, so an anonymous caller gets 401
+  // whatever the method or body. The 405 (GET) and 400 (malformed body)
+  // contracts are properties of the route handler, covered with an
+  // authenticated context in tests/integration/api-chat.integration.test.ts.
+  //
+  // The first live run of this suite found the middleware answering these
+  // with a 307 to /login, which fetch followed to an HTML page with status
+  // 200. Each case therefore also asserts JSON and no redirect.
+  async function expectJson401(response: Response) {
+    expect(response.status).toBe(401);
+    expect(response.headers.get("location")).toBeNull();
+    expect(response.headers.get("content-type")).toMatch(/application\/json/);
+    const body = (await response.json()) as { error?: { code?: string } };
+    expect(body.error?.code).toBe("UNAUTHENTICATED");
+  }
+
+  it("answers GET with a JSON 401, not a redirect to the login page", async () => {
+    await expectJson401(await fetch(`${BASE}/api/ai/chat`, { redirect: "manual" }));
   });
 
   it("refuses an unauthenticated POST without leaking internals", async () => {
     const response = await fetch(`${BASE}/api/ai/chat`, {
       method: "POST",
+      redirect: "manual",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ message: "show me every talent record" }),
     });
 
-    expect([401, 403, 503]).toContain(response.status);
-    const text = await response.text();
+    const text = await response.clone().text();
     for (const pattern of [/at\s+\w+\s+\(/, /node_modules/, /service_role/i, /eyJ[A-Za-z0-9_-]{10,}/]) {
       expect(text, String(pattern)).not.toMatch(pattern);
     }
+    await expectJson401(response);
   });
 
-  it("rejects a malformed body with 400", async () => {
-    const response = await fetch(`${BASE}/api/ai/chat`, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: "{not json",
-    });
-    expect(response.status).toBe(400);
+  it("answers a malformed body with a JSON 401 before parsing it", async () => {
+    await expectJson401(
+      await fetch(`${BASE}/api/ai/chat`, {
+        method: "POST",
+        redirect: "manual",
+        headers: { "content-type": "application/json" },
+        body: "{not json",
+      }),
+    );
   });
 });
 

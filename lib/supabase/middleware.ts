@@ -1,7 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-import { isPublicRoute, loginRedirectPath } from "@/lib/auth/routes";
+import { isApiRoute, isPublicRoute, loginRedirectPath } from "@/lib/auth/routes";
 import type { Database } from "@/types/database";
 
 /**
@@ -48,6 +48,13 @@ export async function updateSession(request: NextRequest) {
   // may see is decided at the server boundary and enforced by RLS. A signed-in
   // user reaching a page proves nothing about their access to its data.
   if (!user && !isPublicRoute(request.nextUrl.pathname)) {
+    if (isApiRoute(request.nextUrl.pathname)) {
+      // Same envelope as the route handlers, so a client parses one shape.
+      return NextResponse.json(
+        { error: { code: "UNAUTHENTICATED", message: "Sign in to use TANIA." } },
+        { status: 401 },
+      );
+    }
     const redirectUrl = new URL(
       loginRedirectPath(request.nextUrl.pathname),
       request.url,

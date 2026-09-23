@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 
+import { logger } from "@/lib/observability/logger";
 import { createClient } from "@/lib/supabase/server";
 
 /**
@@ -22,6 +23,7 @@ export async function GET(request: NextRequest) {
       : "/dashboard";
 
   if (!code) {
+    logger.warn("auth.callback_missing_code");
     return NextResponse.redirect(`${origin}/login?error=missing_code`);
   }
 
@@ -30,9 +32,10 @@ export async function GET(request: NextRequest) {
 
   if (error) {
     // No provider detail is echoed back to the client (CLAUDE.md §22).
-    console.error("auth callback failed", { message: error.message });
+    logger.error("auth.callback_failed", { message: error.message });
     return NextResponse.redirect(`${origin}/login?error=auth_failed`);
   }
 
+  logger.info("auth.callback_ok", { next });
   return NextResponse.redirect(`${origin}${next}`);
 }

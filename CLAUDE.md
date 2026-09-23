@@ -18,8 +18,8 @@ the authorization layer, the core domain model, the dashboard, talent / capabili
 development / workload / project intelligence, the AI gateway, RAG, the assistant UI, and two of the
 eleven specified agents (`agents/performance/`, `agents/capability/`).
 
-Three things govern how far any of that can be trusted, and each has its own section below: **no
-database has ever been provisioned**, so no migration and no RLS policy has been executed (§2c);
+Three things govern how far any of that can be trusted, and each has its own section below: **the
+migrations are applied and RLS passes all 15 matrix rows** against staging (§2c);
 **no LLM provider is configured**, so no agent or assistant request ever produces an answer; and
 **every displayable figure is a `DataPoint<T>`**, so an unavailable metric renders as an explicit
 empty state rather than a number (§2a).
@@ -65,14 +65,42 @@ only reads a cookie.
 
 ## 2c. Database state
 
-**No TANIA Supabase database exists.** The free tier is at its 2-project limit, so nothing was
-provisioned. Consequently:
+**Project `hcyaqbgbwfxzutamceoq`** (ap-southeast-1, account `henriset2026-stack`) is the TANIA
+database. On 2026-09-24:
 
-- `supabase/migrations/` (8 files) has **never been applied or validated**.
-- `types/database.ts` is **hand-written**, not generated. Replace it with
-  `supabase gen types typescript --project-id <ref>` output as soon as a project exists.
-- `tests/rls/` has **never run**. It skips when unconfigured rather than passing, because a green tick
-  against no database would be a fabricated result.
+- All 24 migrations in `supabase/migrations/` were **applied cleanly** with `supabase db push`. The
+  result: 52 `public` tables, RLS enabled on all 52, 253 policies, no RLS-enabled table without a
+  policy, and `supabase db lint` reports no schema errors.
+- `types/database.ts` is **generated** from that schema. Regenerate it after every migration (the
+  header gives the command) and re-append the named aliases.
+- `tests/rls/` **passes 57/57** against that project. Run it with the keys from `.env.local`
+  exported (`set -a; . ./.env.local; set +a; npm run test:rls`); vitest does not load the file itself.
+  Every denial asserts SQLSTATE `42501`, and every run cleans up its fixtures or fails. The first run
+  exposed hollow tests (early returns on an empty database, a random-UUID insert that a foreign key
+  refused before RLS, a self-grant test whose actor failed the admin check first) and leaked
+  fixtures. All of that is fixed.
+- **Coverage: all 15 rows of TANIA_RBAC_RLS_MATRIX.md §9 pass.** Two rows needed decisions, made
+  2026-09-24: *Executive → aggregate* is served by `chapter_summary()` / `chapter_capability_summary()`
+  (migration `20260924100003`): definer functions, no parameters, counts only, figures over fewer than
+  5 people withheld. *Manager → approve subordinate review* is read as `development.approve`, the
+  approval MANAGER holds under §4; MANAGER does **not** approve performance reviews.
+- The extended matrix found that every approvable table let the row's *editor* record an approval:
+  a reviewer approved their own submission, a talent approved their own development plan, a PM approved
+  an assignment, and each could name someone else as approver. Migrations `20260924100001` and
+  `20260924100002` add triggers (a policy cannot compare OLD and NEW): approving needs the approve
+  permission, in scope, under your own identity, never for yourself.
+  Do not describe RLS as verified beyond the rows the suite exercises.
+- The database holds **no users and no seed data**.
+- Three further migrations (`20260924100001`–`…003`, approval guards and chapter aggregates) were applied the same day; 27 in total.
+- `.env.local` (gitignored) holds the URL, the publishable key and the secret key; the secret key is
+  for `tests/rls` fixtures only and must never be set in Vercel. A one-off probe with the publishable key was refused `42501` on SELECT from 11 tables,
+  INSERT into 3 (including `organization_memberships` and `audit_logs`), and the permission RPC.
+  That confirms the matrix's "Anonymous → DENY" row at the **grant** layer. It is not a test of any RLS
+  policy, because every policy applies to `authenticated`.
+
+The Supabase connector in some sessions is signed in to a different account and cannot see this
+project. Use the Supabase CLI, which is linked from a scratch copy because the sandbox blocks writes
+under `supabase/`.
 
 Do not describe RLS as verified. `tests/unit/migrations.test.ts` asserts the migration *text* keeps the
 escalation path closed, which is a regression guard, not proof the database behaves that way.
@@ -534,8 +562,10 @@ PM → assigned project                           ALLOW
 PM → unrelated project                          DENY
 Executive → aggregate                           ALLOW
 Executive → restricted individual record        DENY
+HR → authorized people scope                    ALLOW
 AI → outside delegated scope                    DENY
 AI → approve performance                        DENY
+Manager → approve authorized subordinate review ALLOW   (development plans; see §2c)
 ```
 
 ---

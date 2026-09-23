@@ -46,7 +46,7 @@ export const PHASES: readonly Phase[] = [
     name: "Supabase foundation",
     status: "PARTIALLY_IMPLEMENTED",
     evidence:
-      "supabase/migrations/ (8 files), lib/supabase/{client,server,admin,middleware}.ts, lib/auth/session.ts, types/database.ts (hand-written); outstanding: no database exists, so migrations are unapplied, types are ungenerated and RLS is unverified",
+      "supabase/migrations/ (8 files), lib/supabase/{client,server,admin,middleware}.ts, lib/auth/session.ts, types/database.ts (generated); all 24 migrations applied to project hcyaqbgbwfxzutamceoq on 2026-09-24 (52 tables, RLS on all, 253 policies, clean db lint); tests/rls passes 57/57 against it, all 15 TANIA_RBAC_RLS_MATRIX.md §9 rows; migrations 20260924100001-3 close an approval bypass on every approvable table and add executive chapter aggregates (definer, counts only, suppressed below 5 people); outstanding: no production project",
   },
   {
     id: 3,
@@ -173,7 +173,7 @@ export const PHASES: readonly Phase[] = [
     name: "Production Hardening",
     status: "PARTIALLY_IMPLEMENTED",
     evidence:
-      "TANIA_PRODUCTION_READINESS_REPORT.md audits the repository against the five source documents and classifies 14 findings; the two HIGH issues found are fixed — security response headers in next.config.mjs (X-Frame-Options, nosniff, Referrer-Policy, Permissions-Policy, HSTS, poweredByHeader off) and a per-user token-bucket budget on the AI gateway returning 429, both covered by tests/security/hardening.security.test.ts; outstanding and BLOCKING: C-1, the RLS enforcement layer has never executed because no database has been provisioned, so every policy, constraint and index remains unexecuted text and tests/rls has never run; also open are H-1 (no CSP, deliberately not guessed at without a browser to verify it), and MEDIUM findings on cluster-wide rate limiting, 83 unindexed foreign keys, provider retry, recorder wiring and a duplicate correlation column",
+      "TANIA_PRODUCTION_READINESS_REPORT.md audits the repository against the five source documents and classifies 14 findings; the two HIGH issues found are fixed — security response headers in next.config.mjs (X-Frame-Options, nosniff, Referrer-Policy, Permissions-Policy, HSTS, poweredByHeader off) and a per-user token-bucket budget on the AI gateway returning 429, both covered by tests/security/hardening.security.test.ts; outstanding and BLOCKING: C-1 closed for staging: tests/rls passes 57/57, all 15 matrix rows, after migrations 20260924100001-2 fixed a HIGH approval bypass on reviews, development plans and assignments; production has no database yet; also open are H-1 (no CSP, deliberately not guessed at without a browser to verify it), and MEDIUM findings on cluster-wide rate limiting, 83 unindexed foreign keys, provider retry, recorder wiring and a duplicate correlation column",
   },
   { id: 22, name: "Deployment", status: "PLANNED" },
 ];

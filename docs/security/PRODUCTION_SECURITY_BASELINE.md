@@ -73,9 +73,9 @@ None exist. Adding any of them requires, in the same change:
 
 | Required | State |
 |---|---|
-| CI on every PR and push: typecheck, lint, tests, build, `npm audit --audit-level=high` | IMPLEMENTED (`.github/workflows/ci.yml`); **has never run** |
+| CI on every PR and push: typecheck, lint, tests, build, `npm audit --audit-level=high` | IMPLEMENTED; green on GitHub (run 36095487907) |
 | Actions pinned to commit SHAs; `permissions: contents: read`; no secrets in CI | IMPLEMENTED |
-| No automatic production deployment on push | IMPLEMENTED (`vercel.json` `deploymentEnabled.main: false`); effective once committed |
+| No automatic production deployment on push | IMPLEMENTED (`vercel.json`); verified: later pushes created no deployment |
 | Branch protection: required review and required CI on `main` | MISSING (unavailable on the free private plan) |
 | Production promotion restricted to named Vercel team members | NOT VERIFIED |
 

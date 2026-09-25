@@ -2,7 +2,7 @@
 
 **Production security and operational readiness · 2026-09-25**
 
-**Baseline:** `8712b69` on `main`, plus uncommitted changes from this gate. Security Gate #1 and AI Gate #2 are both PASS WITH CONDITIONS; their open conditions are carried here where they matter for production.
+**Baseline:** `8712b69` on `main`; this gate's changes are in `192bbe3` and `6da04fd`. Security Gate #1 and AI Gate #2 are both PASS WITH CONDITIONS; their open conditions are carried here where they matter for production.
 
 ## 1. Executive Summary
 
@@ -71,9 +71,9 @@ Separation of production credentials from preview and test **cannot exist yet**:
 
 | Control | State |
 |---|---|
-| CI on PR and push | **Added** (`.github/workflows/ci.yml`): `npm ci`, `npm audit --audit-level=high`, typecheck, lint, tests, build. **Never run on GitHub** |
+| CI on PR and push | `.github/workflows/ci.yml`: `npm ci`, `npm audit --audit-level=high`, typecheck, lint, tests, build. **Green on GitHub** (run 36095487907, `6da04fd`), including the Linux production build |
 | CI permissions and supply chain | `permissions: contents: read`, `persist-credentials: false`, actions pinned to commit SHAs, no secrets |
-| Production deployment on push | **Was automatic; now off** (`vercel.json` `git.deploymentEnabled.main: false`). Production is promoted deliberately (DEPLOYMENT.md §2). Takes effect once committed |
+| Production deployment on push | **Was automatic; now off** (`vercel.json` `git.deploymentEnabled.main: false`). **Verified**: the two pushes after it created no deployment. Production is promoted deliberately (DEPLOYMENT.md §2) |
 | Branch protection, required review, required checks | **Unavailable**: GitHub 403 on the free private plan |
 | Vercel who-may-promote | **NOT VERIFIED** |
 
@@ -288,17 +288,16 @@ The deletion behaviour that exists:
 
 - **Load and stress tests (step 38):** there is no production-like environment to load.
 - **Latency (step 37):** there is no deployed target. Local observations: the live-model evaluation measured p50 18 s for an assistant request with two model calls on a free-tier model.
-- **The CI workflow on GitHub.**
 - **The Vercel build.**
 
 ## 24. Findings
 
 | ID | Severity | Finding | Evidence | Fix | Status |
 |----|----------|---------|----------|-----|--------|
-| G3-01 | HIGH | A push to `main` deployed to Vercel Production with no review or approval | GitHub deployments API: `8712b69` Production at 03:57Z after push | `vercel.json` disables auto-deploy of `main`; promotion documented | **Fixed (config); takes effect when committed** |
+| G3-01 | HIGH | A push to `main` deployed to Vercel Production with no review or approval | GitHub deployments API: `8712b69` Production at 03:57Z after push | `vercel.json` disables auto-deploy of `main`; promotion documented | **Fixed, verified**: pushes of `192bbe3` and `6da04fd` created no deployment |
 | G3-02 | MEDIUM | No branch protection, required review or required checks | GitHub API 403 (free private plan) | — (plan change, or org move) | **Open.** Residual after G3-01: unreviewed code can reach `main` but not production |
 | G3-03 | HIGH | No Content-Security-Policy (Security Gate #1 H-1) | `next.config.mjs` | Nonce CSP via middleware; dynamic rendering | **Fixed, browser-verified** |
-| G3-04 | HIGH | No CI | no `.github/workflows` | `ci.yml`: SHA-pinned, read-only, audit, typecheck, lint, test, build | **Fixed; NOT VERIFIED on GitHub** |
+| G3-04 | HIGH | No CI | no `.github/workflows` | `ci.yml`: SHA-pinned, read-only, audit, typecheck, lint, test, build | **Fixed, verified**: run 36095487907 green on GitHub (first run found a placeholder leaking into tests; fixed in `6da04fd`) |
 | G3-05 | HIGH | No production database; no backups; PITR off; restore never tested | `supabase backups list` | — | **Open** |
 | G3-06 | HIGH | No monitoring, error tracking, alerting or owners | MONITORING.md | — | **Open** |
 | G3-07 | MEDIUM | AI rate limit is in memory per instance; only the AI endpoint is limited | `lib/ai/rate-limit.ts` | — (needs a shared store) | **Open** |
@@ -324,7 +323,6 @@ Carried from earlier gates:
 - who may promote to Production in Vercel
 - Supabase Auth, Entra ID provider and rate-limit configuration
 - the full browser sign-in round trip, and the HttpOnly cookie in a real session
-- the CI workflow running on GitHub
 - application rollback (Vercel Instant Rollback)
 - database restore
 - secret rotation
@@ -390,7 +388,7 @@ None.
 - `vercel.json`: `git.deploymentEnabled.main: false`.
 - `.github/workflows/ci.yml`: new.
 
-Both are **uncommitted**. Until `vercel.json` is committed, a push to `main` still deploys to Production.
+Both committed in `192bbe3` (the CI fix in `6da04fd`) and pushed. Neither push deployed.
 
 ## 30. Final Gate Decision
 
@@ -399,7 +397,6 @@ Both are **uncommitted**. Until `vercel.json` is committed, a push to `main` sti
 The pass criteria that fail:
 
 - environment separation verified
-- production deployment controlled (pending commit)
 - backup exists
 - monitoring exists
 - alerting exists

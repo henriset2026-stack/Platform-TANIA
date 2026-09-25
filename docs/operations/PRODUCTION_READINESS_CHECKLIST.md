@@ -47,9 +47,9 @@
 | BACKUP | Restore tested | NOT VERIFIED | NOT ASSIGNED | never performed |
 | DR | RPO / RTO | NOT VERIFIED (NOT DEFINED) | NOT ASSIGNED | DISASTER_RECOVERY.md |
 | DR | Scenarios documented | PASS (documentation only) | NOT ASSIGNED | DISASTER_RECOVERY.md |
-| CI/CD | CI workflow | NOT VERIFIED | NOT ASSIGNED | `.github/workflows/ci.yml` added; never run on GitHub |
+| CI/CD | CI workflow | PASS | NOT ASSIGNED | run 36095487907 green on GitHub (`6da04fd`) |
 | CI/CD | Branch protection / required review | FAIL | NOT ASSIGNED | unavailable on the free private plan |
-| DEPLOYMENT | No automatic production deploy on push | PASS (config) · NOT VERIFIED (effect) | NOT ASSIGNED | `vercel.json`; takes effect once committed |
+| DEPLOYMENT | No automatic production deploy on push | PASS | NOT ASSIGNED | pushes of `192bbe3` and `6da04fd` created no deployment |
 | DEPLOYMENT | Environment separation (prod vs preview credentials) | FAIL | NOT ASSIGNED | no production project; Vercel env not visible |
 | DEPLOYMENT | Rollback exercised | NOT VERIFIED | NOT ASSIGNED | Vercel instant rollback never used |
 | INCIDENT RESPONSE | Runbooks | PASS (documentation only) | NOT ASSIGNED | INCIDENT_RESPONSE.md |

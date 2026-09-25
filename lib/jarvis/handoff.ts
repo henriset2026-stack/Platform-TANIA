@@ -33,6 +33,7 @@ import {
 } from "@/lib/jarvis/redaction";
 import { resolveJarvisTransport, type JarvisTransport } from "@/lib/jarvis/transport";
 import { unconfiguredAuditSink, type AuditSink } from "@/agents/core/audit";
+import { isEnabled } from "@/lib/ai/switches";
 import type {
   CapabilityContext,
   ConversationTurn,
@@ -75,6 +76,14 @@ export async function initiateHandoff(
   const audit = dependencies.audit ?? unconfiguredAuditSink;
   const transport = dependencies.transport ?? resolveJarvisTransport();
   const timeoutMs = dependencies.timeoutMs ?? HANDOFF_TIMEOUT_MS;
+
+  // --- 0. Kill switch (lib/ai/switches.ts); OFF by default ------------------
+  if (!isEnabled("JARVIS_HANDOFF_ENABLED")) {
+    return {
+      ok: false,
+      failure: { reason: "DISABLED", detail: "JARVIS handoff is switched off (JARVIS_HANDOFF_ENABLED)." },
+    };
+  }
 
   // --- 1. Authenticated -------------------------------------------------
   // requireAuthContext uses getUser(), which validates the JWT with the auth

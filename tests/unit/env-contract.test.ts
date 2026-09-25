@@ -33,7 +33,16 @@ const PRD_ENV_KEYS = [
  * Not in the PRD: added for deployment (docs/DEPLOYMENT.md). Listed separately
  * so the PRD set above stays a faithful copy of §73.
  */
-const DEPLOYMENT_ENV_KEYS = ["SITE_URL", "LOG_LEVEL", "LLM_PROVIDER"];
+const DEPLOYMENT_ENV_KEYS = [
+  "SITE_URL",
+  "LOG_LEVEL",
+  "LLM_PROVIDER",
+  // AI kill switches (lib/ai/switches.ts, Security Gate #3).
+  "AI_ASSISTANT_ENABLED",
+  "TOOL_EXECUTION_ENABLED",
+  "RAG_ENABLED",
+  "JARVIS_HANDOFF_ENABLED",
+];
 
 /** The only variables permitted to reach browser code. */
 const PUBLIC_ALLOWLIST = new Set([

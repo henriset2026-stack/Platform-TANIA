@@ -15,6 +15,7 @@ import "server-only";
 
 import { detectInjectionSignals, fenceRetrievedContent, type FencedDocument } from "@/lib/rag/sanitize";
 import { createClient } from "@/lib/supabase/server";
+import { isEnabled } from "@/lib/ai/switches";
 import { notConnected, notIntegrated } from "@/types/data";
 import type { DataPoint, Failed } from "@/types/data";
 
@@ -92,6 +93,11 @@ export async function retrieveAuthorizedChunks(
   }
   if (!embeddingModelConfigured()) {
     return notIntegrated("Embedding model", "vector search over the knowledge base");
+  }
+  // Kill switch (lib/ai/switches.ts): retrieval off means no evidence, stated
+  // as such, never an answer made up without it.
+  if (!isEnabled("RAG_ENABLED")) {
+    return notIntegrated("Knowledge retrieval (switched off by RAG_ENABLED)", "vector search over the knowledge base");
   }
 
   const matchCount = Math.min(

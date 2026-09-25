@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import {
   HANDOFF_PURPOSES,
@@ -624,8 +624,41 @@ describe("orchestration: bounded, audited, fail-closed", () => {
     expect(result.status).toBe("rejected");
   });
 
+  // Kill switch (Gate #3): handoff is OFF unless JARVIS_HANDOFF_ENABLED says
+  // otherwise, and a switched-off handoff reaches nothing.
+  it("refuses every handoff while JARVIS_HANDOFF_ENABLED is unset or false", async () => {
+    for (const value of [undefined, "false", "flase"]) {
+      vi.stubEnv("JARVIS_HANDOFF_ENABLED", value as string);
+      let sent = false;
+      const spy = transportThat(async () => {
+        sent = true;
+        return { status: "failed" as const, correlationId: "corr-1", error: "x" };
+      }, "spy");
+      const outcome = await initiateHandoff(
+        {
+          purpose: "capability_sprint",
+          sessionId: "sess-1",
+          correlationId: "corr-1",
+          requestedPermissions: ["capability.read"],
+          selectedTalentIds: [ALICE],
+          capabilityContext: null,
+          projectContext: null,
+          conversationContext: [],
+          evidenceRefs: [],
+        },
+        { transport: spy, now: () => NOW },
+      );
+      expect(outcome.ok, String(value)).toBe(false);
+      if (outcome.ok) return;
+      expect(outcome.failure.reason, String(value)).toBe("DISABLED");
+      expect(sent).toBe(false);
+    }
+    vi.unstubAllEnvs();
+  });
+
   // No session, no handoff — and the transport is never reached.
   it("refuses an unauthenticated handoff without transmitting anything", async () => {
+    vi.stubEnv("JARVIS_HANDOFF_ENABLED", "true");
     let sent = false;
     const spy = transportThat(async () => {
       sent = true;
@@ -651,5 +684,6 @@ describe("orchestration: bounded, audited, fail-closed", () => {
     if (outcome.ok) return;
     expect(outcome.failure.reason).toBe("NOT_AUTHENTICATED");
     expect(sent, "nothing may be transmitted without a session").toBe(false);
+    vi.unstubAllEnvs();
   });
 });

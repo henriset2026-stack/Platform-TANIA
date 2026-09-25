@@ -1,12 +1,8 @@
 /**
  * Response headers applied to every route.
  *
- * Deliberately excludes Content-Security-Policy. A correct CSP for Next needs
- * per-request nonces wired through middleware, and a wrong one fails at
- * runtime in the browser rather than at build time — which cannot be verified
- * here, since this environment has no browser. Shipping a CSP that silently
- * breaks rendering would be worse than shipping none, so it is recorded as an
- * open finding instead of guessed at.
+ * Content-Security-Policy is NOT set here: it needs a per-request nonce, so the
+ * middleware sets it (lib/security/csp.ts, via lib/supabase/middleware.ts).
  *
  * Everything below is inert with respect to rendering: it cannot break a page.
  */

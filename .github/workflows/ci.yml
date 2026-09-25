@@ -1,0 +1,59 @@
+# TANIA CI (Security Gate #3, steps 4 and 7).
+#
+# Validates every pull request and every push to main. It deploys nothing:
+# production deployment is a separate, deliberate promotion (vercel.json
+# turns off automatic deployment of main; docs/DEPLOYMENT.md).
+#
+# Supply chain: actions are pinned to full commit SHAs (the tag is in the
+# comment), the token is read-only, and no secret is available to this
+# workflow. The RLS, e2e and live-model suites need a database, a server or a
+# paid model and are run deliberately, not here.
+#
+# Dependency install scripts, reviewed 2026-09-25: fsevents (macOS-only,
+# optional) and unrs-resolver (napi-postinstall native-binary check). No
+# others. A new one shows up in package-lock.json as hasInstallScript.
+
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      # Placeholders so the production build can run. Not credentials: the
+      # build contacts nothing, and these values reach no deployment.
+      NEXT_PUBLIC_SUPABASE_URL: https://ci-placeholder.invalid
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder-not-a-key
+      NEXT_TELEMETRY_DISABLED: "1"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      - name: Dependency audit (fails on high or critical)
+        run: npm audit --audit-level=high
+
+      - run: npm run typecheck
+      - run: npm run lint
+      - name: Tests (unit, integration, security, AI; migration-text guards included)
+        run: npm test
+      - run: npm run build

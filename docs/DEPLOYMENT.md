@@ -35,8 +35,28 @@ staging.
 | Node.js version | 20.x or later (`engines.node` is `>=20.9.0`) |
 | Function region | `sin1` (Singapore), next to the Supabase project in `ap-southeast-1`. Every request makes at least one database round trip |
 
-No `vercel.json` is needed. `app/api/ai/chat` declares `runtime = "nodejs"`
-itself.
+`app/api/ai/chat` declares `runtime = "nodejs"` itself.
+
+### Production is promoted, never auto-deployed (Security Gate #3, G3-01)
+
+`vercel.json` sets `git.deploymentEnabled.main: false`. A push to `main` no
+longer deploys anything, and branches other than `main` still get
+SSO-protected Preview deployments. Production is a deliberate act by an
+authorized Vercel team member:
+
+1. CI (`.github/workflows/ci.yml`) is green on the commit.
+2. Create the deployment:
+   - **Dashboard:** Deployments → a Preview built from that commit → **Promote to Production**.
+   - **CLI:** `vercel deploy --prod` from a clean checkout of that commit.
+3. Roll back through Dashboard → Deployments → a previous Production
+   deployment → **Instant Rollback**. That rolls back the application only;
+   the database is forward-fix (§4 Rollback).
+
+Why: before this, the push of `8712b69` created a Production deployment with
+no review. GitHub branch protection is unavailable on the free private plan,
+so the deployment step is the only gate that can be closed from the
+repository. Restrict who may promote in Vercel → Settings → Members (NOT
+VERIFIED).
 
 ---
 
@@ -247,11 +267,14 @@ npm start & E2E_BASE_URL=http://localhost:3000 npm run test:e2e
    resolution and the action's wiring are unit-tested. The callback's failure
    paths were exercised against `next start`. The full round trip has never
    run.
-3. **RLS on production.** Apply all 27 migrations and re-run `npm run
+3. **RLS on production.** Apply all 30 migrations and re-run `npm run
    test:rls` against a *staging copy* of it, never production itself.
-4. **CSP** (H-1), verified in a browser.
-5. **Shared rate-limit state** (M-1).
+4. ~~CSP (H-1)~~: **closed in Security Gate #3**. Nonce CSP, browser-verified.
+5. **Shared rate-limit state** (M-1 / G3-07).
+6. **Every open condition in `docs/security/SECURITY_GATE_3_REPORT.md`**:
+   backups and a restore test, monitoring and alerting with owners, the
+   failed Vercel builds, branch protection, and environment separation.
 
-Not blocking deployment, but known: there is no LLM provider (the assistant
-answers "not configured"), the audit recorder is not wired (M-4), and there
-is no accessibility or responsive check (L-3).
+Not blocking deployment, but known: no LLM provider is approved for real
+data, and there is no accessibility or responsive check (L-3). The audit
+recorder is now wired (AI Gate #2).

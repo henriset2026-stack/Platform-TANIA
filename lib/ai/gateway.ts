@@ -29,6 +29,7 @@ import { aiRateLimiter } from "@/lib/ai/rate-limit";
 import { registerProvider, resolveProvider, type ProviderMessage, type TokenUsage } from "@/lib/ai/provider";
 import { GeminiProvider } from "@/lib/ai/providers/gemini";
 import { OpenAiCompatibleProvider } from "@/lib/ai/providers/openai-compatible";
+import { isEnabled } from "@/lib/ai/switches";
 import { aiGatewayKey } from "@/lib/env.server";
 import { createAuditSink } from "@/lib/audit/record";
 import { logger } from "@/lib/observability/logger";
@@ -59,7 +60,8 @@ export type GatewayErrorCode =
   | "NOT_CONFIGURED"
   | "INVALID_REQUEST"
   | "PROVIDER_ERROR"
-  | "TIMEOUT";
+  | "TIMEOUT"
+  | "DISABLED";
 
 export interface GatewayRun {
   readonly correlationId: string;
@@ -217,6 +219,15 @@ export async function handleGatewayRequest(
     isAiService: isAiService(authContext),
   });
 
+  // --- Kill switch (lib/ai/switches.ts) ------------------------------------
+  // After authentication and authorization, like the configuration check
+  // below, so an anonymous caller learns nothing about what is switched on.
+  if (!isEnabled("AI_ASSISTANT_ENABLED")) {
+    logEvent(correlationId, "disabled", { switch: "AI_ASSISTANT_ENABLED" });
+    return { ok: false, code: "DISABLED", message: "The TANIA assistant is switched off.", correlationId };
+  }
+  const toolsEnabled = isEnabled("TOOL_EXECUTION_ENABLED");
+
   // --- Provider ----------------------------------------------------------
   const config = readAiConfig();
   const provider = resolveProvider(config.configured ? config.providerName : null);
@@ -280,7 +291,9 @@ export async function handleGatewayRequest(
 
     // Tool SPECS only. The provider never receives a handler, so it cannot
     // invoke anything; it can only propose.
-    const tools = toolRegistry.forAgent(agent.tools).map((tool) => ({
+    // TOOL_EXECUTION_ENABLED=false: nothing is offered, and nothing proposed
+    // anyway is run (below).
+    const tools = (toolsEnabled ? toolRegistry.forAgent(agent.tools) : []).map((tool) => ({
       name: tool.name,
       description: tool.description,
       inputSchema: tool.inputSchema,
@@ -318,7 +331,10 @@ export async function handleGatewayRequest(
     // Tool calls go to audit_logs under the caller's session. When that is
     // unavailable the pipeline refuses every consequential tool.
     const audit = createAuditSink();
-    const proposals = result.toolCalls.slice(0, agent.maxToolCalls);
+    if (!toolsEnabled && result.toolCalls.length > 0) {
+      logEvent(correlationId, "tool_calls_ignored_disabled", { count: result.toolCalls.length });
+    }
+    const proposals = toolsEnabled ? result.toolCalls.slice(0, agent.maxToolCalls) : [];
     const records: ToolCallRecord[] = [];
 
     for (const proposal of proposals) {

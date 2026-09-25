@@ -64,7 +64,7 @@ LLM provider ◀── gateway (server) — never sees the service role or SQL
 | T17 | Information disclosure | Executive aggregate identifies individuals | counts only; suppressed below 5 people | matrix-extended | Mitigated |
 | T18 | Information disclosure | Bulk export of Sensitive data | no export surface exists; static guard | API-003 | Mitigated by absence |
 | T19 | Denial of service | AI endpoint cost exhaustion | per-user token bucket (per instance) | hardening | Partially mitigated (R-6) |
-| T20 | Tampering | XSS injects script that acts with the user's session | React escaping; no `dangerouslySetInnerHTML` of user data | — | **Open: no CSP (H-1)** |
+| T20 | Tampering | XSS injects script that acts with the user's session | React escaping; no `dangerouslySetInnerHTML`; nonce CSP; HttpOnly session cookies | hardening, browser check | **Mitigated in Security Gate #3 (H-1 closed)** |
 
 ## 5. Residual threats
 
@@ -72,3 +72,33 @@ Tracked in [SECURITY_GATE_1_REPORT.md](SECURITY_GATE_1_REPORT.md) §20: CSP,
 denial events not audited, same-chapter project visibility, chapter-lead access
 to private AI conversations, self-reported AI usage quality, logout CSRF, and
 per-instance rate limiting.
+
+## 6. Security Gate #3: production threats (2026-09-25)
+
+The Gate #3 brief's threat list. The ids are prefixed **P** so they do not
+collide with T1–T20 above, which remain valid. Status: **Mitigated** (control
+implemented and tested), **Partial**, **Open**, or **N/A** (the surface does
+not exist).
+
+| ID | Threat | Asset | Attack vector | Control | Residual risk | Status |
+|---|---|---|---|---|---|---|
+| P1 | Authentication compromise | Sessions | Stolen or forged session | `getUser()` server validation; Entra ID via Supabase OIDC; HttpOnly, Secure, Lax cookies | Supabase Auth and Entra configuration NOT VERIFIED; token expiry not reviewed | Partial |
+| P2 | Authorization bypass | All records | Calling a page, action or RPC outside one's permissions | Server gates (`authorize.ts`) and RLS on every read | Only the rows the RLS suite exercises are verified | Mitigated |
+| P3 | RLS bypass | Database | Service-role misuse; a policy gap; a SECURITY DEFINER leak | Service role never at runtime; 21/21 definer functions pin `search_path`; 106 RLS tests | Vercel env not visible (service role presence NOT VERIFIED) | Partial |
+| P4 | IDOR | Talent / performance records | Changing an id in a URL or tool argument | RLS by `auth.uid()`; `canAccessTalent`; argument organization check | none known | Mitigated |
+| P5 | Secret exposure | Keys | Commit, bundle, logs | History scan 0; bundle scan 0; server-only allowlist; log redaction | Rotation never exercised | Partial |
+| P6 | Supply-chain compromise | Build | Malicious dependency or action | Lockfile; `npm audit` 0; actions pinned by SHA; read-only CI token; 2 reviewed install scripts | No automated dependency alerts verified | Partial |
+| P7 | XSS | Sessions, data | Injected HTML or script | React escaping; no raw HTML; nonce CSP (browser-verified); HttpOnly cookies | `style-src 'unsafe-inline'` exception | Mitigated |
+| P8 | CSRF | State changes | Cross-site POST | SameSite=Lax cookies; server actions' origin check (Next.js); only POST mutates | none known | Mitigated |
+| P9 | SSRF | Internal network | Server fetch of a user-supplied URL | No such fetch exists; provider URL is server config | none | N/A |
+| P10 | File upload abuse | Storage | Malicious file | No upload surface | none | N/A |
+| P11 | RAG data leakage | Knowledge base | Retrieval beyond scope | RLS inside the vector scan (8/8 live); `RAG_ENABLED` switch | No corpus or embedding model yet | Mitigated |
+| P12 | Prompt injection | AI answers | Instructions in the message, tool data or documents | Fencing; step 2 offered no tools; instruction-like fields withheld (L11); output guard | A paraphrase that evades the detector reaches the model's copy (no action possible) | Partial |
+| P13 | Tool abuse | Data via tools | Model proposes a forbidden call | Closed registry; all-permission check; argument scope; bound approvals; `TOOL_EXECUTION_ENABLED` | none known | Mitigated |
+| P14 | Agent recursion | Cost, availability | Loop of model and tool calls | At most 2 model calls and 8 tool calls; deadlines | none | Mitigated |
+| P15 | JARVIS unauthorized execution | Other system | Handoff used as a command channel | Context, not commands; scope ceiling; off by default; no transport | Handoffs unsigned (AG-07) before any transport | Mitigated (latent gap) |
+| P16 | Data exfiltration | Sensitive records | Bulk reads or export | No export; RLS scope; `connect-src 'self'` | Page reads are not audited | Partial |
+| P17 | Account takeover | A user's access | Credential theft at the IdP | Entra ID; session revocation available | Revocation never exercised | Partial |
+| P18 | Database compromise | All data | Leaked DB credentials; loss | anon revoked; RLS | **No backups, no PITR, no restore test** | Open |
+| P19 | Cloud misconfiguration | Deployments | Wrong env vars, preview reaching production data | Vercel SSO protection observed | **No production project; Vercel env NOT VERIFIED; no environment separation** | Open |
+| P20 | Production deployment compromise | Production | Push to `main` deploys unreviewed code | `vercel.json` disables auto-deploy of `main` (once committed); CI added | **No branch protection** (free private plan) | Partial |

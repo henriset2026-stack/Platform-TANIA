@@ -278,7 +278,8 @@ export type HandoffFailure =
   | { readonly reason: "NOT_AUTHORIZED"; readonly detail: string }
   | { readonly reason: "SCOPE_EMPTY"; readonly detail: string }
   | { readonly reason: "UNAUDITABLE"; readonly detail: string }
-  | { readonly reason: "INVALID_CONTEXT"; readonly detail: string };
+  | { readonly reason: "INVALID_CONTEXT"; readonly detail: string }
+  | { readonly reason: "DISABLED"; readonly detail: string };
 
 export type HandoffOutcome =
   | { readonly ok: true; readonly handoff: JarvisHandoff; readonly reduction: ScopeReduction; readonly result: JarvisResult }

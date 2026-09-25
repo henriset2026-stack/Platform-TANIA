@@ -3,6 +3,8 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { TokenBucketLimiter, AI_RATE_LIMIT } from "@/lib/ai/rate-limit";
+import { buildContentSecurityPolicy, createNonce } from "@/lib/security/csp";
+import { SESSION_COOKIE_OPTIONS } from "@/lib/supabase/cookie-options";
 
 const ROOT = join(import.meta.dirname, "..", "..");
 const config = readFileSync(join(ROOT, "next.config.mjs"), "utf8");
@@ -47,6 +49,65 @@ describe("hardening: security response headers", () => {
 // ===========================================================================
 // Per-user request budget
 // ===========================================================================
+// Security Gate #1 H-1, closed in Gate #3. Browser-verified 2026-09-25 against
+// `next start`: an injected inline handler was blocked (script-src-attr) and
+// the login form still hydrated.
+describe("hardening: Content-Security-Policy", () => {
+  const nonce = "dGVzdC1ub25jZQ==";
+  const prod = buildContentSecurityPolicy({ nonce, dev: false });
+  const directive = (policy: string, name: string) =>
+    policy.split("; ").find((d) => d.startsWith(`${name} `)) ?? "";
+
+  it("allows scripts only by nonce, never inline or eval, in production", () => {
+    const scripts = directive(prod, "script-src");
+    expect(scripts).toContain(`'nonce-${nonce}'`);
+    expect(scripts).toContain("'strict-dynamic'");
+    expect(scripts).not.toContain("'unsafe-inline'");
+    expect(scripts).not.toContain("'unsafe-eval'");
+  });
+
+  it("adds 'unsafe-eval' in development only", () => {
+    expect(directive(buildContentSecurityPolicy({ nonce, dev: true }), "script-src")).toContain("'unsafe-eval'");
+  });
+
+  it("blocks framing, plugins, base-tag hijack, foreign form targets and foreign connections", () => {
+    expect(directive(prod, "frame-ancestors")).toBe("frame-ancestors 'none'");
+    expect(directive(prod, "object-src")).toBe("object-src 'none'");
+    expect(directive(prod, "base-uri")).toBe("base-uri 'self'");
+    expect(directive(prod, "form-action")).toBe("form-action 'self'");
+    expect(directive(prod, "connect-src")).toBe("connect-src 'self'");
+  });
+
+  it("issues an unpredictable nonce per call", () => {
+    const seen = new Set(Array.from({ length: 50 }, () => createNonce()));
+    expect(seen.size).toBe(50);
+    for (const value of seen) expect(atob(value)).toHaveLength(16);
+  });
+
+  it("is set by the middleware on the request and the response, for every route", () => {
+    const middleware = readFileSync(join(ROOT, "lib/supabase/middleware.ts"), "utf8");
+    expect(middleware).toContain('requestHeaders.set("Content-Security-Policy", csp)');
+    expect(middleware).toContain('next.headers.set("Content-Security-Policy", csp)');
+    // Nonces need per-request rendering; a prerendered page would be blocked.
+    expect(readFileSync(join(ROOT, "app/layout.tsx"), "utf8")).toContain("await connection()");
+  });
+});
+
+// Gate #3 step 9: @supabase/ssr defaults to httpOnly: false.
+describe("hardening: session cookies", () => {
+  it("are HttpOnly, SameSite=Lax, and Secure in production", () => {
+    expect(SESSION_COOKIE_OPTIONS).toMatchObject({ httpOnly: true, sameSite: "lax", path: "/" });
+    const source = readFileSync(join(ROOT, "lib/supabase/cookie-options.ts"), "utf8");
+    expect(source).toContain('secure: process.env.NODE_ENV === "production"');
+  });
+
+  it("are applied by every server-side Supabase client", () => {
+    for (const file of ["lib/supabase/server.ts", "lib/supabase/middleware.ts"]) {
+      expect(readFileSync(join(ROOT, file), "utf8"), file).toContain("cookieOptions: SESSION_COOKIE_OPTIONS");
+    }
+  });
+});
+
 describe("hardening: AI request budget", () => {
   function limiter() {
     return new TokenBucketLimiter({

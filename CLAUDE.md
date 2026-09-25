@@ -78,7 +78,14 @@ database. On 2026-09-24:
   header gives the command) and re-append the named aliases.
 - `tests/rls/` **passes 98/98** against that project, including the Security Gate #1 attack suite
   (`security-gate.rls.test.ts`). **Security Gate #1: PASS WITH CONDITIONS** — see
-  `docs/security/SECURITY_GATE_1_REPORT.md`; the open condition that blocks production is H-1 (no CSP). Run it with the keys from `.env.local`
+  `docs/security/SECURITY_GATE_1_REPORT.md`. Its H-1 (no CSP) was closed in Security Gate #3.
+  **Security Gate #3 (production readiness, 2026-09-25): FAIL** (`docs/security/SECURITY_GATE_3_REPORT.md`).
+  Blocking: no production Supabase project, no backups/PITR, no restore test, no monitoring or alerting, the
+  app's Vercel deployments fail, no named owners. Production is promoted, never auto-deployed on push
+  (`vercel.json`); do not remove that. Nonce CSP lives in `lib/security/csp.ts` via the middleware and needs every
+  page rendered per request (`await connection()` in `app/layout.tsx`). Session cookies are HttpOnly
+  (`lib/supabase/cookie-options.ts`), so adding a browser Supabase client means revisiting that. AI kill switches:
+  `lib/ai/switches.ts`. Run it with the keys from `.env.local`
   exported (`set -a; . ./.env.local; set +a; npm run test:rls`); vitest does not load the file itself.
   Every denial asserts SQLSTATE `42501`, and every run cleans up its fixtures or fails. The first run
   exposed hollow tests (early returns on an empty database, a random-UUID insert that a foreign key

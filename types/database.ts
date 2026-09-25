@@ -1,5 +1,5 @@
 /**
- * Database types — GENERATED from project hcyaqbgbwfxzutamceoq after all 27
+ * Database types — GENERATED from project hcyaqbgbwfxzutamceoq after all 28
  * migrations were applied (2026-09-24). Do not edit by hand; regenerate:
  *     supabase gen types typescript --linked --schema public > types/database.ts
  * then re-append the named aliases at the bottom of this file.
@@ -3294,6 +3294,7 @@ export type Database = {
       }
       has_role: { Args: { required_role: string }; Returns: boolean }
       is_ai_service: { Args: never; Returns: boolean }
+      is_protected_role: { Args: { target_role: string }; Returns: boolean }
       match_knowledge_chunks: {
         Args: {
           filter_organization_id?: string
@@ -3324,6 +3325,7 @@ export type Database = {
         }
         Returns: number
       }
+      user_admin_org_ids: { Args: never; Returns: string[] }
       user_org_ids: { Args: never; Returns: string[] }
       user_squad_ids: { Args: never; Returns: string[] }
     }

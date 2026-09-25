@@ -73,7 +73,9 @@ database. On 2026-09-24:
   policy, and `supabase db lint` reports no schema errors.
 - `types/database.ts` is **generated** from that schema. Regenerate it after every migration (the
   header gives the command) and re-append the named aliases.
-- `tests/rls/` **passes 57/57** against that project. Run it with the keys from `.env.local`
+- `tests/rls/` **passes 98/98** against that project, including the Security Gate #1 attack suite
+  (`security-gate.rls.test.ts`). **Security Gate #1: PASS WITH CONDITIONS** — see
+  `docs/security/SECURITY_GATE_1_REPORT.md`; the open condition that blocks production is H-1 (no CSP). Run it with the keys from `.env.local`
   exported (`set -a; . ./.env.local; set +a; npm run test:rls`); vitest does not load the file itself.
   Every denial asserts SQLSTATE `42501`, and every run cleans up its fixtures or fails. The first run
   exposed hollow tests (early returns on an empty database, a random-UUID insert that a foreign key
@@ -91,7 +93,11 @@ database. On 2026-09-24:
   permission, in scope, under your own identity, never for yourself.
   Do not describe RLS as verified beyond the rows the suite exercises.
 - The database holds **no users and no seed data**.
-- Three further migrations (`20260924100001`–`…003`, approval guards and chapter aggregates) were applied the same day; 27 in total.
+- Five further migrations (`20260924100001`–`…005`: approval guards, chapter aggregates, Security
+  Gate #1 fixes) were applied the same day; 29 in total.
+- **Security model:** `docs/security/SECURITY_MODEL.md` is the reference. Any new table with a
+  judgement-bearing column (approval, validation, assessment, score) needs a decision guard and an
+  audit trigger in the migration that creates it — a policy cannot see which columns changed.
 - `.env.local` (gitignored) holds the URL, the publishable key and the secret key; the secret key is
   for `tests/rls` fixtures only and must never be set in Vercel. A one-off probe with the publishable key was refused `42501` on SELECT from 11 tables,
   INSERT into 3 (including `organization_memberships` and `audit_logs`), and the permission RPC.

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { isNavItemAvailable, PRIMARY_NAV } from "@/lib/navigation";
+import { PRIMARY_NAV } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 
 /**
@@ -16,18 +16,25 @@ import { cn } from "@/lib/utils";
  * Disabling here is presentation only. Authorization is enforced server-side
  * and in RLS (CLAUDE.md §4.1).
  */
-export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
+export function SidebarNav({
+  available,
+  onNavigate,
+}: {
+  /** Ids of reachable destinations, computed on the server (lib/navigation-availability). */
+  available: readonly string[];
+  onNavigate?: () => void;
+}) {
   const pathname = usePathname();
 
   return (
     <nav aria-label="Primary" className="px-2 py-3">
       <ul className="space-y-0.5">
         {PRIMARY_NAV.map((item) => {
-          const available = isNavItemAvailable(item);
+          const isAvailable = available.includes(item.id);
           const active = pathname === item.href;
           const Icon = item.icon;
 
-          if (!available) {
+          if (!isAvailable) {
             return (
               <li key={item.id}>
                 <span

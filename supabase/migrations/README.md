@@ -2,8 +2,8 @@
 
 **Applied to: `hcyaqbgbwfxzutamceoq`, 2026-09-24.** All 24 migrations ran
 cleanly in order: 52 tables, RLS on all of them, 253 policies, and a clean
-`supabase db lint`. `tests/rls/` passes 57/57 against it, covering all 15
-matrix rows (see tests/rls/README.md). Treat access-control claims
+`supabase db lint`. `tests/rls/` passes 98/98 against it: all 15 matrix rows
+plus the Security Gate #1 attack suite (see docs/security/). Treat access-control claims
 outside those rows as intent until they are tested.
 
 ## Order
@@ -40,6 +40,8 @@ files depend on objects created earlier.
 | 25 | `20260924100001_performance_review_approval_guard.sql` | trigger: deciding a review needs `approve_review`, in scope, as yourself (found by `tests/rls`) |
 | 26 | `20260924100002_approval_guards.sql` | the same guard for `development_plans` and `assignments` |
 | 27 | `20260924100003_chapter_aggregates.sql` | `chapter_summary()`, `chapter_capability_summary()`: executive totals, suppressed below 5 people |
+| 28 | `20260924100004_security_gate_1.sql` | Security Gate #1: membership grant ceiling, profile scope-field guard, validation/assessment/evaluation guards, audit triggers, no TRUNCATE for API roles (docs/security/) |
+| 29 | `20260924100005_ai_augmentation_no_self_scoring.sql` | nobody writes their own AI augmentation scores |
 
 Migration 9 is Phase 3. It only subtracts: RESTRICTIVE policies are AND-ed
 with the permissive ones, so it can never widen access.

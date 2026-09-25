@@ -14,7 +14,7 @@ import { resolveDashboardView } from "@/lib/dashboard/views";
  * but are inert: they are delivered in later phases. Each is disabled rather
  * than wired to a stub, so nothing appears to work that does not.
  */
-export async function TopBar() {
+export async function TopBar({ availableNav }: { availableNav: readonly string[] }) {
   // Identity is read server-side. Nothing about the signed-in user reaches the
   // browser except what is rendered here.
   const context = await getAuthContext();
@@ -22,7 +22,7 @@ export async function TopBar() {
 
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center gap-2 border-b border-slate-200 bg-white/95 px-3 backdrop-blur sm:px-4">
-      <MobileNav />
+      <MobileNav availableNav={availableNav} />
 
       {/* Wordmark shows on mobile, where the sidebar is collapsed. */}
       <TaniaWordmark className="lg:hidden" />

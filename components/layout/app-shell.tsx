@@ -3,12 +3,15 @@ import { ScaleStrip } from "@/components/brand/scale-strip";
 import { TaniaWordmark } from "@/components/brand/tania-wordmark";
 import { SidebarNav } from "@/components/layout/sidebar-nav";
 import { TopBar } from "@/components/layout/top-bar";
+import { availableNavItemIds } from "@/lib/navigation-availability";
 
 /**
  * Application shell: fixed sidebar on desktop, sheet navigation below `lg`.
  * Server component — only SidebarNav and MobileNav opt into the client.
  */
 export function AppShell({ children }: { children: React.ReactNode }) {
+  // Computed here so the client receives ids only, never lib/status.ts.
+  const availableNav = availableNavItemIds();
   return (
     <div className="flex min-h-screen bg-[var(--color-surface-app)]">
       {/* Keyboard users must be able to reach content without tabbing the
@@ -24,13 +27,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <TaniaWordmark showTagline />
         </div>
         <div className="flex-1 overflow-y-auto">
-          <SidebarNav />
+          <SidebarNav available={availableNav} />
         </div>
         <ScaleStrip />
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <TopBar />
+        <TopBar availableNav={availableNav} />
         <main
           id="main-content"
           tabIndex={-1}

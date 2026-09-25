@@ -12,7 +12,6 @@ import {
   Users,
 } from "lucide-react";
 
-import { PHASES } from "@/lib/status";
 import type { NavItem } from "@/types/navigation";
 
 /**
@@ -115,9 +114,3 @@ export const PRIMARY_NAV: readonly NavItem[] = [
     permission: "admin.users",
   },
 ];
-
-/** A destination is reachable only once its phase reports completion. */
-export function isNavItemAvailable(item: NavItem): boolean {
-  const phase = PHASES.find((p) => p.id === item.implementedInPhase);
-  return phase?.status === "IMPLEMENTED";
-}

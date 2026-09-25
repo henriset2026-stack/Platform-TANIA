@@ -15,7 +15,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 
-export function MobileNav() {
+export function MobileNav({ availableNav }: { availableNav: readonly string[] }) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -36,7 +36,7 @@ export function MobileNav() {
         </SheetHeader>
         <div className="flex h-full flex-col">
           <div className="flex-1 overflow-y-auto">
-            <SidebarNav onNavigate={() => setOpen(false)} />
+            <SidebarNav available={availableNav} onNavigate={() => setOpen(false)} />
           </div>
           <ScaleStrip />
         </div>

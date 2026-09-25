@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { isNavItemAvailable, PRIMARY_NAV } from "../../lib/navigation";
+import { PRIMARY_NAV } from "../../lib/navigation";
+import { isNavItemAvailable } from "../../lib/navigation-availability";
 import { PHASES } from "../../lib/status";
 
 describe("primary navigation", () => {

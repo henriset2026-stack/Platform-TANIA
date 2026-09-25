@@ -116,7 +116,14 @@ on `development_plans` and `assignments` (`20260924100002`). `npm run
 test:rls` passes **57/57**, all 15 matrix rows. C-1 stays open for
 *production*, which has no database yet (docs/DEPLOYMENT.md §9).
 
-Before the decisions, C-1 was not closed until those two rows were decided. Earlier text: the
+Before the decisions, C-1 was not closed until those two rows were decided.
+
+**Update 2026-09-24 — Security Gate #1: PASS WITH CONDITIONS.** An attack
+suite run against staging succeeded 15 times in 38 before its fixes,
+including two CRITICAL escalations: HR could grant SUPER_ADMIN, and a manager
+could re-home into another chapter's squad. Migrations `20260924100004`–`…005`
+fixed all of them; RLS now passes 98/98. H-1 (no CSP) remains the open
+condition before production. Full record: docs/security/SECURITY_GATE_1_REPORT.md. Earlier text: the
 suite covered 7 of the 13 rows in the §9 matrix.
 
 ---

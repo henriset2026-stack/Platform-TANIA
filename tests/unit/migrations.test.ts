@@ -180,6 +180,25 @@ describe("migration chain", () => {
     expect(SQL).toMatch(/has_permission\('assignment\.approve'\)/);
   });
 
+  // SECURITY GATE #1 (migration 20260924100004). Each was an attack that
+  // succeeded against the live database before the fix.
+  it("keeps the Security Gate #1 controls in place", () => {
+    expect(SQL).toMatch(/revoke truncate, references, trigger on public\.%I from anon, authenticated/);
+    expect(SQL).toMatch(/memberships_grant_ceiling_insert[\s\S]{0,200}user_admin_org_ids\(\)[\s\S]{0,120}is_protected_role/);
+    expect(SQL).toMatch(/'SUPER_ADMIN', 'EXECUTIVE', 'AI_SERVICE'/);
+    expect(SQL).toMatch(/create trigger profiles_guard_scope_fields\s+before insert or update on public\.profiles/);
+    for (const table of ["performance_evidence", "capability_evidence", "business_impacts", "ai_assessments"]) {
+      expect(SQL).toMatch(new RegExp(`create trigger ${table}_guard_validation\\s+before insert or update on public\\.${table}`));
+    }
+    expect(SQL).toMatch(/create trigger talent_capabilities_guard_assessment/);
+    expect(SQL).toMatch(/create trigger learning_evidence_guard_evaluation/);
+    for (const table of ["organization_memberships", "role_permissions", "roles", "permissions"]) {
+      expect(SQL).toMatch(new RegExp(`create trigger ${table}_audit\\s+after insert or update or delete on public\\.${table}`));
+    }
+    // SG-09: nobody writes their own AI augmentation scores.
+    expect(SQL).toMatch(/ai_augmentation_no_self_insert[\s\S]{0,120}profile_id <> auth\.uid\(\)/);
+  });
+
   // Executive aggregates: no caller-supplied scope, AI excluded, and nothing
   // below five people (TANIA_RBAC_RLS_MATRIX.md §9 "Executive → aggregate").
   it("exposes chapter aggregates without parameters, AI access, or small groups", () => {

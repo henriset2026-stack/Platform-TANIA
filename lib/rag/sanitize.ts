@@ -43,6 +43,13 @@ const SUSPICIOUS_PATTERNS: readonly { readonly name: string; readonly re: RegExp
   // titled "## System Architecture" is not flagged every time it is read.
   { name: "instruction_smuggling", re: /(^|\n)\s*(#{1,6}|\*{2,}|={2,}|-{3,})\s*(new\s+|updated\s+|revised\s+|additional\s+)?(instruction|directive|rule|command)s?\b/i },
   { name: "tool_coercion", re: /\b(call|invoke|execute|run)\b[^.]{0,20}\b(tool|function|command|query)\b/i },
+  // Naming a tool directly: "call draft_development_plan". Tool names are
+  // lower_snake_case by registry rule, which ordinary prose almost never is.
+  { name: "tool_coercion_by_name", re: /\b(call|invoke|execute|run|trigger)\s+`?[a-z]+(?:_[a-z]+){1,}`?/i },
+  // Text posing as the platform: "SYSTEM OVERRIDE:", "Admin notice:".
+  { name: "system_impersonation", re: /\b(system|admin(?:istrator)?|developer)\s+(override|notice|message|instruction|directive)s?\b/i },
+  // Orders addressed to whoever reads the record, i.e. the model.
+  { name: "reader_directed_instruction", re: /\b(tell|inform|assure|convince|instruct)\s+the\s+(user|reader|assistant|model|ai)\b/i },
   { name: "fence_escape", re: /<\/?(?:untrusted_document|system|instructions)>/i },
 ];
 

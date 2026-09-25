@@ -15,10 +15,13 @@
  * success.
  */
 
-import { validateArguments } from "@/agents/core/schema";
+import { createHash } from "node:crypto";
+
+import { validateArguments, validateOutput } from "@/agents/core/schema";
 import {
   idempotencyKey,
   requiresIdempotency,
+  stableStringify,
   type IdempotencyStore,
 } from "@/agents/core/idempotency";
 import {
@@ -49,6 +52,12 @@ export interface ToolCallRecord {
   readonly durationMs: number;
   /** Set when the call stopped because a human must confirm it. */
   readonly awaitingConfirmation: boolean;
+  /**
+   * When awaiting confirmation: the token a human returns to approve exactly
+   * this call — this tool, these arguments, this user. Approving is never
+   * "approved = true" for a tool in general (AI Gate #2, principle 14).
+   */
+  readonly confirmationToken?: string;
   /** True when this result was replayed rather than executed again. */
   readonly replayed: boolean;
   /**
@@ -71,8 +80,9 @@ export interface PipelineOptions {
   readonly signal: AbortSignal;
   readonly log: (event: string, detail?: Record<string, unknown>) => void;
   /**
-   * Confirmations already granted by a human, by tool name. Absent means not
-   * confirmed — the safe default.
+   * Confirmation tokens a human has granted (see confirmationToken). A token
+   * binds one tool, one argument set and one user, so confirming one call
+   * never confirms another. Absent means not confirmed — the safe default.
    */
   readonly confirmations?: ReadonlySet<string>;
   readonly timeoutMs: number;
@@ -89,6 +99,45 @@ export interface PipelineOptions {
    * anything that writes.
    */
   readonly idempotency?: IdempotencyStore;
+}
+
+/**
+ * The token that approves exactly one proposed call.
+ *
+ * Derived from the tool, the validated arguments and the acting user, so an
+ * approval cannot be moved to different parameters, a different tool or a
+ * different person. It is also the replay key for confirmed calls: the same
+ * approved call submitted again is deduplicated, not executed twice.
+ */
+export function confirmationToken(toolName: string, args: unknown, userId: string): string {
+  const digest = createHash("sha256")
+    .update(stableStringify({ tool: toolName, args, user: userId }))
+    .digest("hex");
+  return `${toolName}:${digest}`;
+}
+
+/** Argument names that address an organization (chapter). */
+const ORGANIZATION_ARGUMENTS = ["organizationId", "organization_id", "chapterId", "chapter_id"] as const;
+
+/**
+ * Returns the first organization-addressing argument outside the caller's
+ * memberships, or null.
+ *
+ * RLS would return nothing for such a call anyway; refusing it here turns a
+ * silent empty result — which a model may narrate as "there is nothing" —
+ * into an explicit, logged denial. SUPER_ADMIN is platform-wide by design.
+ */
+export function outOfScopeArgument(args: unknown, auth: AgentAuthContext): string | null {
+  if (auth.roles.includes("SUPER_ADMIN") || typeof args !== "object" || args === null) return null;
+  const record = args as Record<string, unknown>;
+  for (const key of ORGANIZATION_ARGUMENTS) {
+    const value = record[key];
+    const values = Array.isArray(value) ? value : value === undefined ? [] : [value];
+    for (const item of values) {
+      if (typeof item !== "string" || !auth.organizationIds.includes(item)) return key;
+    }
+  }
+  return null;
 }
 
 /**
@@ -235,18 +284,33 @@ export async function executeToolCall(
     );
   }
 
+  // --- 5b. Scope: arguments cannot address another organization ---------
+  const scopeViolation = outOfScopeArgument(validation.value, auth);
+  if (scopeViolation) {
+    log("tool.denied.scope", { tool: tool.name, argument: scopeViolation });
+    return refuse(
+      tool.name,
+      validation.value,
+      `Argument "${scopeViolation}" addresses an organization outside your scope.`,
+    );
+  }
+
   // --- 6. Risk and confirmation -----------------------------------------
-  // A tool requiring confirmation stops here unless a human already granted
-  // it. The pipeline never asks the model whether to proceed.
-  if (tool.requiresConfirmation && !options.confirmations?.has(tool.name)) {
+  // A tool requiring confirmation stops here unless a human already approved
+  // THIS call. The pipeline never asks the model whether to proceed.
+  const approval = tool.requiresConfirmation
+    ? confirmationToken(tool.name, validation.value, auth.userId)
+    : null;
+  if (approval && !options.confirmations?.has(approval)) {
     log("tool.awaiting_confirmation", { tool: tool.name, risk: tool.riskLevel });
     return finish({
       toolName: tool.name,
       arguments: validation.value,
       status: "denied",
       result: null,
-      errorDetail: `Tool "${tool.name}" is ${tool.riskLevel} risk and requires explicit human confirmation before it runs.`,
+      errorDetail: `Tool "${tool.name}" is ${tool.riskLevel} risk and requires explicit human confirmation of this exact call before it runs.`,
       awaitingConfirmation: true,
+      confirmationToken: approval,
     });
   }
 
@@ -283,13 +347,17 @@ export async function executeToolCall(
   // Checked after authorization, never before: a replay must still be a call
   // the caller is entitled to make, so a revoked permission stops a retry
   // that an earlier grant allowed.
+  // An approved call is keyed by its approval, not by the request, so the
+  // same approval replayed in a later request is deduplicated too.
   const dedupeKey =
     options.idempotency && requiresIdempotency(tool)
-      ? idempotencyKey({
-          correlationId: auth.correlationId,
-          toolName: tool.name,
-          args: validation.value,
-        })
+      ? approval
+        ? `approved:${approval}`
+        : idempotencyKey({
+            correlationId: auth.correlationId,
+            toolName: tool.name,
+            args: validation.value,
+          })
       : null;
 
   if (dedupeKey && options.idempotency) {
@@ -348,6 +416,23 @@ export async function executeToolCall(
         status: "failed",
         result: null,
         errorDetail: outcome.error,
+        awaitingConfirmation: false,
+      });
+    }
+
+    // --- 10b. The result must match the declared output schema ---------
+    // A result is about to reach a model and a person. Fields nobody declared
+    // are dropped wholesale, not passed through: this is what stops a query
+    // change from silently widening what an agent can see or say.
+    const shape = validateOutput(tool.outputSchema, outcome.result);
+    if (!shape.valid) {
+      log("tool.failed.output_schema", { tool: tool.name, errors: shape.errors });
+      return finish({
+        toolName: tool.name,
+        arguments: validation.value,
+        status: "failed",
+        result: null,
+        errorDetail: `Tool result did not match its declared output schema: ${shape.errors.join("; ")}`,
         awaitingConfirmation: false,
       });
     }

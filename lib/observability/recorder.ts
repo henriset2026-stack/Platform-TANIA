@@ -104,6 +104,7 @@ export function classifyDecision(record: ToolCallRecord): string {
   if (/AI service identity/i.test(detail)) return "denied_ai_identity";
   if (/Invalid arguments/i.test(detail)) return "denied_schema";
   if (/Missing permission/i.test(detail)) return "denied_permission";
+  if (/outside your scope/i.test(detail)) return "denied_argument_scope";
   if (/cannot run unaudited/i.test(detail)) return "denied_unauditable";
   return "denied_permission";
 }

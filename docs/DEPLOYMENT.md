@@ -51,7 +51,7 @@ Set these in Vercel → Project → Settings → Environment Variables.
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | **required** | **required** | Publishable key. Browser-safe; RLS applies |
 | `SITE_URL` | **required** | omit | Canonical origin, e.g. `https://tania.example.com`. Previews use Vercel's automatic `VERCEL_URL` |
 | `LOG_LEVEL` | optional | optional | `debug`/`info`/`warn`/`error`. Defaults to `info` in production |
-| `AI_GATEWAY_URL`, `AI_GATEWAY_KEY`, `LLM_MODEL` | optional | optional | All three or none. Without them the assistant reports "not configured" |
+| `LLM_PROVIDER`, `AI_GATEWAY_URL`, `AI_GATEWAY_KEY`, `LLM_MODEL` | **do not set yet** | optional | All or none. `LLM_PROVIDER` is `gemini` or `openai-compatible`. A third-party router (e.g. NARA) forwards prompts to upstream vendors, so it needs a data-governance decision before real talent data goes through it. Gemini: `LLM_PROVIDER=gemini`, `AI_GATEWAY_URL=https://generativelanguage.googleapis.com`, a Google AI Studio key, a model id. Without them the assistant reports "not configured"; an unknown `LLM_PROVIDER` does the same. **Not in Production** until `npm run test:ai:live` has run and its baselines are recorded (AI Gate #2, condition 2). The key is server-only: never prefix it `NEXT_PUBLIC_` |
 | `EMBEDDING_MODEL` | optional | optional | Needed for RAG retrieval |
 | `SUPABASE_SERVICE_ROLE_KEY` | **do not set** | **do not set** | Bypasses RLS. The deployed app never reads it; only `tests/rls` and maintenance scripts do, from a trusted machine |
 | `ENTRA_CLIENT_ID`, `ENTRA_CLIENT_SECRET`, `ENTRA_TENANT_ID` | **do not set** | **do not set** | Not read by the app. They go into Supabase (§5) |

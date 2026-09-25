@@ -32,6 +32,8 @@ supabase/.branches/
 npm-debug.log*
 coverage/
 .nyc_output/
+# Live model evaluation reports (tests/ai-live): contain model output.
+test-results/
 
 # Editors
 .vscode/

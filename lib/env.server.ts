@@ -45,3 +45,12 @@ export function serviceRoleKey(): string {
     process.env.SUPABASE_SERVICE_ROLE_KEY,
   );
 }
+
+/**
+ * LLM provider credential (AI_GATEWAY_KEY). Read at call time by the provider
+ * adapter only; never logged, never returned, never sent anywhere but the
+ * provider's own endpoint.
+ */
+export function aiGatewayKey(): string {
+  return required("AI_GATEWAY_KEY", process.env.AI_GATEWAY_KEY);
+}

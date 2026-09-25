@@ -12,7 +12,11 @@ import { listCapabilities, getCapabilityHolders } from "@/lib/capability/queries
 import { calculateProvenLevel } from "@/lib/calculations/capability";
 import { retrieveAuthorizedChunks } from "@/lib/rag/retrieval";
 import { embedQuery } from "@/lib/rag/embedding";
-import { describeUnavailable } from "@/agents/product/tools";
+import {
+  describeUnavailable,
+  INJECTION_SIGNAL_OUTPUT,
+  RETRIEVED_CHUNK_OUTPUT,
+} from "@/agents/product/tools";
 import type { ToolDefinition, JsonSchema } from "@/agents/core/types";
 
 const EMPTY_INPUT: JsonSchema = {
@@ -35,9 +39,52 @@ const QUERY_SCHEMA: JsonSchema = {
   additionalProperties: false,
 };
 
-const EMPTY_OUTPUT: JsonSchema = {
+// ===========================================================================
+// Output schemas
+//
+// The pipeline validates every handler result against these, rejecting
+// unknown keys at any depth. Chunk and injection-signal shapes are shared
+// with the Product Agent, which returns the same RetrievedChunk records.
+// ===========================================================================
+
+const INVENTORY_OUTPUT: JsonSchema = {
   type: "object",
-  properties: {},
+  properties: {
+    inventory: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          capabilityId: { type: "string" },
+          capabilityName: { type: "string" },
+          bestProvenLevel: { type: "integer" },
+          provenHolderCount: { type: "integer" },
+          scopeLimited: { type: "boolean" },
+        },
+        required: [
+          "capabilityId",
+          "capabilityName",
+          "bestProvenLevel",
+          "provenHolderCount",
+          "scopeLimited",
+        ],
+      },
+    },
+    note: { type: "string" },
+  },
+  required: ["inventory"],
+  additionalProperties: false,
+};
+
+/** Live results carry injection signals (no timestamp); the empty result carries a note. */
+const SOLUTION_KNOWLEDGE_OUTPUT: JsonSchema = {
+  type: "object",
+  properties: {
+    chunks: { type: "array", items: RETRIEVED_CHUNK_OUTPUT },
+    injectionSignals: { type: "array", items: INJECTION_SIGNAL_OUTPUT },
+    note: { type: "string" },
+  },
+  required: ["chunks"],
   additionalProperties: false,
 };
 
@@ -56,7 +103,7 @@ export const retrieveCapabilityInventory: ToolDefinition<
   description:
     "Retrieves the capability catalogue with the highest evidence-proven level the caller can see for each, for mapping onto a solution.",
   inputSchema: EMPTY_INPUT,
-  outputSchema: EMPTY_OUTPUT,
+  outputSchema: INVENTORY_OUTPUT,
   riskLevel: "LOW",
   requiredPermissions: ["capability.read", "talent.read"],
   requiresConfirmation: false,
@@ -119,7 +166,7 @@ export const searchSolutionKnowledge: ToolDefinition<{ query: string }, unknown>
   description:
     "Searches the authorized DPS knowledge base for architecture and reference material, returning cited excerpts.",
   inputSchema: QUERY_SCHEMA,
-  outputSchema: EMPTY_OUTPUT,
+  outputSchema: SOLUTION_KNOWLEDGE_OUTPUT,
   riskLevel: "LOW",
   requiredPermissions: ["ai.use"],
   requiresConfirmation: false,

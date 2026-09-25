@@ -25,9 +25,13 @@ import {
   getTalentCapabilityDetail,
   listCapabilityRequirements,
 } from "@/lib/capability/queries";
+import { CRITICALITY_WEIGHT, URGENCY_WEIGHT } from "@/lib/calculations/capability";
 import { analyzeCapability } from "@/agents/capability/analysis";
-import type { ToolDefinition, JsonSchema } from "@/agents/core/types";
+import { DEVELOPMENT_APPROACH_LABEL } from "@/agents/capability/contract";
+import type { ToolDefinition, JsonSchema, JsonSchemaProperty } from "@/agents/core/types";
+import { CLAIM_KINDS } from "@/types/claim";
 import type { DataPoint } from "@/types/data";
+import { CAPABILITY_STATUSES } from "@/types/status";
 
 /**
  * Optional scope filter.
@@ -77,9 +81,324 @@ const TALENT_SCHEMA: JsonSchema = {
   additionalProperties: false,
 };
 
-const EMPTY_OUTPUT: JsonSchema = {
+// ===========================================================================
+// Output schemas
+//
+// The pipeline validates every handler result against these, rejecting
+// unknown keys at any depth. Each one mirrors the TypeScript type the handler
+// returns — CapabilityRequirementRow, TalentCapabilityDetail and
+// CapabilityAnalysis — so a query that starts returning a new column fails
+// loudly instead of silently widening what reaches the model.
+//
+// Discriminated unions (RequirementScope, GapBasis) cannot be expressed in
+// this schema subset, so each is declared as one object whose variant fields
+// are all optional and whose `kind` is required.
+// ===========================================================================
+
+const CRITICALITY_ENUM = Object.keys(CRITICALITY_WEIGHT);
+const URGENCY_ENUM = Object.keys(URGENCY_WEIGHT);
+
+const REQUIREMENT_SCOPE_OUTPUT: JsonSchemaProperty = {
   type: "object",
-  properties: {},
+  properties: {
+    kind: { type: "string", enum: ["organization", "squad", "project", "role"] },
+    id: { type: "string" },
+    roleName: { type: "string" },
+  },
+  required: ["kind"],
+};
+
+const CAPABILITY_REQUIREMENT_ROW_OUTPUT: JsonSchemaProperty = {
+  type: "object",
+  properties: {
+    requirementId: { type: "string" },
+    capabilityId: { type: "string" },
+    capabilityName: { type: "string" },
+    requiredLevel: { type: "integer" },
+    criticality: { type: "string", enum: CRITICALITY_ENUM },
+    urgency: { type: "string", enum: URGENCY_ENUM },
+    scope: REQUIREMENT_SCOPE_OUTPUT,
+    headcountRequired: { type: "integer", nullable: true },
+  },
+  required: [
+    "requirementId",
+    "capabilityId",
+    "capabilityName",
+    "requiredLevel",
+    "criticality",
+    "urgency",
+    "scope",
+    "headcountRequired",
+  ],
+};
+
+const REQUIREMENTS_OUTPUT: JsonSchema = {
+  type: "object",
+  properties: {
+    requirements: { type: "array", items: CAPABILITY_REQUIREMENT_ROW_OUTPUT },
+    note: { type: "string" },
+  },
+  required: ["requirements"],
+  additionalProperties: false,
+};
+
+const TALENT_CAPABILITY_DETAIL_OUTPUT: JsonSchemaProperty = {
+  type: "object",
+  properties: {
+    id: { type: "string" },
+    capabilityId: { type: "string" },
+    capabilityName: { type: "string" },
+    domainName: { type: "string" },
+    claimedLevel: { type: "integer" },
+    provenLevel: { type: "integer" },
+    proven: { type: "boolean" },
+    provenReason: { type: "string" },
+    targetLevel: { type: "integer", nullable: true },
+    requiredLevel: { type: "integer", nullable: true },
+    gap: { type: "integer", nullable: true },
+    status: { type: "string", enum: CAPABILITY_STATUSES, nullable: true },
+    assessmentStatus: { type: "string" },
+    evidenceCount: { type: "integer" },
+    validatedEvidenceCount: { type: "integer" },
+  },
+  required: [
+    "id",
+    "capabilityId",
+    "capabilityName",
+    "domainName",
+    "claimedLevel",
+    "provenLevel",
+    "proven",
+    "provenReason",
+    "targetLevel",
+    "requiredLevel",
+    "gap",
+    "status",
+    "assessmentStatus",
+    "evidenceCount",
+    "validatedEvidenceCount",
+  ],
+};
+
+const TALENT_CAPABILITIES_OUTPUT: JsonSchema = {
+  type: "object",
+  properties: {
+    capabilities: { type: "array", items: TALENT_CAPABILITY_DETAIL_OUTPUT },
+    note: { type: "string" },
+  },
+  required: ["capabilities"],
+  additionalProperties: false,
+};
+
+const EVIDENCE_REF_OUTPUT: JsonSchemaProperty = {
+  type: "object",
+  properties: {
+    evidenceId: { type: "string" },
+    talentCapabilityId: { type: "string" },
+    capabilityId: { type: "string" },
+    sourceType: { type: "string" },
+    validationStatus: { type: "string" },
+    demonstratesApplication: { type: "boolean" },
+    occurredAt: { type: "string", nullable: true },
+    claimKind: { type: "string", enum: CLAIM_KINDS },
+  },
+  required: [
+    "evidenceId",
+    "talentCapabilityId",
+    "capabilityId",
+    "sourceType",
+    "validationStatus",
+    "demonstratesApplication",
+    "occurredAt",
+    "claimKind",
+  ],
+};
+
+const REQUIREMENT_REF_OUTPUT: JsonSchemaProperty = {
+  type: "object",
+  properties: {
+    requirementId: { type: "string" },
+    capabilityId: { type: "string" },
+    requiredLevel: { type: "integer" },
+    scope: REQUIREMENT_SCOPE_OUTPUT,
+  },
+  required: ["requirementId", "capabilityId", "requiredLevel", "scope"],
+};
+
+/** GapBasis: `evidenceRefs` on evidenced / certification_only, `requirement` on unevidenced. */
+const GAP_BASIS_OUTPUT: JsonSchemaProperty = {
+  type: "object",
+  properties: {
+    kind: { type: "string", enum: ["evidenced", "certification_only", "unevidenced"] },
+    evidenceRefs: { type: "array", items: EVIDENCE_REF_OUTPUT },
+    requirement: REQUIREMENT_REF_OUTPUT,
+  },
+  required: ["kind"],
+};
+
+const PRIORITY_FACTORS_OUTPUT: JsonSchemaProperty = {
+  type: "object",
+  properties: {
+    magnitude: { type: "integer" },
+    businessCriticality: { type: "string", enum: CRITICALITY_ENUM },
+    criticalityWeight: { type: "number" },
+    timeUrgency: { type: "string", enum: URGENCY_ENUM },
+    urgencyWeight: { type: "number" },
+    score: { type: "number" },
+    index: { type: "number" },
+    formula: { type: "string" },
+  },
+  required: [
+    "magnitude",
+    "businessCriticality",
+    "criticalityWeight",
+    "timeUrgency",
+    "urgencyWeight",
+    "score",
+    "index",
+    "formula",
+  ],
+};
+
+const AFFECTED_TALENT_OUTPUT: JsonSchemaProperty = {
+  type: "object",
+  properties: {
+    talentId: { type: "string" },
+    displayName: { type: "string" },
+    claimedLevel: { type: "integer" },
+    provenLevel: { type: "integer" },
+    gap: { type: "integer" },
+    proven: { type: "boolean" },
+    provenReason: { type: "string" },
+    evidenceRefs: { type: "array", items: EVIDENCE_REF_OUTPUT },
+  },
+  required: [
+    "talentId",
+    "displayName",
+    "claimedLevel",
+    "provenLevel",
+    "gap",
+    "proven",
+    "provenReason",
+    "evidenceRefs",
+  ],
+};
+
+const GAP_FINDING_OUTPUT: JsonSchemaProperty = {
+  type: "object",
+  properties: {
+    id: { type: "string" },
+    capabilityId: { type: "string" },
+    capabilityName: { type: "string" },
+    requirement: REQUIREMENT_REF_OUTPUT,
+    requiredLevel: { type: "integer" },
+    provenLevel: { type: "integer" },
+    claimedLevel: { type: "integer" },
+    gap: { type: "integer" },
+    magnitude: { type: "integer" },
+    status: { type: "string", enum: CAPABILITY_STATUSES },
+    basis: GAP_BASIS_OUTPUT,
+    priority: PRIORITY_FACTORS_OUTPUT,
+    affectedTalent: {
+      type: "object",
+      properties: {
+        talent: { type: "array", items: AFFECTED_TALENT_OUTPUT },
+        visibleCount: { type: "integer" },
+        scopeLimited: { type: "boolean" },
+      },
+      required: ["talent", "visibleCount", "scopeLimited"],
+    },
+    claimKind: { type: "string", enum: ["ANALYSIS"] },
+  },
+  required: [
+    "id",
+    "capabilityId",
+    "capabilityName",
+    "requirement",
+    "requiredLevel",
+    "provenLevel",
+    "claimedLevel",
+    "gap",
+    "magnitude",
+    "status",
+    "basis",
+    "priority",
+    "affectedTalent",
+    "claimKind",
+  ],
+};
+
+const UNCERTAINTY_OUTPUT: JsonSchemaProperty = {
+  type: "object",
+  properties: {
+    topic: { type: "string" },
+    reason: { type: "string" },
+    resolvedBy: { type: "string" },
+  },
+  required: ["topic", "reason", "resolvedBy"],
+};
+
+const DEVELOPMENT_RECOMMENDATION_OUTPUT: JsonSchemaProperty = {
+  type: "object",
+  properties: {
+    id: { type: "string" },
+    capabilityId: { type: "string" },
+    capabilityName: { type: "string" },
+    title: { type: "string" },
+    approach: { type: "string", enum: Object.keys(DEVELOPMENT_APPROACH_LABEL) },
+    rationale: { type: "string" },
+    priority: { type: "string", enum: ["low", "medium", "high"] },
+    basis: GAP_BASIS_OUTPUT,
+    priorityFactors: PRIORITY_FACTORS_OUTPUT,
+    claimKind: { type: "string", enum: ["RECOMMENDATION"] },
+    requiresHumanDecision: { type: "boolean" },
+  },
+  required: [
+    "id",
+    "capabilityId",
+    "capabilityName",
+    "title",
+    "approach",
+    "rationale",
+    "priority",
+    "basis",
+    "priorityFactors",
+    "claimKind",
+    "requiresHumanDecision",
+  ],
+};
+
+/** CapabilityAnalysis — the result of analyzeCapability(), on every path. */
+const CAPABILITY_ANALYSIS_OUTPUT: JsonSchema = {
+  type: "object",
+  properties: {
+    summary: { type: "string" },
+    gaps: { type: "array", items: GAP_FINDING_OUTPUT },
+    evidence: { type: "array", items: EVIDENCE_REF_OUTPUT },
+    uncertainties: { type: "array", items: UNCERTAINTY_OUTPUT },
+    recommendations: { type: "array", items: DEVELOPMENT_RECOMMENDATION_OUTPUT },
+    scope: { type: "string" },
+    requirementCount: { type: "integer" },
+    evidenceCount: { type: "integer" },
+    unprovenRequirementCount: { type: "integer" },
+    generatedAt: { type: "string", format: "date-time" },
+    upgradesCapability: { type: "boolean" },
+    isCapabilityAssessment: { type: "boolean" },
+  },
+  required: [
+    "summary",
+    "gaps",
+    "evidence",
+    "uncertainties",
+    "recommendations",
+    "scope",
+    "requirementCount",
+    "evidenceCount",
+    "unprovenRequirementCount",
+    "generatedAt",
+    "upgradesCapability",
+    "isCapabilityAssessment",
+  ],
   additionalProperties: false,
 };
 
@@ -124,7 +443,7 @@ export const retrieveCapabilityRequirements: ToolDefinition<ScopeArgs, unknown> 
   description:
     "Retrieves the required capability levels defined for an organization, squad, project or role within the caller's scope.",
   inputSchema: SCOPE_SCHEMA,
-  outputSchema: EMPTY_OUTPUT,
+  outputSchema: REQUIREMENTS_OUTPUT,
   riskLevel: "LOW",
   requiredPermissions: ["capability.read"],
   requiresConfirmation: false,
@@ -156,7 +475,7 @@ export const retrieveTalentCapabilities: ToolDefinition<
   description:
     "Retrieves one authorized person's capability profile, with claimed level, proven level and the evidence behind each.",
   inputSchema: TALENT_SCHEMA,
-  outputSchema: EMPTY_OUTPUT,
+  outputSchema: TALENT_CAPABILITIES_OUTPUT,
   riskLevel: "LOW",
   requiredPermissions: ["capability.read", "talent.read"],
   requiresConfirmation: false,
@@ -191,7 +510,7 @@ export const analyzeCapabilityGaps: ToolDefinition<ScopeArgs, unknown> = {
   description:
     "Calculates capability gaps (required level minus proven level) for the caller's scope, with affected talent, evidence, priority factors and development recommendations.",
   inputSchema: SCOPE_SCHEMA,
-  outputSchema: EMPTY_OUTPUT,
+  outputSchema: CAPABILITY_ANALYSIS_OUTPUT,
   riskLevel: "LOW",
   requiredPermissions: ["capability.read", "talent.read"],
   requiresConfirmation: false,

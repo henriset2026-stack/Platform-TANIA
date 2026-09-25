@@ -20,7 +20,10 @@ eleven specified agents (`agents/performance/`, `agents/capability/`).
 
 Three things govern how far any of that can be trusted, and each has its own section below: **the
 migrations are applied and RLS passes all 15 matrix rows** against staging (§2c);
-**no LLM provider is configured**, so no agent or assistant request ever produces an answer; and
+**no LLM provider is approved for real data**. Adapters exist for Gemini (`LLM_PROVIDER=gemini`) and
+OpenAI-compatible routers (`openai-compatible`). One live baseline ran on fictional data
+(`nemotron-3-ultra-free` via the NARA router, evaluation only; see `docs/ai/AI_EVALUATION_REPORT.md`);
+and
 **every displayable figure is a `DataPoint<T>`**, so an unavailable metric renders as an explicit
 empty state rather than a number (§2a).
 
@@ -263,6 +266,8 @@ npm run typecheck   # tsc --noEmit
 npm run lint        # eslint .
 npm test            # vitest run (unit only)
 npm run test:watch  # vitest watch
+npm run test:ai:live  # live Gemini evaluation (tests/ai-live); skips without LLM_PROVIDER=gemini + key.
+                      # Export .env.local first, as for test:rls. Paid and rate-limited: run deliberately.
 ```
 
 `npm run verify` is the phase gate. Run it, and `npm run build`, before claiming a phase is done.
@@ -651,6 +656,24 @@ TANIA:   Talent · Performance · Capability · Development · Assignment
          · AI Augmentation · Business Impact
 JARVIS:  Capability Coach · Product · Solution · Business Case
 ```
+
+### AI Gate #2 (2026-09-24): PASS WITH CONDITIONS
+
+`docs/ai/AI_EVALUATION_REPORT.md` is the record; `docs/ai/AI_SECURITY_ARCHITECTURE.md` the reference.
+Rules it established:
+
+- **A human approval is a `confirmationToken`**: SHA-256 over the tool, the arguments and the user,
+  from `agents/core/pipeline.ts`. A tool name alone approves nothing, and approving one call never
+  approves another.
+- **Every tool must appear in `docs/ai/AI_TOOL_REGISTRY.md`.** `tests/ai/tool-registry.ai.test.ts` fails
+  otherwise.
+- **Nine LOW-risk read tools are wired** (`WIRED_TOOLS` in `lib/ai/gateway.ts`). The test pins them to the
+  registry document's "Wired" column. Agent runs are recorded, and every result is checked against the
+  tool's `outputSchema`. The gateway makes at most two model calls, and the second is offered no tools.
+- **One live baseline exists** (`npm run test:ai:live`, fictional data). L11 (injected record text
+  relayed as fact) is fixed: `fenceToolResults` withholds instruction-like fields from the model's copy.
+  L16 is fixed: an empty answer is a `PROVIDER_ERROR`, except when an action awaits approval. Don't enable a
+  provider for real data until the model and router are approved.
 
 ### Assistant intents
 

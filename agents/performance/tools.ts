@@ -17,7 +17,8 @@ import "server-only";
 import { canAccessTalent } from "@/lib/auth/authorize";
 import { getEvidenceTimeline, getPerformanceTrend } from "@/lib/performance/queries";
 import { detectAnomalies } from "@/lib/calculations/anomaly";
-import type { ToolDefinition, JsonSchema } from "@/agents/core/types";
+import type { ToolDefinition, JsonSchema, JsonSchemaProperty } from "@/agents/core/types";
+import { CLAIM_KINDS } from "@/types/claim";
 
 const TALENT_SCHEMA: JsonSchema = {
   type: "object",
@@ -32,9 +33,113 @@ const TALENT_SCHEMA: JsonSchema = {
   additionalProperties: false,
 };
 
-const EMPTY_OUTPUT: JsonSchema = {
+// ===========================================================================
+// Output schemas
+//
+// The pipeline validates every handler result against these, rejecting
+// unknown keys at any depth. Each mirrors the type its handler returns —
+// EvidenceTimelineRow, TrendResult and Anomaly — so a query that starts
+// returning a new column fails loudly instead of silently widening what
+// reaches the model.
+// ===========================================================================
+
+const EVIDENCE_ROW_OUTPUT: JsonSchemaProperty = {
   type: "object",
-  properties: {},
+  properties: {
+    id: { type: "string" },
+    dimension: { type: "string" },
+    metric: { type: "string", nullable: true },
+    value: { type: "number", nullable: true },
+    unit: { type: "string", nullable: true },
+    sourceType: { type: "string" },
+    sourceReference: { type: "string", nullable: true },
+    occurredAt: { type: "string", nullable: true },
+    validationStatus: { type: "string" },
+    validatedBy: { type: "string", nullable: true },
+    confidence: { type: "number", nullable: true },
+    periodName: { type: "string", nullable: true },
+    claimKind: { type: "string", enum: CLAIM_KINDS },
+  },
+  required: [
+    "id",
+    "dimension",
+    "metric",
+    "value",
+    "unit",
+    "sourceType",
+    "sourceReference",
+    "occurredAt",
+    "validationStatus",
+    "validatedBy",
+    "confidence",
+    "periodName",
+    "claimKind",
+  ],
+};
+
+const EVIDENCE_OUTPUT: JsonSchema = {
+  type: "object",
+  properties: {
+    evidence: { type: "array", items: EVIDENCE_ROW_OUTPUT },
+    note: { type: "string" },
+  },
+  required: ["evidence"],
+  additionalProperties: false,
+};
+
+/** TrendResult — also the shape of the empty-state result. */
+const TREND_OUTPUT: JsonSchema = {
+  type: "object",
+  properties: {
+    points: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          periodId: { type: "string" },
+          periodName: { type: "string" },
+          periodEnd: { type: "string" },
+          index: { type: "number" },
+        },
+        required: ["periodId", "periodName", "periodEnd", "index"],
+      },
+    },
+    direction: { type: "string", enum: ["improving", "declining", "stable", "unknown"] },
+    change: { type: "number", nullable: true },
+  },
+  required: ["points", "direction", "change"],
+  additionalProperties: false,
+};
+
+const ANOMALIES_OUTPUT: JsonSchema = {
+  type: "object",
+  properties: {
+    anomalies: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          observationId: { type: "string" },
+          kind: { type: "string", enum: ["high_outlier", "low_outlier", "sudden_change"] },
+          dimension: { type: "string" },
+          value: { type: "number" },
+          occurredAt: { type: "string" },
+          deviation: { type: "number" },
+          explanation: { type: "string" },
+        },
+        required: [
+          "observationId",
+          "kind",
+          "dimension",
+          "value",
+          "occurredAt",
+          "deviation",
+          "explanation",
+        ],
+      },
+    },
+  },
+  required: ["anomalies"],
   additionalProperties: false,
 };
 
@@ -59,7 +164,7 @@ export const retrievePerformanceEvidence: ToolDefinition<
   description:
     "Retrieves authorized performance evidence for one person, with source, validation status and claim kind.",
   inputSchema: TALENT_SCHEMA,
-  outputSchema: EMPTY_OUTPUT,
+  outputSchema: EVIDENCE_OUTPUT,
   riskLevel: "LOW",
   requiredPermissions: ["performance.read"],
   requiresConfirmation: false,
@@ -94,7 +199,7 @@ export const calculatePerformanceTrendTool: ToolDefinition<
   description:
     "Calculates the trend of recorded performance metrics across periods for one authorized person.",
   inputSchema: TALENT_SCHEMA,
-  outputSchema: EMPTY_OUTPUT,
+  outputSchema: TREND_OUTPUT,
   riskLevel: "LOW",
   requiredPermissions: ["performance.read"],
   requiresConfirmation: false,
@@ -127,7 +232,7 @@ export const detectPerformanceAnomalies: ToolDefinition<
   description:
     "Identifies statistical outliers and sudden changes in an authorized person's performance evidence.",
   inputSchema: TALENT_SCHEMA,
-  outputSchema: EMPTY_OUTPUT,
+  outputSchema: ANOMALIES_OUTPUT,
   riskLevel: "LOW",
   requiredPermissions: ["performance.read"],
   requiresConfirmation: false,

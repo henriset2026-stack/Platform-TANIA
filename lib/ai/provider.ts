@@ -94,7 +94,7 @@ export class UnconfiguredProvider implements LlmProvider {
       ok: false,
       code: "NOT_CONFIGURED",
       error:
-        "No LLM provider is configured. Set AI_GATEWAY_URL, AI_GATEWAY_KEY and LLM_MODEL. No model has been selected for TANIA yet.",
+        "No LLM provider is configured. Set LLM_PROVIDER (gemini), AI_GATEWAY_URL, AI_GATEWAY_KEY and LLM_MODEL.",
       latencyMs: 0,
     };
   }

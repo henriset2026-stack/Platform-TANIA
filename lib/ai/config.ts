@@ -43,7 +43,9 @@ export function readAiConfig(): AiConfig {
     // credentials, is a half-configured gateway that would fail at request
     // time instead of at startup.
     configured: Boolean(gatewayUrl && model && hasCredentials),
-    providerName: gatewayUrl ? "gateway" : null,
+    // LLM_PROVIDER names the adapter (e.g. "gemini"); a bare URL means a
+    // generic gateway. Chosen by configuration, never by a request.
+    providerName: process.env.LLM_PROVIDER?.trim() || (gatewayUrl ? "gateway" : null),
     model,
     embeddingModel: process.env.EMBEDDING_MODEL ?? null,
     gatewayUrl,

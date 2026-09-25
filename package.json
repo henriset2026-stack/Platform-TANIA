@@ -16,6 +16,7 @@
     "test:integration": "vitest run tests/integration",
     "test:security": "vitest run tests/security",
     "test:ai": "vitest run tests/ai",
+    "test:ai:live": "vitest run --config vitest.ai-live.config.mts",
     "test:rls": "vitest run --config vitest.rls.config.mts",
     "test:e2e": "vitest run --config vitest.e2e.config.mts",
     "verify": "npm run typecheck && npm run lint && npm run test",

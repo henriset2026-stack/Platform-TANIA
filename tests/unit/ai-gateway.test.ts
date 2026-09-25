@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { validateArguments } from "@/agents/core/schema";
 import { ToolRegistry, ToolRegistrationError, toolRegistry } from "@/agents/core/tool-registry";
-import { executeToolCall, requiresApproval } from "@/agents/core/pipeline";
+import { confirmationToken, executeToolCall, requiresApproval } from "@/agents/core/pipeline";
 import type { AgentAuditEvent, AuditSink } from "@/agents/core/audit";
 import { RISK_LEVELS, type AgentAuthContext, type JsonSchema, type ToolDefinition } from "@/agents/core/types";
 import { UnconfiguredProvider, resolveProvider } from "@/lib/ai/provider";
@@ -23,7 +23,7 @@ function tool(over: Partial<ToolDefinition<never, unknown>> = {}): ToolDefinitio
     name: "read_talent_summary",
     description: "Reads an authorized talent summary for the given profile.",
     inputSchema: SCHEMA,
-    outputSchema: { type: "object", properties: {}, additionalProperties: false },
+    outputSchema: { type: "object", properties: { summary: { type: "string" } }, additionalProperties: false },
     riskLevel: "LOW",
     requiredPermissions: ["talent.read"],
     requiresConfirmation: false,
@@ -269,7 +269,7 @@ describe("tool execution pipeline", () => {
     const record = await executeToolCall(
       { toolName: "read_talent_summary", arguments: validArgs },
       options(registry, {
-        confirmations: new Set(["read_talent_summary"]),
+        confirmations: new Set([confirmationToken("read_talent_summary", validArgs, "u1")]),
         audit: recordingSink().sink,
       }),
     );
@@ -295,7 +295,7 @@ describe("tool execution pipeline", () => {
     );
     const record = await executeToolCall(
       { toolName: "read_talent_summary", arguments: validArgs },
-      options(registry, { confirmations: new Set(["read_talent_summary"]) }),
+      options(registry, { confirmations: new Set([confirmationToken("read_talent_summary", validArgs, "u1")]) }),
     );
 
     expect(record.status).toBe("denied");

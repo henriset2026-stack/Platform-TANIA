@@ -14,7 +14,8 @@ import "server-only";
 import { listProjects, listFeasibilityAssessments } from "@/lib/project/queries";
 import { retrieveAuthorizedChunks } from "@/lib/rag/retrieval";
 import { embedQuery } from "@/lib/rag/embedding";
-import type { ToolDefinition, JsonSchema } from "@/agents/core/types";
+import { FEASIBILITY_STAGES } from "@/lib/calculations/feasibility";
+import type { ToolDefinition, JsonSchema, JsonSchemaProperty } from "@/agents/core/types";
 import type { DataPoint } from "@/types/data";
 
 const EMPTY_INPUT: JsonSchema = {
@@ -37,9 +38,112 @@ const QUERY_SCHEMA: JsonSchema = {
   additionalProperties: false,
 };
 
-const EMPTY_OUTPUT: JsonSchema = {
+// ===========================================================================
+// Output schemas
+//
+// The pipeline validates every handler result against these, rejecting
+// unknown keys at any depth. The row and chunk shapes are exported because
+// the Solution and Business Case agents return the same records
+// (ProjectListRow, RetrievedChunk) and must not drift from this declaration.
+// ===========================================================================
+
+/** ProjectListRow from lib/project/queries.ts. */
+export const PROJECT_ROW_OUTPUT: JsonSchemaProperty = {
   type: "object",
-  properties: {},
+  properties: {
+    id: { type: "string" },
+    code: { type: "string" },
+    name: { type: "string" },
+    status: { type: "string" },
+    customerName: { type: "string", nullable: true },
+    startDate: { type: "string", nullable: true },
+    endDate: { type: "string", nullable: true },
+  },
+  required: ["id", "code", "name", "status", "customerName", "startDate", "endDate"],
+};
+
+/** FeasibilityRow from lib/project/queries.ts. */
+const FEASIBILITY_ROW_OUTPUT: JsonSchemaProperty = {
+  type: "object",
+  properties: {
+    id: { type: "string" },
+    title: { type: "string" },
+    stage: { type: "string", enum: FEASIBILITY_STAGES },
+    stageLabel: { type: "string" },
+    customerName: { type: "string", nullable: true },
+    totalScore: { type: "number", nullable: true },
+    scoreCoverage: { type: "number", nullable: true },
+    decidedAt: { type: "string", nullable: true },
+  },
+  required: [
+    "id",
+    "title",
+    "stage",
+    "stageLabel",
+    "customerName",
+    "totalScore",
+    "scoreCoverage",
+    "decidedAt",
+  ],
+};
+
+/** RetrievedChunk from lib/rag/retrieval.ts. */
+export const RETRIEVED_CHUNK_OUTPUT: JsonSchemaProperty = {
+  type: "object",
+  properties: {
+    chunkId: { type: "string" },
+    documentId: { type: "string" },
+    documentTitle: { type: "string" },
+    sourceType: { type: "string" },
+    sourceUri: { type: "string", nullable: true },
+    chunkIndex: { type: "integer" },
+    content: { type: "string" },
+    similarity: { type: "number" },
+  },
+  required: [
+    "chunkId",
+    "documentId",
+    "documentTitle",
+    "sourceType",
+    "sourceUri",
+    "chunkIndex",
+    "content",
+    "similarity",
+  ],
+};
+
+/** RetrievalResult["injectionSignals"][number] from lib/rag/retrieval.ts. */
+export const INJECTION_SIGNAL_OUTPUT: JsonSchemaProperty = {
+  type: "object",
+  properties: {
+    documentId: { type: "string" },
+    documentTitle: { type: "string" },
+    pattern: { type: "string" },
+    excerpt: { type: "string" },
+  },
+  required: ["documentId", "documentTitle", "pattern", "excerpt"],
+};
+
+const PRODUCT_CONTEXT_OUTPUT: JsonSchema = {
+  type: "object",
+  properties: {
+    projects: { type: "array", items: PROJECT_ROW_OUTPUT },
+    feasibility: { type: "array", items: FEASIBILITY_ROW_OUTPUT },
+  },
+  required: ["projects", "feasibility"],
+  additionalProperties: false,
+};
+
+/** Live results carry signals and a timestamp; the empty result carries a note instead. */
+const PRODUCT_KNOWLEDGE_OUTPUT: JsonSchema = {
+  type: "object",
+  properties: {
+    chunks: { type: "array", items: RETRIEVED_CHUNK_OUTPUT },
+    injectionSignals: { type: "array", items: INJECTION_SIGNAL_OUTPUT },
+    searchedAt: { type: "string", format: "date-time" },
+    note: { type: "string" },
+  },
+  required: ["chunks"],
   additionalProperties: false,
 };
 
@@ -63,7 +167,7 @@ export const retrieveProductContext: ToolDefinition<Record<string, never>, unkno
   description:
     "Retrieves the projects and feasibility assessments visible to the caller, as internal context for a product analysis.",
   inputSchema: EMPTY_INPUT,
-  outputSchema: EMPTY_OUTPUT,
+  outputSchema: PRODUCT_CONTEXT_OUTPUT,
   riskLevel: "LOW",
   requiredPermissions: ["project.read"],
   requiresConfirmation: false,
@@ -106,7 +210,7 @@ export const searchProductKnowledge: ToolDefinition<{ query: string }, unknown> 
   description:
     "Searches the authorized DPS knowledge base for product and market material, returning cited excerpts.",
   inputSchema: QUERY_SCHEMA,
-  outputSchema: EMPTY_OUTPUT,
+  outputSchema: PRODUCT_KNOWLEDGE_OUTPUT,
   riskLevel: "LOW",
   requiredPermissions: ["ai.use"],
   requiresConfirmation: false,

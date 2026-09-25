@@ -14,7 +14,7 @@ import "server-only";
  */
 
 import { listProjects } from "@/lib/project/queries";
-import { describeUnavailable } from "@/agents/product/tools";
+import { describeUnavailable, PROJECT_ROW_OUTPUT } from "@/agents/product/tools";
 import type { ToolDefinition, JsonSchema } from "@/agents/core/types";
 
 const EMPTY_INPUT: JsonSchema = {
@@ -24,9 +24,29 @@ const EMPTY_INPUT: JsonSchema = {
   additionalProperties: false,
 };
 
-const EMPTY_OUTPUT: JsonSchema = {
+/**
+ * Validated by the pipeline, unknown keys rejected at any depth. The project
+ * row shape is shared with the Product Agent, which returns the same
+ * ProjectListRow records.
+ */
+const FINANCIAL_CONTEXT_OUTPUT: JsonSchema = {
   type: "object",
-  properties: {},
+  properties: {
+    projects: { type: "array", items: PROJECT_ROW_OUTPUT },
+    unavailableSources: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          system: { type: "string" },
+          provides: { type: "string" },
+          consequence: { type: "string" },
+        },
+        required: ["system", "provides", "consequence"],
+      },
+    },
+  },
+  required: ["projects", "unavailableSources"],
   additionalProperties: false,
 };
 
@@ -45,7 +65,7 @@ export const retrieveFinancialContext: ToolDefinition<
   description:
     "Retrieves the projects visible to the caller as internal context for a business case, and states which external financial systems are unavailable.",
   inputSchema: EMPTY_INPUT,
-  outputSchema: EMPTY_OUTPUT,
+  outputSchema: FINANCIAL_CONTEXT_OUTPUT,
   riskLevel: "LOW",
   requiredPermissions: ["project.read", "business_impact.read"],
   requiresConfirmation: false,

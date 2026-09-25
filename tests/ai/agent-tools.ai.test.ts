@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { executeToolCall } from "@/agents/core/pipeline";
+import { confirmationToken, executeToolCall } from "@/agents/core/pipeline";
 import { ToolRegistry } from "@/agents/core/tool-registry";
 import { InMemoryIdempotencyStore } from "@/agents/core/idempotency";
 import { embedQuery } from "@/lib/rag/embedding";
@@ -34,7 +34,12 @@ function tool(
     name: "read_thing",
     description: "Reads a thing for an authorized person.",
     inputSchema: SCHEMA,
-    outputSchema: { type: "object", properties: {}, additionalProperties: false },
+    // Declares every field these tests' handlers return; the pipeline enforces it.
+    outputSchema: {
+      type: "object",
+      properties: { ok: { type: "boolean" }, created: { type: "string" }, n: { type: "integer" } },
+      additionalProperties: false,
+    },
     riskLevel: "LOW",
     requiredPermissions: ["talent.read"],
     requiresConfirmation: false,
@@ -193,7 +198,7 @@ describe("Agents: high-risk approval", () => {
     const record = await executeToolCall(
       { toolName: "read_thing", arguments: { talentId: UUID } },
       options(registryWith(highRisk()), {
-        confirmations: new Set(["read_thing"]),
+        confirmations: new Set([confirmationToken("read_thing", { talentId: UUID }, "u1")]),
       }),
     );
     expect(record.status).toBe("completed");
@@ -204,7 +209,7 @@ describe("Agents: high-risk approval", () => {
     const record = await executeToolCall(
       { toolName: "read_thing", arguments: { talentId: UUID } },
       options(registryWith(highRisk()), {
-        confirmations: new Set(["read_thing"]),
+        confirmations: new Set([confirmationToken("read_thing", { talentId: UUID }, "u1")]),
         audit: async () => ({ ok: false, error: "log unreachable" }),
       }),
     );

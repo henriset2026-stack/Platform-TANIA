@@ -29,8 +29,14 @@ import {
   listDevelopmentTemplates,
 } from "@/lib/development/queries";
 import { getTalentIdentity } from "@/lib/talent/queries";
+import {
+  ACTIVITY_TYPES,
+  SPRINT_PHASES,
+  UPGRADE_BLOCKER_REASON,
+} from "@/lib/calculations/development";
+import { ACTIVITY_STAGES } from "@/agents/development/contract";
 import { draftDevelopmentPlan } from "@/agents/development/planning";
-import type { ToolDefinition, JsonSchema } from "@/agents/core/types";
+import type { ToolDefinition, JsonSchema, JsonSchemaProperty } from "@/agents/core/types";
 import type { DataPoint } from "@/types/data";
 
 const TALENT_SCHEMA: JsonSchema = {
@@ -71,9 +77,296 @@ const EMPTY_INPUT: JsonSchema = {
   additionalProperties: false,
 };
 
-const EMPTY_OUTPUT: JsonSchema = {
+// ===========================================================================
+// Output schemas
+//
+// The pipeline validates every handler result against these, rejecting
+// unknown keys at any depth. Each mirrors the type its handler returns —
+// DevelopmentTemplate, PlanSummary and DevelopmentPlanResponse — so a query
+// that starts returning a new column fails loudly instead of silently
+// widening what reaches the model.
+// ===========================================================================
+
+const UPGRADE_BLOCKER_ENUM = Object.keys(UPGRADE_BLOCKER_REASON);
+
+const TEMPLATE_OUTPUT: JsonSchemaProperty = {
   type: "object",
-  properties: {},
+  properties: {
+    id: { type: "string" },
+    code: { type: "string" },
+    name: { type: "string" },
+    methodology: { type: "string" },
+    totalHours: { type: "number" },
+    activities: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          sequenceNo: { type: "integer" },
+          phase: { type: "string", enum: SPRINT_PHASES },
+          title: { type: "string" },
+          activityType: { type: "string", enum: ACTIVITY_TYPES },
+          estimatedHours: { type: "number" },
+          requiresEvidence: { type: "boolean" },
+        },
+        required: [
+          "sequenceNo",
+          "phase",
+          "title",
+          "activityType",
+          "estimatedHours",
+          "requiresEvidence",
+        ],
+      },
+    },
+    approved: { type: "boolean" },
+    capabilityId: { type: "string", nullable: true },
+    targetLevel: { type: "integer", nullable: true },
+  },
+  required: [
+    "id",
+    "code",
+    "name",
+    "methodology",
+    "totalHours",
+    "activities",
+    "approved",
+    "capabilityId",
+    "targetLevel",
+  ],
+};
+
+const TEMPLATES_OUTPUT: JsonSchema = {
+  type: "object",
+  properties: {
+    templates: { type: "array", items: TEMPLATE_OUTPUT },
+    note: { type: "string" },
+  },
+  required: ["templates"],
+  additionalProperties: false,
+};
+
+const PLAN_SUMMARY_OUTPUT: JsonSchemaProperty = {
+  type: "object",
+  properties: {
+    id: { type: "string" },
+    profileId: { type: "string" },
+    title: { type: "string" },
+    status: { type: "string" },
+    approved: { type: "boolean" },
+    targetDate: { type: "string", nullable: true },
+    capabilityId: { type: "string", nullable: true },
+    capabilityName: { type: "string", nullable: true },
+    progress: {
+      type: "object",
+      properties: {
+        percent: { type: "number" },
+        completedHours: { type: "number" },
+        totalHours: { type: "number" },
+        completedCount: { type: "integer" },
+        totalCount: { type: "integer" },
+      },
+      required: ["percent", "completedHours", "totalHours", "completedCount", "totalCount"],
+    },
+    activities: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          id: { type: "string" },
+          activityType: { type: "string", enum: ACTIVITY_TYPES },
+          estimatedHours: { type: "number" },
+          status: { type: "string", enum: ["planned", "in_progress", "completed", "skipped"] },
+          hasValidatedEvidence: { type: "boolean" },
+        },
+        required: ["id", "activityType", "estimatedHours", "status", "hasValidatedEvidence"],
+      },
+    },
+    validatedEvidenceIds: { type: "array", items: { type: "string" } },
+    upgrade: {
+      type: "object",
+      nullable: true,
+      properties: {
+        eligibleToPropose: { type: "boolean" },
+        blockers: { type: "array", items: { type: "string", enum: UPGRADE_BLOCKER_ENUM } },
+        currentLevel: { type: "integer" },
+        proposedLevel: { type: "integer", nullable: true },
+        requiresHumanApproval: { type: "boolean" },
+        claimKind: { type: "string", enum: ["RECOMMENDATION"] },
+        supportingEvidenceIds: { type: "array", items: { type: "string" } },
+      },
+      required: [
+        "eligibleToPropose",
+        "blockers",
+        "currentLevel",
+        "proposedLevel",
+        "requiresHumanApproval",
+        "claimKind",
+        "supportingEvidenceIds",
+      ],
+    },
+  },
+  required: [
+    "id",
+    "profileId",
+    "title",
+    "status",
+    "approved",
+    "targetDate",
+    "capabilityId",
+    "capabilityName",
+    "progress",
+    "activities",
+    "validatedEvidenceIds",
+    "upgrade",
+  ],
+};
+
+const PLANS_OUTPUT: JsonSchema = {
+  type: "object",
+  properties: {
+    plans: { type: "array", items: PLAN_SUMMARY_OUTPUT },
+    note: { type: "string" },
+  },
+  required: ["plans"],
+  additionalProperties: false,
+};
+
+/**
+ * DevelopmentPlanResponse.
+ *
+ * Only `plan`, `notDraftedReason` and `persisted` are required: the handler's
+ * own "no requirement defined" path returns just those three, while
+ * draftDevelopmentPlan() always returns the full response.
+ */
+const DRAFT_PLAN_OUTPUT: JsonSchema = {
+  type: "object",
+  properties: {
+    plan: {
+      type: "object",
+      nullable: true,
+      properties: {
+        title: { type: "string" },
+        objective: { type: "string" },
+        capabilityId: { type: "string" },
+        capabilityName: { type: "string" },
+        currentProvenLevel: { type: "integer" },
+        targetLevel: { type: "integer" },
+        requiredLevel: { type: "integer" },
+        remainingLevelsAfterPlan: { type: "integer" },
+        sourceRequirementId: { type: "string" },
+        totalHours: { type: "number" },
+        templateId: { type: "string", nullable: true },
+        contentSource: { type: "string", enum: ["approved_template", "structure_only"] },
+        status: { type: "string", enum: ["draft"] },
+        persisted: { type: "boolean" },
+        claimKind: { type: "string", enum: ["RECOMMENDATION"] },
+      },
+      required: [
+        "title",
+        "objective",
+        "capabilityId",
+        "capabilityName",
+        "currentProvenLevel",
+        "targetLevel",
+        "requiredLevel",
+        "remainingLevelsAfterPlan",
+        "sourceRequirementId",
+        "totalHours",
+        "templateId",
+        "contentSource",
+        "status",
+        "persisted",
+        "claimKind",
+      ],
+    },
+    activities: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          sequenceNo: { type: "integer" },
+          stage: { type: "string", enum: ACTIVITY_STAGES },
+          phase: { type: "string", enum: SPRINT_PHASES },
+          activityType: { type: "string", enum: ACTIVITY_TYPES },
+          title: { type: "string" },
+          estimatedHours: { type: "number" },
+          requiresEvidence: { type: "boolean" },
+        },
+        required: [
+          "sequenceNo",
+          "stage",
+          "phase",
+          "activityType",
+          "title",
+          "estimatedHours",
+          "requiresEvidence",
+        ],
+      },
+    },
+    expectedEvidence: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          activitySequenceNo: { type: "integer" },
+          stage: { type: "string", enum: ACTIVITY_STAGES },
+          evidenceType: { type: "string" },
+          description: { type: "string" },
+          demonstratesApplication: { type: "boolean" },
+          validationRequired: { type: "boolean" },
+        },
+        required: [
+          "activitySequenceNo",
+          "stage",
+          "evidenceType",
+          "description",
+          "demonstratesApplication",
+          "validationRequired",
+        ],
+      },
+    },
+    successCriteria: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          id: { type: "string" },
+          statement: { type: "string" },
+          measuredBy: { type: "string" },
+          removesBlocker: { type: "string", enum: UPGRADE_BLOCKER_ENUM },
+        },
+        required: ["id", "statement", "measuredBy", "removesBlocker"],
+      },
+    },
+    approvalRequired: {
+      type: "object",
+      properties: {
+        required: { type: "boolean" },
+        permission: { type: "string", enum: ["development.approve"] },
+        approverRoles: { type: "array", items: { type: "string" } },
+        whyRequired: { type: "string" },
+        whatWouldBeCommitted: { type: "array", items: { type: "string" } },
+      },
+      required: ["required", "permission", "approverRoles", "whyRequired", "whatWouldBeCommitted"],
+    },
+    uncertainties: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          topic: { type: "string" },
+          reason: { type: "string" },
+          resolvedBy: { type: "string" },
+        },
+        required: ["topic", "reason", "resolvedBy"],
+      },
+    },
+    notDraftedReason: { type: "string", nullable: true },
+    generatedAt: { type: "string", format: "date-time" },
+    persisted: { type: "boolean" },
+  },
+  required: ["plan", "notDraftedReason", "persisted"],
   additionalProperties: false,
 };
 
@@ -107,7 +400,7 @@ export const retrieveDevelopmentTemplates: ToolDefinition<
   description:
     "Retrieves the approved development templates, including the DPS 20-hour Capability Sprint, with their activities and hours.",
   inputSchema: EMPTY_INPUT,
-  outputSchema: EMPTY_OUTPUT,
+  outputSchema: TEMPLATES_OUTPUT,
   riskLevel: "LOW",
   requiredPermissions: ["development.read"],
   requiresConfirmation: false,
@@ -136,7 +429,7 @@ export const retrieveDevelopmentPlans: ToolDefinition<
   description:
     "Retrieves one authorized person's development plans, with progress and whether a capability upgrade may be proposed.",
   inputSchema: TALENT_SCHEMA,
-  outputSchema: EMPTY_OUTPUT,
+  outputSchema: PLANS_OUTPUT,
   riskLevel: "LOW",
   requiredPermissions: ["development.read", "talent.read"],
   requiresConfirmation: false,
@@ -170,7 +463,7 @@ export const draftDevelopmentPlanTool: ToolDefinition<
   description:
     "Composes a draft development plan that would close one authorized capability gap, and returns it for human approval. Writes nothing and enrols nobody.",
   inputSchema: DRAFT_SCHEMA,
-  outputSchema: EMPTY_OUTPUT,
+  outputSchema: DRAFT_PLAN_OUTPUT,
   riskLevel: "LOW",
   requiredPermissions: ["development.read", "capability.read", "talent.read"],
   requiresConfirmation: false,

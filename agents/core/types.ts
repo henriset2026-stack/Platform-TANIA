@@ -86,13 +86,21 @@ export interface JsonSchema {
 }
 
 export interface JsonSchemaProperty {
-  readonly type: "string" | "number" | "boolean" | "integer";
+  readonly type: "string" | "number" | "boolean" | "integer" | "array" | "object";
   readonly description?: string;
   readonly enum?: readonly string[];
   readonly minimum?: number;
   readonly maximum?: number;
   readonly maxLength?: number;
   readonly format?: "uuid" | "date" | "date-time";
+  /** Also accept null. Absent means null is an error. */
+  readonly nullable?: boolean;
+  /** array: the schema every element must match. */
+  readonly items?: JsonSchemaProperty;
+  readonly maxItems?: number;
+  /** object: its fields. Unknown keys are rejected at every depth. */
+  readonly properties?: Readonly<Record<string, JsonSchemaProperty>>;
+  readonly required?: readonly string[];
 }
 
 /**

@@ -70,7 +70,8 @@ function isSecretKeyName(key: string): boolean {
  * id, and redacting ids would make the log useless. The thresholds here
  * target things that are only ever secrets.
  */
-const SECRET_VALUE_PATTERNS: readonly { readonly name: string; readonly re: RegExp }[] = [
+export const SECRET_VALUE_PATTERNS: readonly { readonly name: string; readonly re: RegExp }[] = [
+  { name: "supabase-secret-key", re: /\bsb_secret_[A-Za-z0-9_-]{10,}/ },
   { name: "jwt", re: /\beyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]+/ },
   { name: "bearer", re: /\bBearer\s+[A-Za-z0-9._~+/-]{16,}=*/i },
   { name: "openai-style", re: /\bsk-[A-Za-z0-9]{16,}/ },

@@ -32,10 +32,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
-      # Placeholders so the production build can run. Not credentials: the
-      # build contacts nothing, and these values reach no deployment.
-      NEXT_PUBLIC_SUPABASE_URL: https://ci-placeholder.invalid
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder-not-a-key
       NEXT_TELEMETRY_DISABLED: "1"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -56,4 +52,11 @@ jobs:
       - run: npm run lint
       - name: Tests (unit, integration, security, AI; migration-text guards included)
         run: npm test
-      - run: npm run build
+      # Tests run WITHOUT Supabase configuration: several assert the honest
+      # "not connected" state. Placeholders go to the build step only; they
+      # are not credentials, the build contacts nothing, and nothing deploys.
+      - name: Build
+        run: npm run build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://ci-placeholder.invalid
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder-not-a-key

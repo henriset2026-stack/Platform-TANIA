@@ -51,33 +51,33 @@ function describe(point: Exclude<DataPoint<unknown>, { state: "live" }>): {
     case "not-connected":
       return {
         Icon: Database,
-        title: "No data source",
-        detail: `Phase ${point.requiredPhase} — requires ${point.requires}`,
+        title: "Belum ada sumber data",
+        detail: `Fase ${point.requiredPhase} — memerlukan ${point.requires}`,
       };
     case "not-integrated":
       // Distinct from "no data source": this value can only ever come from
       // another system, so the remedy is integration, not provisioning.
       return {
         Icon: PlugZap,
-        title: `${point.system} not integrated`,
-        detail: `${point.system} owns ${point.owns}. No value is shown because none can be derived here.`,
+        title: `${point.system} belum terintegrasi`,
+        detail: `${point.system} mengelola ${point.owns}. Tidak ada nilai yang ditampilkan karena nilai ini tidak dapat diturunkan di sini.`,
       };
     case "restricted":
       return {
         Icon: Lock,
-        title: "Not authorized",
+        title: "Tidak berwenang",
         detail: point.reason,
       };
     case "empty":
       return {
         Icon: Database,
-        title: "No records",
-        detail: "The query returned no rows",
+        title: "Belum ada data",
+        detail: "Kueri tidak menghasilkan data",
       };
     case "failed":
       return {
         Icon: CircleAlert,
-        title: "Unavailable",
+        title: "Tidak tersedia",
         detail: point.reason,
       };
   }

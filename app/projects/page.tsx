@@ -13,7 +13,7 @@ import { can } from "@/lib/auth/policy";
 import { getAuthContext } from "@/lib/auth/session";
 import { listProjects, type ProjectListRow } from "@/lib/project/queries";
 
-export const metadata: Metadata = { title: "Projects · TANIA" };
+export const metadata: Metadata = { title: "Proyek · TANIA" };
 
 const STATUS_TONE: Record<string, "neutral" | "info" | "success" | "warning" | "danger"> = {
   planning: "info",
@@ -29,8 +29,8 @@ export default async function ProjectsPage() {
   if (!context) {
     return (
       <div className="mx-auto max-w-6xl">
-        <PageHeader title="Projects" />
-        <EmptyState title="Not signed in" />
+        <PageHeader title="Proyek" />
+        <EmptyState title="Belum masuk" />
       </div>
     );
   }
@@ -38,10 +38,10 @@ export default async function ProjectsPage() {
   if (!can(context, "project.read").allowed) {
     return (
       <div className="mx-auto max-w-6xl">
-        <PageHeader title="Projects" />
+        <PageHeader title="Proyek" />
         <EmptyState
-          title="Not authorized"
-          description="Your account does not hold project.read."
+          title="Tidak berwenang"
+          description="Akun Anda tidak memiliki izin project.read."
         />
       </div>
     );
@@ -52,17 +52,17 @@ export default async function ProjectsPage() {
   const columns: readonly Column<ProjectListRow>[] = [
     {
       id: "name",
-      header: "Project",
+      header: "Proyek",
       cell: (p) => (
         <Link href={`/projects/${p.id}`} className="hover:underline">
           {p.name}
         </Link>
       ),
     },
-    { id: "code", header: "Code", cell: (p) => p.code, hideOnMobile: true },
+    { id: "code", header: "Kode", cell: (p) => p.code, hideOnMobile: true },
     {
       id: "customer",
-      header: "Customer",
+      header: "Pelanggan",
       cell: (p) => p.customerName ?? "—",
       hideOnMobile: true,
     },
@@ -81,17 +81,17 @@ export default async function ProjectsPage() {
   return (
     <div className="mx-auto max-w-6xl space-y-6">
       <PageHeader
-        title="Projects"
-        description="Projects within your authorized scope."
+        title="Proyek"
+        description="Proyek dalam cakupan yang Anda berwenang."
       />
-      <SectionCard title="Projects">
+      <SectionCard title="Proyek">
         <DataTable
-          caption="Projects"
+          caption="Proyek"
           columns={columns}
           data={projects}
           getRowId={(p) => p.id}
-          emptyTitle="No projects"
-          emptyDescription="No project exists within your authorized scope."
+          emptyTitle="Belum ada proyek"
+          emptyDescription="Belum ada proyek dalam cakupan yang Anda berwenang."
         />
       </SectionCard>
     </div>

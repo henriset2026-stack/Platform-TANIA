@@ -5,12 +5,12 @@ import { Button } from "@/components/ui/button";
 
 import { signInWithEntra } from "./actions";
 
-export const metadata: Metadata = { title: "Sign in · TANIA" };
+export const metadata: Metadata = { title: "Masuk · TANIA" };
 
 const ERRORS: Record<string, string> = {
-  auth_failed: "Sign-in could not be completed. Please try again.",
-  missing_code: "The sign-in link was incomplete. Please try again.",
-  unauthenticated: "Please sign in to continue.",
+  auth_failed: "Proses masuk tidak dapat diselesaikan. Silakan coba lagi.",
+  missing_code: "Tautan masuk tidak lengkap. Silakan coba lagi.",
+  unauthenticated: "Silakan masuk untuk melanjutkan.",
 };
 
 /**
@@ -44,7 +44,7 @@ export default async function LoginPage({
           role="alert"
           className="mt-6 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-900"
         >
-          {ERRORS[error] ?? "Sign-in failed. Please try again."}
+          {ERRORS[error] ?? "Gagal masuk. Silakan coba lagi."}
         </p>
       ) : null}
 
@@ -53,13 +53,13 @@ export default async function LoginPage({
           {/* Validated again server-side; only same-origin paths survive. */}
           <input type="hidden" name="next" value={next ?? "/dashboard"} />
           <Button type="submit" className="w-full" disabled={!configured}>
-            Sign in with Microsoft Entra ID
+            Masuk dengan Microsoft Entra ID
           </Button>
         </form>
         {!configured ? (
           <p className="mt-3 text-xs text-slate-500">
-            Single sign-on is not configured in this environment. Set the
-            Supabase and Entra variables in <code>.env.local</code> — see{" "}
+            SSO belum dikonfigurasi di lingkungan ini. Atur variabel Supabase
+            dan Entra di <code>.env.local</code> — lihat{" "}
             <code>.env.example</code>.
           </p>
         ) : null}

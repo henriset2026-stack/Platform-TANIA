@@ -44,14 +44,14 @@ export const SPRINT_PHASES = [
 export type SprintPhase = (typeof SPRINT_PHASES)[number];
 
 export const SPRINT_PHASE_LABEL: Record<SprintPhase, string> = {
-  define: "Define",
-  deconstruct: "Deconstruct",
-  learn: "Learn",
-  practice: "Practice",
-  feedback: "Feedback",
-  build: "Build",
-  assess: "Assess",
-  deploy: "Deploy",
+  define: "Tentukan",
+  deconstruct: "Uraikan",
+  learn: "Pelajari",
+  practice: "Praktik",
+  feedback: "Umpan balik",
+  build: "Bangun",
+  assess: "Asesmen",
+  deploy: "Terapkan",
 };
 
 export const ACTIVITY_TYPES = [
@@ -271,15 +271,15 @@ export type UpgradeBlocker =
   | "TARGET_EXCEEDS_SCALE";
 
 export const UPGRADE_BLOCKER_REASON: Record<UpgradeBlocker, string> = {
-  PLAN_NOT_APPROVED: "The development plan has not been approved by a human.",
-  PLAN_NOT_COMPLETE: "Not every required activity is complete.",
-  NO_ASSESSMENT_COMPLETED: "No assessment activity has been completed.",
+  PLAN_NOT_APPROVED: "Rencana pengembangan belum disetujui oleh manusia.",
+  PLAN_NOT_COMPLETE: "Belum semua aktivitas wajib selesai.",
+  NO_ASSESSMENT_COMPLETED: "Belum ada aktivitas asesmen yang selesai.",
   NO_APPLIED_ACTIVITY_COMPLETED:
-    "No applied activity is complete. Capability requires evidence of doing, not knowing.",
+    "Belum ada aktivitas penerapan yang selesai. Capability memerlukan bukti melakukan, bukan sekadar mengetahui.",
   NO_VALIDATED_EVIDENCE:
-    "No validated learning evidence supports this upgrade.",
-  TARGET_NOT_ABOVE_CURRENT: "The proposed level is not above the current level.",
-  TARGET_EXCEEDS_SCALE: "The proposed level is outside the L1–L5 scale.",
+    "Belum ada bukti pembelajaran tervalidasi yang mendukung kenaikan ini.",
+  TARGET_NOT_ABOVE_CURRENT: "Level yang diusulkan tidak lebih tinggi dari level saat ini.",
+  TARGET_EXCEEDS_SCALE: "Level yang diusulkan berada di luar skala L1–L5.",
 };
 
 export interface UpgradeEvaluation {

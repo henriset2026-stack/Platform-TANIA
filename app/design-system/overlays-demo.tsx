@@ -47,22 +47,22 @@ export function OverlaysDemo() {
   return (
     <div className="flex flex-wrap items-center gap-3">
       <Dialog>
-        <DialogTrigger render={<Button variant="outline">Open modal</Button>} />
+        <DialogTrigger render={<Button variant="outline">Buka modal</Button>} />
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Approve assignment</DialogTitle>
+            <DialogTitle>Setujui penugasan</DialogTitle>
             <DialogDescription>
-              Approving records you as the approver and writes an audit event.
-              This is a consequential action and cannot be performed by an AI
-              agent.
+              Menyetujui akan mencatat Anda sebagai penyetuju dan menulis
+              peristiwa audit. Ini adalah tindakan berdampak dan tidak dapat
+              dilakukan oleh agen AI.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <DialogClose render={<Button variant="ghost">Cancel</Button>} />
+            <DialogClose render={<Button variant="ghost">Batal</Button>} />
             <DialogClose
               render={
-                <Button onClick={() => setConfirmed("Assignment approved")}>
-                  Approve
+                <Button onClick={() => setConfirmed("Penugasan disetujui")}>
+                  Setujui
                 </Button>
               }
             />
@@ -71,13 +71,13 @@ export function OverlaysDemo() {
       </Dialog>
 
       <Sheet>
-        <SheetTrigger render={<Button variant="outline">Open drawer</Button>} />
+        <SheetTrigger render={<Button variant="outline">Buka drawer</Button>} />
         <SheetContent side="right" className="w-80">
           <SheetHeader>
-            <SheetTitle>Filters</SheetTitle>
+            <SheetTitle>Filter</SheetTitle>
             <SheetDescription>
-              Narrow the current view. Filters are presentation only and never
-              widen what you are authorized to see.
+              Persempit tampilan saat ini. Filter hanya untuk tampilan dan tidak
+              pernah memperluas apa yang berwenang Anda lihat.
             </SheetDescription>
           </SheetHeader>
         </SheetContent>
@@ -85,13 +85,13 @@ export function OverlaysDemo() {
 
       <DropdownMenu>
         <DropdownMenuTrigger
-          render={<Button variant="outline">Open dropdown</Button>}
+          render={<Button variant="outline">Buka dropdown</Button>}
         />
         <DropdownMenuContent align="start">
-          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+          <DropdownMenuLabel>Aksi</DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuItem>View details</DropdownMenuItem>
-          <DropdownMenuItem>Export report</DropdownMenuItem>
+          <DropdownMenuItem>Lihat detail</DropdownMenuItem>
+          <DropdownMenuItem>Ekspor laporan</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
 

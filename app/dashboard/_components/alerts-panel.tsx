@@ -21,15 +21,15 @@ export function AlertsPanel({
 }) {
   return (
     <SectionCard
-      title="Alerts"
-      description="Derived from current records, not from AI inference."
+      title="Peringatan"
+      description="Diturunkan dari data saat ini, bukan dari inferensi AI."
       bodyClassName="divide-y divide-slate-100"
     >
       {!isLive(data) ? (
         <DataStateNotice point={data} />
       ) : data.value.length === 0 ? (
         <p className="text-sm text-slate-500">
-          No alerts. Nothing currently breaches a monitored threshold.
+          Tidak ada peringatan. Tidak ada yang melampaui ambang batas yang dipantau.
         </p>
       ) : (
         data.value.map((alert) => (
@@ -39,7 +39,7 @@ export function AlertsPanel({
             tone={alert.tone}
             title={alert.title}
             detail={alert.detail}
-            source="Derived from assignments"
+            source="Diturunkan dari penugasan"
           />
         ))
       )}

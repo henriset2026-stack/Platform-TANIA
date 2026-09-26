@@ -146,10 +146,10 @@ export type RecommendedAction =
   | "INSUFFICIENT_DATA";
 
 export const RECOMMENDED_ACTION_LABEL: Record<RecommendedAction, string> = {
-  PROPOSE_ASSIGNMENT: "Propose assignment",
-  PROPOSE_WITH_DEVELOPMENT: "Propose with development plan",
-  NOT_RECOMMENDED: "Not recommended",
-  INSUFFICIENT_DATA: "Insufficient data to recommend",
+  PROPOSE_ASSIGNMENT: "Usulkan penugasan",
+  PROPOSE_WITH_DEVELOPMENT: "Usulkan dengan rencana pengembangan",
+  NOT_RECOMMENDED: "Tidak direkomendasikan",
+  INSUFFICIENT_DATA: "Data belum cukup untuk rekomendasi",
 };
 
 export interface MatchResult {

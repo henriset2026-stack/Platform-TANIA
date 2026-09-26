@@ -35,7 +35,7 @@ import { notConnected } from "@/types/data";
 import type { DataPoint } from "@/types/data";
 import { CAPABILITY_STATUSES, TONES, WORK_STATUSES } from "@/types/status";
 
-export const metadata: Metadata = { title: "Design system · TANIA" };
+export const metadata: Metadata = { title: "Sistem desain · TANIA" };
 
 /**
  * Design system reference.
@@ -58,11 +58,11 @@ interface DemoRow {
 }
 
 const DEMO_COLUMNS: readonly Column<DemoRow>[] = [
-  { id: "project", header: "Project", cell: (r) => r.project },
+  { id: "project", header: "Proyek", cell: (r) => r.project },
   {
     id: "progress",
-    header: "Progress",
-    cell: (r) => <ProgressMeter value={r.progress} label={`${r.project} progress`} />,
+    header: "Progres",
+    cell: (r) => <ProgressMeter value={r.progress} label={`Progres ${r.project}`} />,
     width: "40%",
     hideOnMobile: true,
   },
@@ -80,15 +80,15 @@ export default function DesignSystemPage() {
   return (
     <main className="mx-auto max-w-6xl px-6 py-10">
       <PageHeader
-        title="Design system"
-        description="TANIA component reference — Telkom enterprise visual language, accessibility states, and the provenance contract."
-        action={<Badge variant="outline">Phase 5</Badge>}
+        title="Sistem desain"
+        description="Referensi komponen TANIA — bahasa visual enterprise Telkom, state aksesibilitas, dan kontrak provenance."
+        action={<Badge variant="outline">Fase 5</Badge>}
       />
 
       <div className="space-y-8">
         <SectionCard
-          title="TANIA avatar"
-          description="The DPS AI employee. Presence states from PRD §80.3. The official portrait is a brand asset supplied via portraitSrc; the monogram is the fallback."
+          title="Avatar TANIA"
+          description="AI employee DPS. State kehadiran dari PRD §80.3. Potret resmi adalah aset brand yang disediakan melalui portraitSrc; monogram adalah fallback-nya."
         >
           <div className="flex flex-wrap items-end gap-6">
             {TANIA_STATES.map((state) => (
@@ -103,7 +103,7 @@ export default function DesignSystemPage() {
 
         <SectionCard
           title="Status"
-          description="Colour is never the only signal — every badge carries a text label and a non-colour dot."
+          description="Warna tidak pernah menjadi satu-satunya sinyal — setiap badge memiliki label teks dan titik non-warna."
         >
           <div className="space-y-4">
             <div>
@@ -115,7 +115,7 @@ export default function DesignSystemPage() {
               </div>
             </div>
             <div>
-              <p className="mb-2 text-xs font-medium text-slate-500">Work</p>
+              <p className="mb-2 text-xs font-medium text-slate-500">Pekerjaan</p>
               <div className="flex flex-wrap gap-2">
                 {WORK_STATUSES.map((s) => (
                   <WorkStatusBadge key={s} status={s} />
@@ -123,7 +123,7 @@ export default function DesignSystemPage() {
               </div>
             </div>
             <div>
-              <p className="mb-2 text-xs font-medium text-slate-500">Tones</p>
+              <p className="mb-2 text-xs font-medium text-slate-500">Tone</p>
               <div className="flex flex-wrap gap-2">
                 {TONES.map((tone) => (
                   <StatusBadge key={tone} tone={tone}>
@@ -136,43 +136,43 @@ export default function DesignSystemPage() {
         </SectionCard>
 
         <SectionCard
-          title="Metrics"
-          description="All six render as not-connected: no database exists, and a layout demo is not a reason to invent numbers."
+          title="Metrik"
+          description="Keenamnya tampil sebagai belum terhubung: belum ada database, dan demo tata letak bukan alasan untuk mengarang angka."
           bodyClassName="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
         >
           <MetricCard label="Total Talent" icon={Users} tone="info" point={notConnected(7, "profiles")} />
-          <MetricCard label="Performance Index" icon={TrendingUp} tone="success" point={notConnected(9, "performance_metrics")} />
-          <MetricCard label="Capability Coverage" icon={Layers} tone="info" point={notConnected(8, "talent_capabilities")} />
-          <MetricCard label="AI Adoption" icon={Sparkles} tone="info" point={notConnected(13, "ai_usage")} />
-          <MetricCard label="Development Progress" icon={GraduationCap} tone="warning" point={notConnected(10, "development_plans")} />
-          <MetricCard label="Critical Gaps" icon={Target} tone="danger" point={notConnected(8, "capability_requirements")} />
+          <MetricCard label="Indeks Kinerja" icon={TrendingUp} tone="success" point={notConnected(9, "performance_metrics")} />
+          <MetricCard label="Cakupan Capability" icon={Layers} tone="info" point={notConnected(8, "talent_capabilities")} />
+          <MetricCard label="Adopsi AI" icon={Sparkles} tone="info" point={notConnected(13, "ai_usage")} />
+          <MetricCard label="Progres Pengembangan" icon={GraduationCap} tone="warning" point={notConnected(10, "development_plans")} />
+          <MetricCard label="Gap Kritis" icon={Target} tone="danger" point={notConnected(8, "capability_requirements")} />
         </SectionCard>
 
-        <SectionCard title="Tabs" description="Segmented control, keyboard navigable with arrow keys.">
+        <SectionCard title="Tab" description="Segmented control, dapat dinavigasi dengan tombol panah keyboard.">
           <Tabs defaultValue="individual">
             <TabsList>
-              <TabsTrigger value="individual">Individual</TabsTrigger>
+              <TabsTrigger value="individual">Individu</TabsTrigger>
               <TabsTrigger value="squad">Squad</TabsTrigger>
               <TabsTrigger value="chapter">Chapter DPS</TabsTrigger>
             </TabsList>
             <TabsContent value="individual" className="pt-4 text-sm text-slate-600">
-              Individual scope.
+              Cakupan individu.
             </TabsContent>
             <TabsContent value="squad" className="pt-4 text-sm text-slate-600">
-              Squad scope — a manager sees only squads they manage.
+              Cakupan Squad — Manager hanya melihat Squad yang ia kelola.
             </TabsContent>
             <TabsContent value="chapter" className="pt-4 text-sm text-slate-600">
-              Chapter scope.
+              Cakupan Chapter.
             </TabsContent>
           </Tabs>
         </SectionCard>
 
         <SectionCard
-          title="Data table"
-          description="Bound to DataPoint, so it cannot render an empty body when the truth is 'not connected'."
+          title="Tabel data"
+          description="Terikat ke DataPoint, sehingga tidak dapat menampilkan isi kosong ketika kondisi sebenarnya 'belum terhubung'."
         >
           <DataTable
-            caption="Active projects"
+            caption="Proyek aktif"
             columns={DEMO_COLUMNS}
             data={NO_ROWS}
             getRowId={(row) => row.id}
@@ -180,35 +180,35 @@ export default function DesignSystemPage() {
         </SectionCard>
 
         <SectionCard
-          title="Insights"
-          description="Every insight names what produced it. An AI claim without provenance is not a fact."
+          title="Insight"
+          description="Setiap insight menyebutkan asalnya. Klaim AI tanpa provenance bukanlah fakta."
           bodyClassName="divide-y divide-slate-100"
         >
           <InsightCard
             icon={Target}
             tone="danger"
-            title="Critical capability gaps detected"
-            detail="Requires capability_requirements and talent_capabilities"
+            title="Gap capability kritis terdeteksi"
+            detail="Memerlukan capability_requirements dan talent_capabilities"
             source="Capability Agent"
             confidence={0}
           />
           <InsightCard
             icon={Sparkles}
             tone="info"
-            title="AI adoption analysis"
-            detail="Requires ai_usage"
+            title="Analisis adopsi AI"
+            detail="Memerlukan ai_usage"
             source="AI Augmentation Agent"
           />
         </SectionCard>
 
         <SectionCard
-          title="Evidence"
-          description="Source, date, validation status and origin are always shown."
+          title="Bukti"
+          description="Sumber, tanggal, status validasi, dan asal selalu ditampilkan."
           bodyClassName="grid gap-3 md:grid-cols-2"
         >
           <EvidenceCard
-            title="Capability evidence (validated)"
-            description="Illustrates the validated state."
+            title="Bukti capability (tervalidasi)"
+            description="Mengilustrasikan state tervalidasi."
             sourceType="project_deliverable"
             sourceReference="SAMPLE-PRJ-1"
             occurredAt="2026-08-14T00:00:00.000Z"
@@ -216,8 +216,8 @@ export default function DesignSystemPage() {
             validatedBy="Chapter Lead"
           />
           <EvidenceCard
-            title="Performance evidence (AI-generated, pending)"
-            description="AI-generated claims are marked and stay pending until a human validates them."
+            title="Bukti kinerja (dihasilkan AI, menunggu)"
+            description="Klaim yang dihasilkan AI ditandai dan tetap menunggu sampai divalidasi manusia."
             sourceType="agent_analysis"
             occurredAt="2026-09-02T00:00:00.000Z"
             validationStatus="pending"
@@ -226,31 +226,31 @@ export default function DesignSystemPage() {
         </SectionCard>
 
         <SectionCard
-          title="States"
-          description="Every data surface must handle all three."
+          title="State"
+          description="Setiap permukaan data wajib menangani ketiganya."
           bodyClassName="grid gap-4 md:grid-cols-3"
         >
-          <EmptyState title="No records" description="The query returned no rows." />
-          <LoadingState label="Loading example" rows={3} />
+          <EmptyState title="Belum ada data" description="Kueri tidak mengembalikan baris apa pun." />
+          <LoadingState label="Contoh memuat" rows={3} />
           <ErrorState detail="req_00000000" />
         </SectionCard>
 
-        <SectionCard title="Progress and identity">
+        <SectionCard title="Progres dan identitas">
           <div className="max-w-sm space-y-4">
-            <ProgressMeter value={76} label="Example completion" />
-            <ProgressMeter value={30} label="Example completion, lower" />
+            <ProgressMeter value={76} label="Contoh penyelesaian" />
+            <ProgressMeter value={30} label="Contoh penyelesaian, lebih rendah" />
             <UserIdentity name="Chapter Lead" role="Chapter DPS" />
           </div>
         </SectionCard>
 
         <SectionCard
-          title="Overlays"
-          description="Modal, drawer and dropdown. All three trap focus, close on Escape, and return focus to their trigger."
+          title="Overlay"
+          description="Modal, drawer, dan dropdown. Ketiganya mengunci fokus, tertutup dengan Escape, dan mengembalikan fokus ke pemicunya."
         >
           <OverlaysDemo />
         </SectionCard>
 
-        <SectionCard title="Buttons">
+        <SectionCard title="Tombol">
           <div className="flex flex-wrap gap-2">
             <Button>Primary</Button>
             <Button variant="outline">Outline</Button>

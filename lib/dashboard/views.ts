@@ -61,15 +61,15 @@ export const SECTION_PERMISSION: Record<DashboardSection, string> = {
 };
 
 export const SECTION_TITLE: Record<DashboardSection, string> = {
-  talent_health: "Talent Health",
-  performance: "Performance",
+  talent_health: "Kesehatan Talent",
+  performance: "Kinerja",
   capability: "Capability",
   workload: "Workload",
-  ai_augmentation: "AI Augmentation",
-  business_impact: "Business Impact",
-  critical_insights: "Critical Insights",
-  alerts: "Alerts",
-  project_intelligence: "Project Intelligence",
+  ai_augmentation: "Augmentasi AI",
+  business_impact: "Dampak Bisnis",
+  critical_insights: "Wawasan Kritis",
+  alerts: "Peringatan",
+  project_intelligence: "Intelijen Proyek",
 };
 
 export interface DashboardView {
@@ -102,28 +102,28 @@ export function resolveScope(context: AuthContext): DashboardScope {
 
 const SCOPE_COPY: Record<DashboardScope, { title: string; subtitle: string }> = {
   platform: {
-    title: "Platform Overview",
-    subtitle: "All organizations — platform administration scope",
+    title: "Ikhtisar Platform",
+    subtitle: "Semua organisasi — cakupan administrasi platform",
   },
   aggregate: {
     title: "Executive Dashboard",
-    subtitle: "Aggregated chapter intelligence. Individual records are not shown at this scope.",
+    subtitle: "Intelijen chapter teragregasi. Data individu tidak ditampilkan pada cakupan ini.",
   },
   chapter: {
-    title: "Chapter Dashboard",
+    title: "Dashboard Chapter",
     subtitle: "Chapter Digital Product & Solution · Telkom Indonesia",
   },
   squad: {
-    title: "Squad Dashboard",
-    subtitle: "Your squad and the work assigned to it",
+    title: "Dashboard Squad",
+    subtitle: "Squad Anda dan pekerjaan yang ditugaskan kepadanya",
   },
   self: {
-    title: "My Dashboard",
-    subtitle: "Your capability, performance, development and assigned work",
+    title: "Dashboard Saya",
+    subtitle: "Capability, kinerja, pengembangan, dan pekerjaan yang ditugaskan kepada Anda",
   },
   none: {
     title: "Dashboard",
-    subtitle: "No organizational scope is assigned to your account",
+    subtitle: "Belum ada cakupan organisasi yang ditetapkan untuk akun Anda",
   },
 };
 

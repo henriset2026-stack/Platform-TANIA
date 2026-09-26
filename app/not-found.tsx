@@ -9,14 +9,14 @@ export default function NotFound() {
         404
       </p>
       <h1 className="mt-2 text-lg font-semibold text-[var(--color-telkom-navy)]">
-        Page not found
+        Halaman tidak ditemukan
       </h1>
       <p className="mt-2 text-sm text-slate-600">
-        Most TANIA destinations are not implemented yet. The dashboard shell is
-        available.
+        Sebagian besar halaman TANIA belum diimplementasikan. Dashboard sudah
+        tersedia.
       </p>
       <Button
-        render={<Link href="/dashboard">Go to dashboard</Link>}
+        render={<Link href="/dashboard">Buka dashboard</Link>}
         className="mt-6"
       />
     </main>

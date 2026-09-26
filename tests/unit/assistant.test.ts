@@ -154,12 +154,12 @@ describe("context-aware prompts", () => {
 describe("quick actions", () => {
   it("covers the six actions in PRD §81", () => {
     expect(QUICK_ACTIONS.map((a) => a.label)).toEqual([
-      "Ask TANIA",
-      "Critical Gaps",
-      "Find Talent",
-      "Performance",
-      "Development",
-      "Project Matching",
+      "Tanya TANIA",
+      "Gap Kritis",
+      "Cari Talent",
+      "Kinerja",
+      "Pengembangan",
+      "Pencocokan Proyek",
     ]);
   });
 

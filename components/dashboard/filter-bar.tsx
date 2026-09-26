@@ -80,7 +80,7 @@ export function FilterBar({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">
-                {filter.allLabel ?? `All ${filter.label.toLowerCase()}`}
+                {filter.allLabel ?? `Semua ${filter.label.toLowerCase()}`}
               </SelectItem>
               {filter.options.map((option) => (
                 <SelectItem key={option.value} value={option.value}>
@@ -95,14 +95,14 @@ export function FilterBar({
       {onReset && activeCount > 0 ? (
         <Button variant="ghost" size="sm" onClick={onReset}>
           <X aria-hidden="true" className="size-4" />
-          Clear
+          Hapus
         </Button>
       ) : null}
 
       <p aria-live="polite" className="sr-only">
         {activeCount === 0
-          ? "No filters applied"
-          : `${activeCount} filter${activeCount === 1 ? "" : "s"} applied`}
+          ? "Tidak ada filter yang diterapkan"
+          : `${activeCount} filter diterapkan`}
       </p>
     </div>
   );

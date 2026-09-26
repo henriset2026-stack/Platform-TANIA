@@ -65,8 +65,8 @@ export function TalentFilters({
       onReset={() => router.push(pathname)}
     >
       <Search
-        label="Search talent"
-        placeholder="Name, employee ID, or job title"
+        label="Cari talent"
+        placeholder="Nama, ID karyawan, atau jabatan"
         defaultValue={searchParams.get("q") ?? ""}
         onSearch={(q) => update({ q })}
       />

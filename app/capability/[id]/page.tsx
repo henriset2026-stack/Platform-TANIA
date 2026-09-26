@@ -8,7 +8,7 @@ import { getAuthContext } from "@/lib/auth/session";
 import { getCapability } from "@/lib/capability/queries";
 import { isLive } from "@/types/data";
 
-export const metadata: Metadata = { title: "Capability detail · TANIA" };
+export const metadata: Metadata = { title: "Detail capability · TANIA" };
 
 /**
  * Capability detail.
@@ -40,9 +40,9 @@ export default async function CapabilityDetailPage({
         description={isLive(capability) ? capability.value.domainName : undefined}
       />
 
-      <SectionCard title="Definition">
+      <SectionCard title="Definisi">
         {!isLive(capability) ? (
-          <EmptyState title="Capability unavailable" />
+          <EmptyState title="Capability tidak tersedia" />
         ) : (
           <div className="space-y-3">
             <div className="flex flex-wrap gap-2">
@@ -56,19 +56,19 @@ export default async function CapabilityDetailPage({
                       : "neutral"
                 }
               >
-                {capability.value.criticality} criticality
+                Kritikalitas {capability.value.criticality}
               </StatusBadge>
             </div>
             <p className="text-sm text-slate-600">
-              {capability.value.description ?? "No description recorded."}
+              {capability.value.description ?? "Belum ada deskripsi yang tercatat."}
             </p>
           </div>
         )}
       </SectionCard>
 
       <SectionCard
-        title="Level definitions"
-        description="A claim above L2 requires evidence of application, not certification (PRD §7.1)."
+        title="Definisi level"
+        description="Klaim di atas L2 memerlukan bukti penerapan, bukan sertifikasi (PRD §7.1)."
       >
         <ol className="space-y-2">
           {CAPABILITY_LEVELS.map((level) => (

@@ -23,7 +23,7 @@ import {
 } from "@/lib/workload/queries";
 import { isLive } from "@/types/data";
 
-export const metadata: Metadata = { title: "Project · TANIA" };
+export const metadata: Metadata = { title: "Proyek · TANIA" };
 
 /**
  * S10 — Project detail (PRD §34).
@@ -53,23 +53,23 @@ export default async function ProjectDetailPage({
   if (project.state === "empty" || project.state === "restricted") notFound();
 
   const columns: readonly Column<AssignmentRow>[] = [
-    { id: "person", header: "Person", cell: (a) => a.profileName },
-    { id: "role", header: "Role", cell: (a) => a.roleName ?? "—", hideOnMobile: true },
+    { id: "person", header: "Talent", cell: (a) => a.profileName },
+    { id: "role", header: "Peran", cell: (a) => a.roleName ?? "—", hideOnMobile: true },
     {
       id: "allocation",
-      header: "Allocation",
+      header: "Alokasi",
       align: "end",
       cell: (a) => <span className="tabular-nums">{Math.round(a.allocationPct)}%</span>,
     },
     {
       id: "approval",
-      header: "Approval",
+      header: "Persetujuan",
       align: "end",
       cell: (a) =>
         a.approved ? (
-          <StatusBadge tone="success">Approved</StatusBadge>
+          <StatusBadge tone="success">Disetujui</StatusBadge>
         ) : (
-          <StatusBadge tone="warning">Awaiting approval</StatusBadge>
+          <StatusBadge tone="warning">Menunggu persetujuan</StatusBadge>
         ),
     },
   ];
@@ -77,45 +77,45 @@ export default async function ProjectDetailPage({
   return (
     <div className="mx-auto max-w-5xl space-y-6">
       <PageHeader
-        title={isLive(project) ? project.value.name : "Project"}
+        title={isLive(project) ? project.value.name : "Proyek"}
         description={isLive(project) ? project.value.code : undefined}
       />
 
-      <SectionCard title="Project">
+      <SectionCard title="Proyek">
         {!isLive(project) ? (
           <DataStateNotice point={project} />
         ) : (
           <dl className="grid gap-x-6 gap-y-2 text-sm sm:grid-cols-2">
             <Field label="Status" value={project.value.status} />
-            <Field label="Customer" value={project.value.customerName} />
-            <Field label="Start" value={project.value.startDate} />
-            <Field label="End" value={project.value.endDate} />
+            <Field label="Pelanggan" value={project.value.customerName} />
+            <Field label="Mulai" value={project.value.startDate} />
+            <Field label="Selesai" value={project.value.endDate} />
           </dl>
         )}
       </SectionCard>
 
       <SectionCard
-        title="Staffing"
-        description="Assignments on this project and their approval state."
+        title="Penempatan talent"
+        description="Penugasan pada proyek ini beserta status persetujuannya."
       >
         <DataTable
-          caption="Project staffing"
+          caption="Penempatan talent proyek"
           columns={columns}
           data={assignments}
           getRowId={(a) => a.id}
-          emptyTitle="No one assigned"
-          emptyDescription="No assignment exists for this project within your authorized scope."
+          emptyTitle="Belum ada yang ditugaskan"
+          emptyDescription="Belum ada penugasan untuk proyek ini dalam cakupan yang Anda berwenang."
         />
       </SectionCard>
 
       <SectionCard
-        title="Talent matching"
-        description="What matching produces, and what it will never do."
+        title="Pencocokan Talent"
+        description="Apa yang dihasilkan pencocokan, dan apa yang tidak akan pernah dilakukannya."
       >
         <div className="space-y-4">
           <div>
             <p className="mb-2 text-xs font-medium tracking-wide text-slate-500 uppercase">
-              Dimensions assessed
+              Dimensi yang dinilai
             </p>
             <ul className="flex flex-wrap gap-2">
               {MATCH_DIMENSIONS.map((dimension) => (
@@ -131,38 +131,38 @@ export default async function ProjectDetailPage({
 
           <div>
             <p className="mb-2 text-xs font-medium tracking-wide text-slate-500 uppercase">
-              Every match produces
+              Setiap kecocokan menghasilkan
             </p>
             <ul className="space-y-1 text-sm text-slate-600">
               <li>
-                <strong className="text-slate-800">Match</strong> — weighted
-                score over the dimensions that had data.
+                <strong className="text-slate-800">Kecocokan</strong> — skor
+                berbobot atas dimensi yang memiliki data.
               </li>
               <li>
-                <strong className="text-slate-800">Evidence</strong> — what
-                supports the score.
+                <strong className="text-slate-800">Bukti</strong> — apa yang
+                mendukung skor.
               </li>
               <li>
-                <strong className="text-slate-800">Gap</strong> — what is
-                missing or mismatched.
+                <strong className="text-slate-800">Gap</strong> — apa yang
+                kurang atau tidak sesuai.
               </li>
               <li>
-                <strong className="text-slate-800">Confidence</strong> — driven
-                by data coverage, not by how good the fit looks. A high score
-                on thin data reports low confidence.
+                <strong className="text-slate-800">Tingkat keyakinan</strong> — ditentukan
+                oleh cakupan data, bukan oleh seberapa cocok kelihatannya. Skor
+                tinggi dengan data minim menghasilkan tingkat keyakinan rendah.
               </li>
               <li>
-                <strong className="text-slate-800">Recommended action</strong> —
-                one of:{" "}
+                <strong className="text-slate-800">Tindakan yang direkomendasikan</strong> —
+                salah satu dari:{" "}
                 {Object.values(RECOMMENDED_ACTION_LABEL).join(", ").toLowerCase()}.
               </li>
             </ul>
           </div>
 
           <p className="rounded-[var(--radius-control)] border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
-            Matching never assigns or reassigns anyone. The strongest outcome is
-            a proposal that a human with assignment.approve evaluates
-            (PRD §58).
+            Pencocokan tidak pernah menugaskan atau memindahkan siapa pun. Hasil
+            terkuatnya adalah usulan yang dievaluasi oleh manusia dengan izin
+            assignment.approve (PRD §58).
           </p>
         </div>
       </SectionCard>

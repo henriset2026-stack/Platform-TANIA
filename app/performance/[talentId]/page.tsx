@@ -18,7 +18,7 @@ import {
 } from "@/lib/performance/queries";
 import { isLive } from "@/types/data";
 
-export const metadata: Metadata = { title: "Performance detail · TANIA" };
+export const metadata: Metadata = { title: "Detail kinerja · TANIA" };
 
 /**
  * Per-person performance.
@@ -54,7 +54,7 @@ export default async function PerformanceDetailPage({
   const columns: readonly Column<EvidenceTimelineRow>[] = [
     {
       id: "occurred",
-      header: "Date",
+      header: "Tanggal",
       cell: (e) =>
         e.occurredAt ? (
           <time dateTime={e.occurredAt} className="tabular-nums">
@@ -64,17 +64,17 @@ export default async function PerformanceDetailPage({
           "—"
         ),
     },
-    { id: "dimension", header: "Dimension", cell: (e) => e.dimension },
+    { id: "dimension", header: "Dimensi", cell: (e) => e.dimension },
     {
       id: "value",
-      header: "Value",
+      header: "Nilai",
       align: "end",
       cell: (e) =>
         e.value === null ? "—" : `${e.value}${e.unit ? ` ${e.unit}` : ""}`,
     },
     {
       id: "source",
-      header: "Source",
+      header: "Sumber",
       cell: (e) => (
         <span className="text-slate-600">
           {e.sourceType}
@@ -85,20 +85,20 @@ export default async function PerformanceDetailPage({
     },
     {
       id: "confidence",
-      header: "Confidence",
+      header: "Tingkat keyakinan",
       align: "end",
       cell: (e) => (e.confidence === null ? "—" : `${e.confidence}%`),
       hideOnMobile: true,
     },
     {
       id: "kind",
-      header: "Claim",
+      header: "Klaim",
       align: "end",
       cell: (e) => <ClaimBadge kind={e.claimKind} />,
     },
     {
       id: "validation",
-      header: "Validation",
+      header: "Validasi",
       align: "end",
       cell: (e) => (
         <StatusBadge tone={e.validationStatus === "validated" ? "success" : "warning"}>
@@ -111,13 +111,13 @@ export default async function PerformanceDetailPage({
   return (
     <div className="mx-auto max-w-6xl space-y-6">
       <PageHeader
-        title="Performance"
-        description="Evidence and trend. No final rating is shown here — that requires an approved weighting model and human sign-off."
+        title="Kinerja"
+        description="Bukti dan tren. Rating akhir tidak ditampilkan di sini — rating memerlukan model pembobotan yang disetujui dan persetujuan manusia."
       />
 
       <SectionCard
-        title="Trend"
-        description="Mean of recorded metric scores per period. This is measured data, not the weighted performance index."
+        title="Tren"
+        description="Rata-rata skor metrik yang tercatat per periode. Ini data terukur, bukan indeks kinerja berbobot."
       >
         {!isLive(trend) ? (
           <DataStateNotice point={trend} />
@@ -138,10 +138,10 @@ export default async function PerformanceDetailPage({
               {trend.value.change !== null ? (
                 <span className="tabular-nums">
                   {trend.value.change > 0 ? "+" : ""}
-                  {trend.value.change} across {trend.value.points.length} periods
+                  {trend.value.change} dalam {trend.value.points.length} periode
                 </span>
               ) : (
-                <span>Not enough periods to establish a trend</span>
+                <span>Periode belum cukup untuk menentukan tren</span>
               )}
             </p>
             <ol className="space-y-1">
@@ -160,35 +160,35 @@ export default async function PerformanceDetailPage({
       </SectionCard>
 
       <SectionCard
-        title="Evidence timeline"
-        description="Every entry carries its value, period, source, validation status and confidence."
+        title="Linimasa bukti"
+        description="Setiap entri memuat nilai, periode, sumber, status validasi, dan tingkat keyakinan."
       >
         <DataTable
-          caption="Performance evidence timeline"
+          caption="Linimasa bukti kinerja"
           columns={columns}
           data={timeline}
           getRowId={(e) => e.id}
-          emptyTitle="No performance evidence"
-          emptyDescription="Nothing has been recorded for this person within your authorized scope."
+          emptyTitle="Belum ada bukti kinerja"
+          emptyDescription="Belum ada data yang tercatat untuk talent ini dalam cakupan akses Anda."
         />
       </SectionCard>
 
-      <SectionCard title="How claims are classified" headingLevel={3}>
+      <SectionCard title="Cara klaim diklasifikasikan" headingLevel={3}>
         <ul className="space-y-1.5 text-sm text-slate-600">
           <li>
-            <ClaimBadge kind="FACT" /> — measured and human-validated.
+            <ClaimBadge kind="FACT" /> — terukur dan divalidasi manusia.
           </li>
           <li>
-            <ClaimBadge kind="ANALYSIS" /> — computed deterministically from
-            facts; reproducible.
+            <ClaimBadge kind="ANALYSIS" /> — dihitung secara deterministik dari
+            fakta; dapat direproduksi.
           </li>
           <li>
-            <ClaimBadge kind="INFERENCE" /> — AI-generated, or not yet
-            validated. Never counted towards a rating.
+            <ClaimBadge kind="INFERENCE" /> — dibuat AI, atau belum
+            tervalidasi. Tidak pernah dihitung dalam rating.
           </li>
           <li>
-            <ClaimBadge kind="RECOMMENDATION" /> — a proposed action awaiting a
-            human decision.
+            <ClaimBadge kind="RECOMMENDATION" /> — usulan tindakan yang menunggu
+            keputusan manusia.
           </li>
         </ul>
       </SectionCard>

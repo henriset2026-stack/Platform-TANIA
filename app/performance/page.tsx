@@ -19,7 +19,7 @@ import {
 } from "@/lib/performance/queries";
 import { isLive } from "@/types/data";
 
-export const metadata: Metadata = { title: "Performance · TANIA" };
+export const metadata: Metadata = { title: "Kinerja · TANIA" };
 
 /**
  * S05 — Performance Cockpit (PRD §29).
@@ -33,8 +33,8 @@ export default async function PerformancePage() {
   if (!context) {
     return (
       <div className="mx-auto max-w-6xl">
-        <PageHeader title="Performance" />
-        <EmptyState title="Not signed in" />
+        <PageHeader title="Kinerja" />
+        <EmptyState title="Belum masuk" />
       </div>
     );
   }
@@ -42,10 +42,10 @@ export default async function PerformancePage() {
   if (!can(context, "performance.read").allowed) {
     return (
       <div className="mx-auto max-w-6xl">
-        <PageHeader title="Performance" />
+        <PageHeader title="Kinerja" />
         <EmptyState
-          title="Not authorized"
-          description="Your account does not hold performance.read."
+          title="Tidak berwenang"
+          description="Akun Anda tidak memiliki izin performance.read."
         />
       </div>
     );
@@ -57,11 +57,11 @@ export default async function PerformancePage() {
   ]);
 
   const periodColumns: readonly Column<PeriodRow>[] = [
-    { id: "name", header: "Period", cell: (p) => p.name },
-    { id: "type", header: "Type", cell: (p) => p.periodType, hideOnMobile: true },
+    { id: "name", header: "Periode", cell: (p) => p.name },
+    { id: "type", header: "Jenis", cell: (p) => p.periodType, hideOnMobile: true },
     {
       id: "dates",
-      header: "Dates",
+      header: "Tanggal",
       cell: (p) => `${p.startDate} → ${p.endDate}`,
       hideOnMobile: true,
     },
@@ -81,33 +81,33 @@ export default async function PerformancePage() {
     { id: "name", header: "Model", cell: (p) => p.name },
     {
       id: "dimensions",
-      header: "Dimensions",
+      header: "Dimensi",
       align: "end",
       cell: (p) => <span className="tabular-nums">{p.weights.length}</span>,
       hideOnMobile: true,
     },
     {
       id: "valid",
-      header: "Validity",
+      header: "Validitas",
       align: "end",
       cell: (p) => {
         const problems = validateWeightProfile(p);
         return problems.length === 0 ? (
           <StatusBadge tone="success">Valid</StatusBadge>
         ) : (
-          <StatusBadge tone="danger">{problems.length} problem(s)</StatusBadge>
+          <StatusBadge tone="danger">{problems.length} masalah</StatusBadge>
         );
       },
     },
     {
       id: "approved",
-      header: "Approved",
+      header: "Persetujuan",
       align: "end",
       cell: (p) =>
         p.approved ? (
-          <StatusBadge tone="success">Approved</StatusBadge>
+          <StatusBadge tone="success">Disetujui</StatusBadge>
         ) : (
-          <StatusBadge tone="warning">Not approved</StatusBadge>
+          <StatusBadge tone="warning">Belum disetujui</StatusBadge>
         ),
     },
   ];
@@ -115,13 +115,13 @@ export default async function PerformancePage() {
   return (
     <div className="mx-auto max-w-6xl space-y-6">
       <PageHeader
-        title="Performance"
-        description="Evidence-based performance. Weights are configuration, not universal policy (PRD §6.1)."
+        title="Kinerja"
+        description="Kinerja berbasis bukti. Bobot adalah konfigurasi, bukan kebijakan universal (PRD §6.1)."
       />
 
       <SectionCard
-        title="Dimensions"
-        description="The vocabulary from PRD §6.1. Weighting is defined per model below, never here."
+        title="Dimensi"
+        description="Kosakata dari PRD §6.1. Pembobotan ditetapkan per model di bawah, tidak di sini."
       >
         <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
           {PERFORMANCE_DIMENSIONS.map((d) => (
@@ -136,33 +136,33 @@ export default async function PerformancePage() {
       </SectionCard>
 
       <SectionCard
-        title="Weighting models"
-        description="A model must be selected explicitly. There is no implicit default."
+        title="Model pembobotan"
+        description="Model harus dipilih secara eksplisit. Tidak ada default implisit."
       >
         <DataTable
-          caption="Performance weighting models"
+          caption="Model pembobotan kinerja"
           columns={profileColumns}
           data={profiles}
           getRowId={(p) => p.id}
-          emptyTitle="No weighting model configured"
-          emptyDescription="PRD §6.1 lists example weights but states they are configuration, not policy. An administrator must define and approve a model before any performance index can be computed."
+          emptyTitle="Belum ada model pembobotan yang dikonfigurasi"
+          emptyDescription="PRD §6.1 mencantumkan contoh bobot, tetapi menyatakan bahwa bobot adalah konfigurasi, bukan kebijakan. Administrator harus menetapkan dan menyetujui model sebelum indeks kinerja dapat dihitung."
         />
       </SectionCard>
 
-      <SectionCard title="Performance periods">
+      <SectionCard title="Periode kinerja">
         <DataTable
-          caption="Performance periods"
+          caption="Periode kinerja"
           columns={periodColumns}
           data={periods}
           getRowId={(p) => p.id}
-          emptyTitle="No performance periods"
+          emptyTitle="Belum ada periode kinerja"
         />
       </SectionCard>
 
       {isLive(profiles) && profiles.value.length === 0 ? (
         <EmptyState
-          title="No performance index can be computed"
-          description="No weighting model is configured."
+          title="Indeks kinerja belum dapat dihitung"
+          description="Belum ada model pembobotan yang dikonfigurasi."
         />
       ) : null}
     </div>

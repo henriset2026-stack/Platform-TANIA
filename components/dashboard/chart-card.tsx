@@ -43,7 +43,7 @@ export function ChartCard<T>({
           {dataTable ? (
             <details className="mt-3">
               <summary className="cursor-pointer text-xs text-slate-500 hover:text-slate-700">
-                View as table
+                Lihat sebagai tabel
               </summary>
               <div className="mt-2">{dataTable}</div>
             </details>

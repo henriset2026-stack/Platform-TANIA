@@ -17,10 +17,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       {/* Keyboard users must be able to reach content without tabbing the
           whole sidebar on every page. Visible only when focused. */}
       <a href="#main-content" className="skip-link">
-        Skip to main content
+        Langsung ke konten utama
       </a>
       <aside
-        aria-label="Primary navigation"
+        aria-label="Navigasi utama"
         className="hidden w-64 shrink-0 flex-col border-r border-slate-200 bg-white lg:flex"
       >
         <div className="flex h-14 items-center border-b border-slate-200 px-4">

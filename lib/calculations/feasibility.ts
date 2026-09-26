@@ -192,14 +192,14 @@ export type FeasibilityStage = (typeof FEASIBILITY_STAGES)[number];
 
 export const FEASIBILITY_STAGE_LABEL: Record<FeasibilityStage, string> = {
   intake: "Intake",
-  scoring: "Scoring",
-  resource_check: "Resource check",
+  scoring: "Penilaian skor",
+  resource_check: "Cek sumber daya",
   business_case: "Business case",
-  decision: "Decision",
-  approved: "Approved",
-  rejected: "Rejected",
-  delivered: "Delivered",
-  reviewed: "Reviewed",
+  decision: "Keputusan",
+  approved: "Disetujui",
+  rejected: "Ditolak",
+  delivered: "Selesai dikerjakan",
+  reviewed: "Ditinjau",
 };
 
 /** Stages that represent a concluded case. */

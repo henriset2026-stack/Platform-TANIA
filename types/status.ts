@@ -46,19 +46,19 @@ export const TONES = [
 export type Tone = (typeof TONES)[number];
 
 export const CAPABILITY_STATUS_LABELS: Record<CapabilityStatus, string> = {
-  strong: "Strong",
-  on_track: "On Track",
-  needs_attention: "Needs Attention",
-  critical_gap: "Critical Gap",
+  strong: "Kuat",
+  on_track: "Sesuai jalur",
+  needs_attention: "Perlu perhatian",
+  critical_gap: "Gap kritis",
 };
 
 export const WORK_STATUS_LABELS: Record<WorkStatus, string> = {
-  on_track: "On Track",
-  in_progress: "In Progress",
-  at_risk: "At Risk",
-  delayed: "Delayed",
-  completed: "Completed",
-  cancelled: "Cancelled",
+  on_track: "Sesuai jalur",
+  in_progress: "Berjalan",
+  at_risk: "Berisiko",
+  delayed: "Terlambat",
+  completed: "Selesai",
+  cancelled: "Dibatalkan",
 };
 
 export const CAPABILITY_STATUS_TONE: Record<CapabilityStatus, Tone> = {

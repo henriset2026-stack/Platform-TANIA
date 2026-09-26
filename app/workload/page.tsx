@@ -33,7 +33,7 @@ export default async function WorkloadPage() {
     return (
       <div className="mx-auto max-w-6xl">
         <PageHeader title="Workload" />
-        <EmptyState title="Not signed in" />
+        <EmptyState title="Belum masuk" />
       </div>
     );
   }
@@ -43,8 +43,8 @@ export default async function WorkloadPage() {
       <div className="mx-auto max-w-6xl">
         <PageHeader title="Workload" />
         <EmptyState
-          title="Not authorized"
-          description="Your account does not hold assignment.read."
+          title="Tidak berwenang"
+          description="Akun Anda tidak memiliki izin assignment.read."
         />
       </div>
     );
@@ -57,16 +57,16 @@ export default async function WorkloadPage() {
   const columns: readonly Column<WorkloadRow>[] = [
     {
       id: "person",
-      header: "Person",
-      cell: (r) => (view.allowsIndividualDrilldown ? r.fullName : "Team member"),
+      header: "Talent",
+      cell: (r) => (view.allowsIndividualDrilldown ? r.fullName : "Anggota tim"),
     },
     {
       id: "utilization",
-      header: "Utilization",
+      header: "Utilisasi",
       cell: (r) => (
         <ProgressMeter
           value={Math.min(r.utilizationPct, 100)}
-          label={`${view.allowsIndividualDrilldown ? r.fullName : "Team member"} utilization`}
+          label={`Utilisasi ${view.allowsIndividualDrilldown ? r.fullName : "anggota tim"}`}
           showValue={false}
         />
       ),
@@ -81,7 +81,7 @@ export default async function WorkloadPage() {
     },
     {
       id: "proposed",
-      header: "Proposed",
+      header: "Diusulkan",
       align: "end",
       cell: (r) =>
         r.proposedPct > 0 ? (
@@ -108,60 +108,60 @@ export default async function WorkloadPage() {
     <div className="mx-auto max-w-6xl space-y-6">
       <PageHeader
         title="Workload"
-        description="Committed allocation across your authorized scope. Proposed assignments are counted separately."
+        description="Alokasi yang sudah berkomitmen dalam cakupan yang Anda berwenang. Penugasan yang diusulkan dihitung terpisah."
       />
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard
-          label="Mean utilization"
+          label="Utilisasi rata-rata"
           point={mapLive(workload, (w) => w.summary.meanUtilizationPct)}
           format={(v) => `${v}%`}
           tone="info"
         />
         <MetricCard
-          label="Spare capacity"
+          label="Kapasitas tersisa"
           point={mapLive(workload, (w) => w.summary.spareCapacityFte)}
           format={(v) => `${v} FTE`}
           tone="success"
-          description="Overloaded people contribute zero, never negative."
+          description="Talent berstatus Over dihitung nol, tidak pernah negatif."
         />
         <MetricCard
-          label="Over-allocated"
+          label="Kelebihan alokasi"
           point={mapLive(workload, (w) => w.summary.overloadedCount)}
           tone="danger"
         />
         <MetricCard
-          label="Unassigned"
+          label="Belum ditugaskan"
           point={mapLive(workload, (w) => w.summary.unassignedCount)}
           tone="warning"
         />
       </div>
 
       <SectionCard
-        title="Allocation heatmap"
+        title="Heatmap alokasi"
         description={
           view.allowsIndividualDrilldown
-            ? "Per person, highest utilization first."
-            : "Individual names are not shown at aggregate scope."
+            ? "Per talent, utilisasi tertinggi lebih dulu."
+            : "Nama individu tidak ditampilkan pada cakupan agregat."
         }
       >
         <DataTable
-          caption="Workload by person"
+          caption="Workload per talent"
           columns={columns}
           data={mapLive(workload, (w) => w.rows)}
           getRowId={(r) => r.profileId}
-          emptyTitle="No workload data"
-          emptyDescription="No active assignments exist within your authorized scope."
+          emptyTitle="Belum ada data Workload"
+          emptyDescription="Belum ada penugasan aktif dalam cakupan yang Anda berwenang."
         />
       </SectionCard>
 
       {summary && summary.overloadedCount > 0 ? (
-        <SectionCard title="Capacity note" headingLevel={3}>
+        <SectionCard title="Catatan kapasitas" headingLevel={3}>
           <p className="text-sm text-slate-600">
-            {summary.overloadedCount} {summary.overloadedCount === 1 ? "person is" : "people are"}{" "}
-            over-allocated. TANIA does not reassign anyone automatically — use
-            talent matching to identify options, then propose an assignment for
-            human approval.
+            {summary.overloadedCount} orang mengalami kelebihan alokasi. TANIA
+            tidak memindahkan siapa pun secara otomatis — gunakan pencocokan
+            Talent untuk mengidentifikasi opsi, lalu ajukan usulan penugasan
+            untuk disetujui manusia.
           </p>
         </SectionCard>
       ) : null}

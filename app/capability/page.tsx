@@ -37,7 +37,7 @@ export default async function CapabilityPage() {
     return (
       <div className="mx-auto max-w-6xl">
         <PageHeader title="Capability" />
-        <EmptyState title="Not signed in" />
+        <EmptyState title="Belum masuk" />
       </div>
     );
   }
@@ -47,8 +47,8 @@ export default async function CapabilityPage() {
       <div className="mx-auto max-w-6xl">
         <PageHeader title="Capability" />
         <EmptyState
-          title="Not authorized"
-          description="Your account does not hold capability.read."
+          title="Tidak berwenang"
+          description="Akun Anda tidak memiliki izin capability.read."
         />
       </div>
     );
@@ -71,10 +71,10 @@ export default async function CapabilityPage() {
       ),
     },
     { id: "domain", header: "Domain", cell: (c) => c.domainName, hideOnMobile: true },
-    { id: "code", header: "Code", cell: (c) => c.code, hideOnMobile: true },
+    { id: "code", header: "Kode", cell: (c) => c.code, hideOnMobile: true },
     {
       id: "criticality",
-      header: "Criticality",
+      header: "Kritikalitas",
       align: "end",
       cell: (c) => (
         <StatusBadge
@@ -96,7 +96,7 @@ export default async function CapabilityPage() {
     { id: "capability", header: "Capability", cell: (g) => g.capabilityName },
     {
       id: "levels",
-      header: "Current → Required",
+      header: "Saat ini → Dibutuhkan",
       cell: (g) => (
         <span className="tabular-nums">
           L{g.currentLevel} → L{g.requiredLevel}
@@ -111,12 +111,12 @@ export default async function CapabilityPage() {
     },
     {
       id: "priority",
-      header: "Priority",
+      header: "Prioritas",
       align: "end",
       cell: (g) => (
         <ProgressMeter
           value={g.priorityIndex}
-          label={`${g.capabilityName} gap priority`}
+          label={`Prioritas gap ${g.capabilityName}`}
         />
       ),
       width: "22%",
@@ -127,12 +127,12 @@ export default async function CapabilityPage() {
     <div className="mx-auto max-w-6xl space-y-6">
       <PageHeader
         title="Capability"
-        description="Required capability minus current proven capability. Certification is evidence, not capability."
+        description="Capability yang dibutuhkan dikurangi capability terbukti saat ini. Sertifikasi adalah bukti, bukan capability."
       />
 
       <SectionCard
-        title="Capability levels"
-        description="The L1–L5 scale (PRD §7.1). A level above L2 requires evidence of application."
+        title="Level capability"
+        description="Skala L1–L5 (PRD §7.1). Level di atas L2 memerlukan bukti penerapan."
       >
         <ol className="grid gap-2 sm:grid-cols-5">
           {CAPABILITY_LEVELS.map((level) => (
@@ -150,30 +150,30 @@ export default async function CapabilityPage() {
       </SectionCard>
 
       <SectionCard
-        title="Critical capability gaps"
-        description="Ranked by business criticality × gap magnitude × time urgency (PRD §7.3)."
+        title="Gap capability kritis"
+        description="Diurutkan berdasarkan kritikalitas bisnis × besar gap × urgensi waktu (PRD §7.3)."
       >
         <DataTable
-          caption="Critical capability gaps"
+          caption="Gap capability kritis"
           columns={gapColumns}
           data={gaps}
           getRowId={(g) => g.capabilityId}
-          emptyTitle="No capability gaps"
-          emptyDescription="Every defined requirement is met at or above its target level."
+          emptyTitle="Tidak ada gap capability"
+          emptyDescription="Setiap kebutuhan yang ditetapkan terpenuhi pada atau di atas level targetnya."
         />
       </SectionCard>
 
       <SectionCard
-        title="Capability catalog"
-        description={`${domains.state === "live" ? domains.value.length : 0} domains`}
+        title="Katalog capability"
+        description={`${domains.state === "live" ? domains.value.length : 0} domain`}
       >
         <DataTable
-          caption="Capability catalog"
+          caption="Katalog capability"
           columns={catalogColumns}
           data={catalog}
           getRowId={(c) => c.id}
-          emptyTitle="No capabilities defined"
-          emptyDescription="The DPS capability catalogue is organizational content and must be supplied by Chapter DPS."
+          emptyTitle="Belum ada capability yang ditetapkan"
+          emptyDescription="Katalog capability DPS adalah konten organisasi dan harus disediakan oleh Chapter DPS."
         />
       </SectionCard>
     </div>

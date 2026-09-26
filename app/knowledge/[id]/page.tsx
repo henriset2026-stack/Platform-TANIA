@@ -14,7 +14,7 @@ import { can } from "@/lib/auth/policy";
 import { getKnowledgeDocument } from "@/lib/rag/queries";
 import { isLive } from "@/types/data";
 
-export const metadata: Metadata = { title: "Document · TANIA" };
+export const metadata: Metadata = { title: "Dokumen · TANIA" };
 
 /**
  * Knowledge document detail.
@@ -48,12 +48,12 @@ export default async function KnowledgeDocumentPage({
   return (
     <div className="mx-auto max-w-4xl space-y-6">
       <PageHeader
-        title={isLive(document) ? document.value.title : "Document"}
+        title={isLive(document) ? document.value.title : "Dokumen"}
         description={isLive(document) ? document.value.sourceType : undefined}
       />
 
       {!isLive(document) ? (
-        <SectionCard title="Document">
+        <SectionCard title="Dokumen">
           <DataStateNotice point={document} />
         </SectionCard>
       ) : (
@@ -64,15 +64,14 @@ export default async function KnowledgeDocumentPage({
               className="rounded-[var(--radius-card)] border border-red-300 bg-red-50 px-4 py-3 text-sm"
             >
               <p className="font-medium text-red-900">
-                This document contains {signals.length} passage
-                {signals.length === 1 ? "" : "s"} resembling a prompt-injection
-                attempt.
+                Dokumen ini berisi {signals.length} bagian teks yang menyerupai
+                upaya prompt injection.
               </p>
               <p className="mt-0.5 text-red-800">
-                Retrieval still fences the content as untrusted data, and
-                permissions come from your session rather than from any
-                document. This is flagged so a human can review how it entered
-                the corpus.
+                Pengambilan tetap membatasi konten ini sebagai data tidak
+                tepercaya, dan izin berasal dari sesi Anda, bukan dari dokumen
+                mana pun. Ini ditandai agar manusia dapat meninjau bagaimana
+                dokumen ini masuk ke korpus.
               </p>
               <ul className="mt-2 space-y-1">
                 {signals.map((signal) => (
@@ -86,19 +85,19 @@ export default async function KnowledgeDocumentPage({
 
           <SectionCard title="Metadata">
             <dl className="grid gap-x-6 gap-y-2 text-sm sm:grid-cols-2">
-              <Field label="Source type" value={document.value.sourceType} />
-              <Field label="Source" value={document.value.sourceUri} />
-              <Field label="Sensitivity" value={document.value.sensitivity} />
-              <Field label="Stored chunks" value={String(document.value.chunkCount ?? 0)} />
+              <Field label="Tipe sumber" value={document.value.sourceType} />
+              <Field label="Sumber" value={document.value.sourceUri} />
+              <Field label="Sensitivitas" value={document.value.sensitivity} />
+              <Field label="Chunk tersimpan" value={String(document.value.chunkCount ?? 0)} />
             </dl>
           </SectionCard>
 
           <SectionCard
-            title="Chunking preview"
-            description={`This document would produce ${preview.length} chunk(s). Chunking is deterministic, so a citation always points at the same passage.`}
+            title="Pratinjau chunking"
+            description={`Dokumen ini akan menghasilkan ${preview.length} chunk. Chunking bersifat deterministik, sehingga kutipan selalu merujuk ke bagian yang sama.`}
           >
             {preview.length === 0 ? (
-              <p className="text-sm text-slate-500">No content to chunk.</p>
+              <p className="text-sm text-slate-500">Tidak ada konten untuk di-chunk.</p>
             ) : (
               <ol className="space-y-2">
                 {preview.slice(0, 5).map((chunk) => (
@@ -111,7 +110,7 @@ export default async function KnowledgeDocumentPage({
                         Chunk {chunk.index + 1}
                       </span>
                       <StatusBadge tone="neutral">
-                        ~{chunk.estimatedTokens} tokens
+                        ~{chunk.estimatedTokens} token
                       </StatusBadge>
                     </div>
                     <p className="mt-1 line-clamp-3 text-sm text-slate-700">
@@ -123,7 +122,7 @@ export default async function KnowledgeDocumentPage({
             )}
             {preview.length > 5 ? (
               <p className="mt-2 text-xs text-slate-500">
-                Showing the first 5 of {preview.length} chunks.
+                Menampilkan 5 pertama dari {preview.length} chunk.
               </p>
             ) : null}
           </SectionCard>

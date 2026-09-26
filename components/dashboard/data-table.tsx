@@ -41,7 +41,7 @@ export function DataTable<T>({
   columns,
   data,
   getRowId,
-  emptyTitle = "No records",
+  emptyTitle = "Belum ada data",
   emptyDescription,
   className,
 }: {
@@ -60,7 +60,7 @@ export function DataTable<T>({
   if (data.state === "restricted") {
     return (
       <EmptyState
-        title="Not authorized"
+        title="Tidak berwenang"
         description={data.reason}
       />
     );
@@ -68,21 +68,21 @@ export function DataTable<T>({
   if (data.state === "not-integrated") {
     return (
       <EmptyState
-        title={`${data.system} not integrated`}
-        description={`${data.system} owns ${data.owns}.`}
+        title={`${data.system} belum terintegrasi`}
+        description={`${data.system} mengelola ${data.owns}.`}
       />
     );
   }
   if (data.state === "not-connected") {
     return (
       <EmptyState
-        title="No data source"
-        description={`Phase ${data.requiredPhase} — requires ${data.requires}`}
+        title="Belum ada sumber data"
+        description={`Fase ${data.requiredPhase} — memerlukan ${data.requires}`}
       />
     );
   }
   if (!isLive(data)) {
-    return <LoadingState label={`Loading ${caption}`} />;
+    return <LoadingState label={`Memuat ${caption}`} />;
   }
 
   if (data.value.length === 0) {

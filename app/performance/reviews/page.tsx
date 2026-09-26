@@ -13,7 +13,7 @@ import { can, isAiService } from "@/lib/auth/policy";
 import { getAuthContext } from "@/lib/auth/session";
 import { listReviews, type ReviewRow } from "@/lib/performance/queries";
 
-export const metadata: Metadata = { title: "Performance reviews · TANIA" };
+export const metadata: Metadata = { title: "Penilaian kinerja · TANIA" };
 
 const STATUS_TONE: Record<string, "neutral" | "info" | "success" | "warning" | "danger"> = {
   draft: "neutral",
@@ -39,8 +39,8 @@ export default async function PerformanceReviewsPage() {
   if (!context) {
     return (
       <div className="mx-auto max-w-6xl">
-        <PageHeader title="Performance reviews" />
-        <EmptyState title="Not signed in" />
+        <PageHeader title="Penilaian kinerja" />
+        <EmptyState title="Belum masuk" />
       </div>
     );
   }
@@ -48,10 +48,10 @@ export default async function PerformanceReviewsPage() {
   if (!can(context, "performance.read").allowed) {
     return (
       <div className="mx-auto max-w-6xl">
-        <PageHeader title="Performance reviews" />
+        <PageHeader title="Penilaian kinerja" />
         <EmptyState
-          title="Not authorized"
-          description="Your account does not hold performance.read."
+          title="Tidak berwenang"
+          description="Akun Anda tidak memiliki izin performance.read."
         />
       </div>
     );
@@ -60,8 +60,8 @@ export default async function PerformanceReviewsPage() {
   const reviews = await listReviews();
 
   const columns: readonly Column<ReviewRow>[] = [
-    { id: "subject", header: "Person", cell: (r) => r.subjectName },
-    { id: "period", header: "Period", cell: (r) => r.periodName, hideOnMobile: true },
+    { id: "subject", header: "Talent", cell: (r) => r.subjectName },
+    { id: "period", header: "Periode", cell: (r) => r.periodName, hideOnMobile: true },
     {
       id: "status",
       header: "Status",
@@ -71,21 +71,21 @@ export default async function PerformanceReviewsPage() {
     },
     {
       id: "approval",
-      header: "Approval",
+      header: "Persetujuan",
       align: "end",
       cell: (r) =>
         r.approvedBy ? (
           <span className="text-xs text-slate-600">
-            Approved{r.approvedAt ? ` ${r.approvedAt.slice(0, 10)}` : ""}
+            Disetujui{r.approvedAt ? ` ${r.approvedAt.slice(0, 10)}` : ""}
           </span>
         ) : (
-          <span className="text-xs text-slate-400">Awaiting human approval</span>
+          <span className="text-xs text-slate-400">Menunggu persetujuan manusia</span>
         ),
       hideOnMobile: true,
     },
     {
       id: "actions",
-      header: "Available action",
+      header: "Tindakan tersedia",
       align: "end",
       cell: (r) => {
         const decision = evaluateReviewTransition(
@@ -98,7 +98,7 @@ export default async function PerformanceReviewsPage() {
           },
         );
         return decision.allowed ? (
-          <StatusBadge tone="info">Approve available</StatusBadge>
+          <StatusBadge tone="info">Dapat disetujui</StatusBadge>
         ) : (
           <span className="text-xs text-slate-400" title={decision.reason}>
             —
@@ -111,28 +111,28 @@ export default async function PerformanceReviewsPage() {
   return (
     <div className="mx-auto max-w-6xl space-y-6">
       <PageHeader
-        title="Performance reviews"
-        description="A final rating requires a human decision. AI may analyse and draft; it may not approve."
+        title="Penilaian kinerja"
+        description="Rating akhir memerlukan keputusan manusia. AI boleh menganalisis dan menyusun draf, tetapi tidak boleh menyetujui."
       />
 
       {isAiService(context) ? (
         <EmptyState
-          title="AI identities cannot act on reviews"
-          description="A final performance rating is a consequential human decision (PRD §58, AGENTS.md §9)."
+          title="Identitas AI tidak dapat bertindak atas penilaian"
+          description="Rating kinerja akhir adalah keputusan manusia yang berdampak besar (PRD §58, AGENTS.md §9)."
         />
       ) : null}
 
       <SectionCard
-        title="Reviews"
-        description="Separation of duties: the reviewer who submits a review may not approve it."
+        title="Penilaian"
+        description="Pemisahan tugas: peninjau yang mengajukan penilaian tidak boleh menyetujuinya."
       >
         <DataTable
-          caption="Performance reviews"
+          caption="Penilaian kinerja"
           columns={columns}
           data={reviews}
           getRowId={(r) => r.id}
-          emptyTitle="No reviews"
-          emptyDescription="No performance review exists within your authorized scope."
+          emptyTitle="Belum ada penilaian"
+          emptyDescription="Tidak ada penilaian kinerja dalam cakupan akses Anda."
         />
       </SectionCard>
     </div>

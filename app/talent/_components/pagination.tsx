@@ -37,25 +37,25 @@ export function Pagination({
 
   return (
     <nav
-      aria-label="Pagination"
+      aria-label="Navigasi halaman"
       className="flex items-center justify-between gap-4 pt-4"
     >
       <p aria-live="polite" className="text-sm text-slate-600">
-        Page {page} of {pageCount} · {total} {total === 1 ? "person" : "people"}
+        Halaman {page} dari {pageCount} · {total} talent
       </p>
       <div className="flex gap-2">
         {page > 1 ? (
-          <Button variant="outline" size="sm" render={<Link href={href(page - 1)}>Previous</Link>} />
+          <Button variant="outline" size="sm" render={<Link href={href(page - 1)}>Sebelumnya</Link>} />
         ) : (
           <Button variant="outline" size="sm" disabled>
-            Previous
+            Sebelumnya
           </Button>
         )}
         {page < pageCount ? (
-          <Button variant="outline" size="sm" render={<Link href={href(page + 1)}>Next</Link>} />
+          <Button variant="outline" size="sm" render={<Link href={href(page + 1)}>Berikutnya</Link>} />
         ) : (
           <Button variant="outline" size="sm" disabled>
-            Next
+            Berikutnya
           </Button>
         )}
       </div>

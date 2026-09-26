@@ -51,7 +51,7 @@ export function EmptyState({
  * invisible to a screen reader.
  */
 export function LoadingState({
-  label = "Loading",
+  label = "Memuat",
   rows = 3,
   className,
 }: {
@@ -82,8 +82,8 @@ export function LoadingState({
  * leaking internals to clients.
  */
 export function ErrorState({
-  title = "This could not be loaded",
-  description = "The request failed. Nothing was changed.",
+  title = "Data tidak dapat dimuat",
+  description = "Permintaan gagal. Tidak ada yang diubah.",
   detail,
   onRetry,
   className,
@@ -114,7 +114,7 @@ export function ErrorState({
       ) : null}
       {onRetry ? (
         <Button variant="outline" onClick={onRetry} className="mt-4">
-          Try again
+          Coba lagi
         </Button>
       ) : null}
     </div>

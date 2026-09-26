@@ -11,6 +11,13 @@ const STATUS_STYLES: Record<string, string> = {
   MISSING: "bg-red-100 text-red-900",
 };
 
+const STATUS_LABELS: Record<string, string> = {
+  IMPLEMENTED: "Selesai",
+  PARTIALLY_IMPLEMENTED: "Sebagian",
+  PLANNED: "Direncanakan",
+  MISSING: "Belum ada",
+};
+
 export default function Home() {
   const counts = statusCounts();
 
@@ -26,16 +33,16 @@ export default function Home() {
             Talent Intelligence, Analytics, Insight &amp; Action
           </p>
         </div>
-        <Button render={<Link href="/dashboard">Open dashboard</Link>} />
+        <Button render={<Link href="/dashboard">Buka dashboard</Link>} />
       </div>
 
       <section className="mt-12">
         <h2 className="text-lg font-semibold text-[var(--color-telkom-navy)]">
-          Implementation status
+          Status implementasi
         </h2>
         <p className="mt-1 text-sm text-slate-600">
-          {counts.IMPLEMENTED} implemented · {counts.PARTIALLY_IMPLEMENTED}{" "}
-          partial · {counts.PLANNED} planned
+          {counts.IMPLEMENTED} selesai · {counts.PARTIALLY_IMPLEMENTED}{" "}
+          sebagian · {counts.PLANNED} direncanakan
         </p>
 
         <ul className="mt-6 divide-y divide-slate-200 border-y border-slate-200">
@@ -55,7 +62,7 @@ export default function Home() {
                   STATUS_STYLES[phase.status] ?? ""
                 }`}
               >
-                {phase.status.replace(/_/g, " ")}
+                {STATUS_LABELS[phase.status] ?? phase.status.replace(/_/g, " ")}
               </span>
             </li>
           ))}

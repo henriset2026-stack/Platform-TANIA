@@ -43,11 +43,11 @@ export type UtilizationBand =
   | "severely_overloaded";
 
 export const UTILIZATION_BAND_LABEL: Record<UtilizationBand, string> = {
-  unassigned: "Unassigned",
-  underloaded: "Under-utilized",
-  healthy: "Healthy",
-  overloaded: "Over-allocated",
-  severely_overloaded: "Severely over-allocated",
+  unassigned: "Belum ditugaskan",
+  underloaded: "Under",
+  healthy: "Optimal",
+  overloaded: "Over",
+  severely_overloaded: "Over berat",
 };
 
 export function classifyUtilization(percent: number): UtilizationBand {

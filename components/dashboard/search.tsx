@@ -19,8 +19,8 @@ import { cn } from "@/lib/utils";
  * search, not to the field.
  */
 export function Search({
-  label = "Search",
-  placeholder = "Search talent, capability, project, or ask TANIA...",
+  label = "Cari",
+  placeholder = "Cari talent, capability, proyek, atau tanya TANIA...",
   defaultValue = "",
   onSearch,
   shortcutHint,
@@ -81,7 +81,7 @@ export function Search({
           className="absolute top-1/2 right-3 -translate-y-1/2 rounded p-0.5 text-slate-400 hover:text-slate-700"
         >
           <X aria-hidden="true" className="size-4" />
-          <span className="sr-only">Clear search</span>
+          <span className="sr-only">Hapus pencarian</span>
         </button>
       ) : shortcutHint ? (
         <kbd

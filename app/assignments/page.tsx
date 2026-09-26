@@ -13,7 +13,7 @@ import { can } from "@/lib/auth/policy";
 import { getAuthContext } from "@/lib/auth/session";
 import { listAssignments, type AssignmentRow } from "@/lib/workload/queries";
 
-export const metadata: Metadata = { title: "Assignments · TANIA" };
+export const metadata: Metadata = { title: "Penugasan · TANIA" };
 
 const STATUS_TONE: Record<string, "neutral" | "info" | "success" | "warning" | "danger"> = {
   proposed: "warning",
@@ -34,8 +34,8 @@ export default async function AssignmentsPage() {
   if (!context) {
     return (
       <div className="mx-auto max-w-6xl">
-        <PageHeader title="Assignments" />
-        <EmptyState title="Not signed in" />
+        <PageHeader title="Penugasan" />
+        <EmptyState title="Belum masuk" />
       </div>
     );
   }
@@ -43,10 +43,10 @@ export default async function AssignmentsPage() {
   if (!can(context, "assignment.read").allowed) {
     return (
       <div className="mx-auto max-w-6xl">
-        <PageHeader title="Assignments" />
+        <PageHeader title="Penugasan" />
         <EmptyState
-          title="Not authorized"
-          description="Your account does not hold assignment.read."
+          title="Tidak berwenang"
+          description="Akun Anda tidak memiliki izin assignment.read."
         />
       </div>
     );
@@ -58,18 +58,18 @@ export default async function AssignmentsPage() {
   const columns: readonly Column<AssignmentRow>[] = [
     {
       id: "project",
-      header: "Project",
+      header: "Proyek",
       cell: (a) => (
         <Link href={`/projects/${a.projectId}`} className="hover:underline">
           {a.projectName}
         </Link>
       ),
     },
-    { id: "person", header: "Person", cell: (a) => a.profileName },
-    { id: "role", header: "Role", cell: (a) => a.roleName ?? "—", hideOnMobile: true },
+    { id: "person", header: "Talent", cell: (a) => a.profileName },
+    { id: "role", header: "Peran", cell: (a) => a.roleName ?? "—", hideOnMobile: true },
     {
       id: "allocation",
-      header: "Allocation",
+      header: "Alokasi",
       align: "end",
       cell: (a) => <span className="tabular-nums">{Math.round(a.allocationPct)}%</span>,
     },
@@ -83,13 +83,13 @@ export default async function AssignmentsPage() {
     },
     {
       id: "approval",
-      header: "Approval",
+      header: "Persetujuan",
       align: "end",
       cell: (a) =>
         a.approved ? (
-          <StatusBadge tone="success">Approved</StatusBadge>
+          <StatusBadge tone="success">Disetujui</StatusBadge>
         ) : (
-          <StatusBadge tone="warning">Awaiting approval</StatusBadge>
+          <StatusBadge tone="warning">Menunggu persetujuan</StatusBadge>
         ),
     },
   ];
@@ -97,25 +97,25 @@ export default async function AssignmentsPage() {
   return (
     <div className="mx-auto max-w-6xl space-y-6">
       <PageHeader
-        title="Assignments"
-        description="Creating or approving an assignment is a consequential action requiring a human decision."
+        title="Penugasan"
+        description="Membuat atau menyetujui penugasan adalah tindakan berdampak yang memerlukan keputusan manusia."
       />
 
       <SectionCard
-        title="Assignments"
+        title="Penugasan"
         description={
           canApprove
-            ? "You hold assignment.approve within your authorized scope."
-            : "You do not hold assignment.approve. Proposals are visible but cannot be approved by you."
+            ? "Anda memiliki izin assignment.approve dalam cakupan yang Anda berwenang."
+            : "Anda tidak memiliki izin assignment.approve. Usulan dapat dilihat, tetapi tidak dapat Anda setujui."
         }
       >
         <DataTable
-          caption="Assignments"
+          caption="Penugasan"
           columns={columns}
           data={assignments}
           getRowId={(a) => a.id}
-          emptyTitle="No assignments"
-          emptyDescription="No assignment exists within your authorized scope."
+          emptyTitle="Belum ada penugasan"
+          emptyDescription="Belum ada penugasan dalam cakupan yang Anda berwenang."
         />
       </SectionCard>
     </div>

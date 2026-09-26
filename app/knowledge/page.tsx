@@ -14,7 +14,7 @@ import { can } from "@/lib/auth/policy";
 import { getAuthContext } from "@/lib/auth/session";
 import { listKnowledgeDocuments, type KnowledgeDocumentRow } from "@/lib/rag/queries";
 
-export const metadata: Metadata = { title: "Knowledge · TANIA" };
+export const metadata: Metadata = { title: "Pengetahuan · TANIA" };
 
 const SENSITIVITY_TONE: Record<string, "neutral" | "info" | "warning" | "danger"> = {
   INTERNAL: "neutral",
@@ -36,8 +36,8 @@ export default async function KnowledgePage() {
   if (!context) {
     return (
       <div className="mx-auto max-w-6xl">
-        <PageHeader title="Knowledge" />
-        <EmptyState title="Not signed in" />
+        <PageHeader title="Pengetahuan" />
+        <EmptyState title="Belum masuk" />
       </div>
     );
   }
@@ -45,10 +45,10 @@ export default async function KnowledgePage() {
   if (!can(context, "ai.use").allowed) {
     return (
       <div className="mx-auto max-w-6xl">
-        <PageHeader title="Knowledge" />
+        <PageHeader title="Pengetahuan" />
         <EmptyState
-          title="Not authorized"
-          description="Your account does not hold ai.use."
+          title="Tidak berwenang"
+          description="Akun Anda tidak memiliki izin ai.use."
         />
       </div>
     );
@@ -60,35 +60,35 @@ export default async function KnowledgePage() {
   const columns: readonly Column<KnowledgeDocumentRow>[] = [
     {
       id: "title",
-      header: "Document",
+      header: "Dokumen",
       cell: (d) => (
         <Link href={`/knowledge/${d.id}`} className="hover:underline">
           {d.title}
         </Link>
       ),
     },
-    { id: "source", header: "Source", cell: (d) => d.sourceType, hideOnMobile: true },
+    { id: "source", header: "Sumber", cell: (d) => d.sourceType, hideOnMobile: true },
     {
       id: "chunks",
-      header: "Chunks",
+      header: "Chunk",
       align: "end",
       cell: (d) => <span className="tabular-nums">{d.chunkCount ?? 0}</span>,
       hideOnMobile: true,
     },
     {
       id: "searchable",
-      header: "Searchable",
+      header: "Dapat dicari",
       align: "end",
       cell: (d) =>
         d.embedded ? (
-          <StatusBadge tone="success">Embedded</StatusBadge>
+          <StatusBadge tone="success">Ter-embed</StatusBadge>
         ) : (
-          <StatusBadge tone="warning">Not embedded</StatusBadge>
+          <StatusBadge tone="warning">Belum ter-embed</StatusBadge>
         ),
     },
     {
       id: "sensitivity",
-      header: "Sensitivity",
+      header: "Sensitivitas",
       align: "end",
       cell: (d) => (
         <StatusBadge tone={SENSITIVITY_TONE[d.sensitivity] ?? "neutral"}>
@@ -101,8 +101,8 @@ export default async function KnowledgePage() {
   return (
     <div className="mx-auto max-w-6xl space-y-6">
       <PageHeader
-        title="Knowledge"
-        description="The documents that can inform your AI answers — exactly those you are authorized to read."
+        title="Pengetahuan"
+        description="Dokumen yang dapat menjadi dasar jawaban AI Anda — tepat dokumen yang berwenang Anda baca."
       />
 
       {!embeddingModel ? (
@@ -111,49 +111,49 @@ export default async function KnowledgePage() {
           className="rounded-[var(--radius-card)] border border-amber-300 bg-amber-50 px-4 py-3 text-sm"
         >
           <p className="font-medium text-amber-900">
-            Semantic search is unavailable: no embedding model is selected.
+            Pencarian semantik tidak tersedia: belum ada model embedding yang dipilih.
           </p>
           <p className="mt-0.5 text-amber-800">
-            EMBEDDING_MODEL is unset, so documents cannot be embedded or
-            searched by meaning. TANIA does not fall back to keyword search,
-            which would quietly answer a different question than the one asked.
+            EMBEDDING_MODEL belum diatur, sehingga dokumen tidak dapat di-embed
+            atau dicari berdasarkan makna. TANIA tidak beralih ke pencarian kata
+            kunci, yang diam-diam akan menjawab pertanyaan yang berbeda.
           </p>
         </div>
       ) : null}
 
-      <SectionCard title="Documents">
+      <SectionCard title="Dokumen">
         <DataTable
-          caption="Knowledge documents"
+          caption="Dokumen pengetahuan"
           columns={columns}
           data={documents}
           getRowId={(d) => d.id}
-          emptyTitle="No documents"
-          emptyDescription="No knowledge document exists within your authorized scope."
+          emptyTitle="Belum ada dokumen"
+          emptyDescription="Belum ada dokumen pengetahuan dalam cakupan yang Anda berwenang."
         />
       </SectionCard>
 
-      <SectionCard title="How retrieval is authorized" headingLevel={3}>
+      <SectionCard title="Cara otorisasi pengambilan" headingLevel={3}>
         <ol className="space-y-1.5 text-sm text-slate-600">
           <li>
-            <strong className="text-slate-800">1. Authorization first.</strong>{" "}
-            Vector search runs under your session with RLS applied{" "}
-            <em>during</em> the index scan. An unauthorized chunk is never a
-            candidate — it is not retrieved and then filtered out.
+            <strong className="text-slate-800">1. Otorisasi lebih dulu.</strong>{" "}
+            Pencarian vektor berjalan di bawah sesi Anda dengan RLS diterapkan{" "}
+            <em>selama</em> pemindaian indeks. Chunk yang tidak berwenang tidak
+            pernah menjadi kandidat — bukan diambil lalu disaring.
           </li>
           <li>
-            <strong className="text-slate-800">2. Top {RETRIEVAL_LIMITS.defaultMatchCount} authorized chunks.</strong>{" "}
-            Ranked by similarity, bounded so no caller can request an unlimited
-            context window.
+            <strong className="text-slate-800">2. {RETRIEVAL_LIMITS.defaultMatchCount} chunk berwenang teratas.</strong>{" "}
+            Diurutkan berdasarkan kemiripan, dibatasi agar tidak ada pemanggil
+            yang dapat meminta context window tanpa batas.
           </li>
           <li>
-            <strong className="text-slate-800">3. Fenced as data.</strong>{" "}
-            Retrieved text is wrapped and labelled untrusted. Anything in a
-            document that looks like an instruction is ignored — permissions
-            come from your session and the database, never from a document.
+            <strong className="text-slate-800">3. Dibatasi sebagai data.</strong>{" "}
+            Teks yang diambil dibungkus dan diberi label tidak tepercaya. Apa pun
+            di dokumen yang tampak seperti instruksi diabaikan — izin berasal
+            dari sesi Anda dan database, tidak pernah dari dokumen.
           </li>
           <li>
-            <strong className="text-slate-800">4. Cited.</strong> Each chunk is
-            numbered so an answer can name the specific passage it used.
+            <strong className="text-slate-800">4. Dikutip.</strong> Setiap chunk
+            diberi nomor agar jawaban dapat menyebut bagian spesifik yang digunakan.
           </li>
         </ol>
       </SectionCard>

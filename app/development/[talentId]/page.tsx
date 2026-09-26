@@ -13,7 +13,7 @@ import { getAuthContext } from "@/lib/auth/session";
 import { getDevelopmentPlans } from "@/lib/development/queries";
 import { isLive } from "@/types/data";
 
-export const metadata: Metadata = { title: "Development plan · TANIA" };
+export const metadata: Metadata = { title: "Rencana pengembangan · TANIA" };
 
 /**
  * Per-person development.
@@ -38,12 +38,12 @@ export default async function DevelopmentDetailPage({
   return (
     <div className="mx-auto max-w-4xl space-y-6">
       <PageHeader
-        title="Development"
-        description="Capability gap → plan → learn → practice → apply → assess → evidence → capability update."
+        title="Pengembangan"
+        description="Gap capability → rencana → belajar → praktik → terapkan → asesmen → bukti → pembaruan capability."
       />
 
       {!isLive(plans) ? (
-        <SectionCard title="Development plans">
+        <SectionCard title="Rencana pengembangan">
           <DataStateNotice point={plans} />
         </SectionCard>
       ) : (
@@ -51,19 +51,19 @@ export default async function DevelopmentDetailPage({
           <SectionCard
             key={plan.id}
             title={plan.title}
-            description={`${plan.progress.completedCount} of ${plan.progress.totalCount} activities · ${plan.progress.completedHours}/${plan.progress.totalHours} hours`}
+            description={`${plan.progress.completedCount} dari ${plan.progress.totalCount} aktivitas · ${plan.progress.completedHours}/${plan.progress.totalHours} jam`}
             action={
               plan.approved ? (
-                <StatusBadge tone="success">Approved</StatusBadge>
+                <StatusBadge tone="success">Disetujui</StatusBadge>
               ) : (
-                <StatusBadge tone="warning">Awaiting approval</StatusBadge>
+                <StatusBadge tone="warning">Menunggu persetujuan</StatusBadge>
               )
             }
           >
             <div className="space-y-4">
               <ProgressMeter
                 value={plan.progress.percent}
-                label={`${plan.title} progress`}
+                label={`Progres ${plan.title}`}
               />
 
               {plan.upgrade ? (
@@ -76,14 +76,14 @@ export default async function DevelopmentDetailPage({
                 >
                   <p className="text-sm font-medium text-slate-900">
                     {plan.upgrade.eligibleToPropose
-                      ? `Capability upgrade to L${plan.upgrade.proposedLevel} may be proposed`
-                      : "Capability upgrade cannot be proposed yet"}
+                      ? `Kenaikan capability ke L${plan.upgrade.proposedLevel} dapat diusulkan`
+                      : "Kenaikan capability belum dapat diusulkan"}
                   </p>
                   <p className="mt-0.5 text-xs text-slate-600">
                     {/* Stated on every plan, eligible or not. */}
-                    A capability increase always requires a human decision and
-                    supporting evidence. Completing a plan never raises a level
-                    by itself.
+                    Kenaikan capability selalu memerlukan keputusan manusia dan
+                    bukti pendukung. Menyelesaikan rencana tidak pernah menaikkan
+                    level dengan sendirinya.
                   </p>
                   {plan.upgrade.blockers.length > 0 ? (
                     <ul className="mt-2 list-disc space-y-0.5 pl-4 text-xs text-amber-900">
@@ -93,8 +93,8 @@ export default async function DevelopmentDetailPage({
                     </ul>
                   ) : (
                     <p className="mt-2 text-xs text-emerald-900">
-                      Supported by {plan.upgrade.supportingEvidenceIds.length}{" "}
-                      validated evidence record(s).
+                      Didukung oleh {plan.upgrade.supportingEvidenceIds.length}{" "}
+                      catatan bukti tervalidasi.
                     </p>
                   )}
                 </div>
@@ -109,7 +109,7 @@ export default async function DevelopmentDetailPage({
                     <span className="text-slate-700">{activity.activityType}</span>
                     <span className="flex items-center gap-2">
                       <span className="tabular-nums text-xs text-slate-500">
-                        {activity.estimatedHours}h
+                        {activity.estimatedHours} jam
                       </span>
                       <StatusBadge
                         tone={

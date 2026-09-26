@@ -15,12 +15,12 @@ export const TANIA_STATES = [
 export type TaniaState = (typeof TANIA_STATES)[number];
 
 const STATE_LABEL: Record<TaniaState, string> = {
-  idle: "TANIA is available",
-  greeting: "TANIA is greeting you",
-  listening: "TANIA is listening",
-  thinking: "TANIA is thinking",
-  answering: "TANIA is answering",
-  expanded: "TANIA assistant is open",
+  idle: "TANIA tersedia",
+  greeting: "TANIA sedang menyapa Anda",
+  listening: "TANIA sedang mendengarkan",
+  thinking: "TANIA sedang berpikir",
+  answering: "TANIA sedang menjawab",
+  expanded: "Asisten TANIA terbuka",
 };
 
 const STATE_DOT: Record<TaniaState, string> = {

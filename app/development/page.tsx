@@ -24,19 +24,19 @@ import {
   type UpgradeProposalRow,
 } from "@/lib/development/queries";
 
-export const metadata: Metadata = { title: "Development · TANIA" };
+export const metadata: Metadata = { title: "Pengembangan · TANIA" };
 
 const LOOP_LABEL: Record<string, string> = {
-  capability_gap: "Capability Gap",
-  development_plan: "Development Plan",
-  learn: "Learn",
-  practice: "Practice",
-  ai_coaching: "AI Coaching",
-  project_assignment: "Project Assignment",
-  evidence: "Evidence",
-  assessment: "Assessment",
-  capability_update: "Capability Update",
-  business_impact: "Business Impact",
+  capability_gap: "Gap capability",
+  development_plan: "Rencana pengembangan",
+  learn: "Belajar",
+  practice: "Praktik",
+  ai_coaching: "Coaching AI",
+  project_assignment: "Penugasan proyek",
+  evidence: "Bukti",
+  assessment: "Asesmen",
+  capability_update: "Pembaruan capability",
+  business_impact: "Dampak bisnis",
 };
 
 /**
@@ -53,8 +53,8 @@ export default async function DevelopmentPage() {
   if (!context) {
     return (
       <div className="mx-auto max-w-6xl">
-        <PageHeader title="Development" />
-        <EmptyState title="Not signed in" />
+        <PageHeader title="Pengembangan" />
+        <EmptyState title="Belum masuk" />
       </div>
     );
   }
@@ -62,10 +62,10 @@ export default async function DevelopmentPage() {
   if (!can(context, "development.read").allowed) {
     return (
       <div className="mx-auto max-w-6xl">
-        <PageHeader title="Development" />
+        <PageHeader title="Pengembangan" />
         <EmptyState
-          title="Not authorized"
-          description="Your account does not hold development.read."
+          title="Tidak berwenang"
+          description="Akun Anda tidak memiliki izin development.read."
         />
       </div>
     );
@@ -80,17 +80,17 @@ export default async function DevelopmentPage() {
     { id: "name", header: "Template", cell: (t) => t.name },
     {
       id: "hours",
-      header: "Hours",
+      header: "Jam",
       align: "end",
       cell: (t) => <span className="tabular-nums">{t.totalHours}</span>,
     },
     {
       id: "phases",
-      header: "Phases",
+      header: "Fase",
       cell: (t) => (
         <span className="text-xs text-slate-600">
           {hoursByPhase(t)
-            .map((p) => `${SPRINT_PHASE_LABEL[p.phase]} ${p.hours}h`)
+            .map((p) => `${SPRINT_PHASE_LABEL[p.phase]} ${p.hours} jam`)
             .join(" · ")}
         </span>
       ),
@@ -98,26 +98,26 @@ export default async function DevelopmentPage() {
     },
     {
       id: "valid",
-      header: "Validity",
+      header: "Validitas",
       align: "end",
       cell: (t) => {
         const problems = validateTemplate(t);
         return problems.length === 0 ? (
           <StatusBadge tone="success">Valid</StatusBadge>
         ) : (
-          <StatusBadge tone="danger">{problems.length} problem(s)</StatusBadge>
+          <StatusBadge tone="danger">{problems.length} masalah</StatusBadge>
         );
       },
     },
     {
       id: "approved",
-      header: "Approved",
+      header: "Persetujuan",
       align: "end",
       cell: (t) =>
         t.approved ? (
-          <StatusBadge tone="success">Approved</StatusBadge>
+          <StatusBadge tone="success">Disetujui</StatusBadge>
         ) : (
-          <StatusBadge tone="warning">Not approved</StatusBadge>
+          <StatusBadge tone="warning">Belum disetujui</StatusBadge>
         ),
     },
   ];
@@ -125,7 +125,7 @@ export default async function DevelopmentPage() {
   const proposalColumns: readonly Column<UpgradeProposalRow>[] = [
     {
       id: "change",
-      header: "Proposed change",
+      header: "Perubahan yang diusulkan",
       cell: (p) => (
         <span className="tabular-nums">
           L{p.fromLevel} → L{p.toLevel}
@@ -134,17 +134,17 @@ export default async function DevelopmentPage() {
     },
     {
       id: "origin",
-      header: "Proposed by",
+      header: "Diusulkan oleh",
       cell: (p) => (
         <StatusBadge tone={p.proposedByAgent ? "warning" : "neutral"}>
-          {p.proposedByAgent ? `${p.proposedByAgent} (AI)` : "Human"}
+          {p.proposedByAgent ? `${p.proposedByAgent} (AI)` : "Manusia"}
         </StatusBadge>
       ),
       hideOnMobile: true,
     },
     {
       id: "rationale",
-      header: "Rationale",
+      header: "Alasan",
       cell: (p) => p.rationale ?? "—",
       hideOnMobile: true,
     },
@@ -152,20 +152,20 @@ export default async function DevelopmentPage() {
       id: "status",
       header: "Status",
       align: "end",
-      cell: () => <StatusBadge tone="warning">Awaiting human decision</StatusBadge>,
+      cell: () => <StatusBadge tone="warning">Menunggu keputusan manusia</StatusBadge>,
     },
   ];
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
       <PageHeader
-        title="Development"
-        description="Don't train people to know. Train people to do."
+        title="Pengembangan"
+        description="Jangan melatih orang sekadar untuk tahu. Latih orang untuk mampu melakukan."
       />
 
       <SectionCard
-        title="Development loop"
-        description="PRD §8.1. Evidence and assessment come before any capability update — never the other way round."
+        title="Siklus pengembangan"
+        description="PRD §8.1. Bukti dan asesmen selalu mendahului pembaruan capability — tidak pernah sebaliknya."
       >
         <ol className="flex flex-wrap items-center gap-x-2 gap-y-2">
           {DEVELOPMENT_LOOP.map((stage, index) => (
@@ -184,8 +184,8 @@ export default async function DevelopmentPage() {
       </SectionCard>
 
       <SectionCard
-        title="Capability sprint framework"
-        description="PRD §8.2. The framework is fixed; the activity breakdown is per template."
+        title="Kerangka sprint capability"
+        description="PRD §8.2. Kerangkanya tetap; rincian aktivitas ditetapkan per template."
       >
         <ol className="flex flex-wrap items-center gap-x-2 gap-y-2">
           {SPRINT_PHASES.map((phase, index) => (
@@ -204,29 +204,29 @@ export default async function DevelopmentPage() {
       </SectionCard>
 
       <SectionCard
-        title="Development templates"
-        description="Configurable curricula. A template with no applied activity can never raise a capability."
+        title="Template pengembangan"
+        description="Kurikulum yang dapat dikonfigurasi. Template tanpa aktivitas penerapan tidak akan pernah menaikkan capability."
       >
         <DataTable
-          caption="Development templates"
+          caption="Template pengembangan"
           columns={templateColumns}
           data={templates}
           getRowId={(t) => t.id}
-          emptyTitle="No development template configured"
-          emptyDescription="PRD §8.2 gives a 20-hour breakdown for one role as an example. It is not seeded as universal policy — an administrator must define and approve a template."
+          emptyTitle="Belum ada template pengembangan yang dikonfigurasi"
+          emptyDescription="PRD §8.2 memberikan rincian 20 jam untuk satu peran sebagai contoh. Rincian itu tidak dimuat sebagai kebijakan universal — administrator harus menetapkan dan menyetujui template."
         />
       </SectionCard>
 
       <SectionCard
-        title="Capability upgrade proposals"
-        description="A completed plan proposes an upgrade; it never performs one. Each proposal must cite evidence and await a human decision."
+        title="Usulan kenaikan capability"
+        description="Rencana yang selesai mengusulkan kenaikan; rencana tidak pernah melakukannya sendiri. Setiap usulan harus menyertakan bukti dan menunggu keputusan manusia."
       >
         <DataTable
-          caption="Capability upgrade proposals awaiting decision"
+          caption="Usulan kenaikan capability yang menunggu keputusan"
           columns={proposalColumns}
           data={proposals}
           getRowId={(p) => p.id}
-          emptyTitle="No proposals awaiting decision"
+          emptyTitle="Tidak ada usulan yang menunggu keputusan"
         />
       </SectionCard>
     </div>

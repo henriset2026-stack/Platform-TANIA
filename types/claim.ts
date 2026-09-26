@@ -27,17 +27,17 @@ export const CLAIM_KINDS = [
 export type ClaimKind = (typeof CLAIM_KINDS)[number];
 
 export const CLAIM_KIND_LABEL: Record<ClaimKind, string> = {
-  FACT: "Fact",
-  ANALYSIS: "Analysis",
-  INFERENCE: "AI inference",
-  RECOMMENDATION: "Recommendation",
+  FACT: "Fakta",
+  ANALYSIS: "Analisis",
+  INFERENCE: "Inferensi AI",
+  RECOMMENDATION: "Rekomendasi",
 };
 
 export const CLAIM_KIND_DESCRIPTION: Record<ClaimKind, string> = {
-  FACT: "Measured value with a recorded source.",
-  ANALYSIS: "Computed deterministically from facts. Reproducible.",
-  INFERENCE: "Interpretation produced by a model. Not a fact.",
-  RECOMMENDATION: "Proposed action. Requires a human decision.",
+  FACT: "Nilai terukur dengan sumber tercatat.",
+  ANALYSIS: "Dihitung secara deterministik dari fakta. Dapat direproduksi.",
+  INFERENCE: "Interpretasi yang dihasilkan model. Bukan fakta.",
+  RECOMMENDATION: "Usulan tindakan. Memerlukan keputusan manusia.",
 };
 
 /**

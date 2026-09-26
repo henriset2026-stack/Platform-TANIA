@@ -14,9 +14,9 @@ import { EXTERNAL_SYSTEMS, integrationState } from "@/types/integration";
 export const metadata: Metadata = { title: "Budget · TANIA" };
 
 const STATE_COPY = {
-  configured: { tone: "success" as const, label: "Configured" },
-  unconfigured: { tone: "warning" as const, label: "Not configured" },
-  "not-specified": { tone: "neutral" as const, label: "Integration not specified" },
+  configured: { tone: "success" as const, label: "Terkonfigurasi" },
+  unconfigured: { tone: "warning" as const, label: "Belum dikonfigurasi" },
+  "not-specified": { tone: "neutral" as const, label: "Integrasi belum ditentukan" },
 };
 
 /**
@@ -37,7 +37,7 @@ export default async function BudgetPage() {
     return (
       <div className="mx-auto max-w-5xl">
         <PageHeader title="Budget" />
-        <EmptyState title="Not signed in" />
+        <EmptyState title="Belum masuk" />
       </div>
     );
   }
@@ -47,8 +47,8 @@ export default async function BudgetPage() {
       <div className="mx-auto max-w-5xl">
         <PageHeader title="Budget" />
         <EmptyState
-          title="Not authorized"
-          description="Your account does not hold project.read."
+          title="Tidak berwenang"
+          description="Akun Anda tidak memiliki izin project.read."
         />
       </div>
     );
@@ -62,7 +62,7 @@ export default async function BudgetPage() {
     <div className="mx-auto max-w-5xl space-y-6">
       <PageHeader
         title="Budget"
-        description="Plan is owned by TANIA. Commitment and realization are owned by the finance system."
+        description="Rencana dimiliki TANIA. Komitmen dan realisasi dimiliki sistem keuangan."
       />
 
       <div
@@ -72,21 +72,21 @@ export default async function BudgetPage() {
         <PlugZap aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-amber-700" />
         <div className="text-sm">
           <p className="font-medium text-amber-900">
-            No financial figures are shown because none can be sourced.
+            Tidak ada angka keuangan yang ditampilkan karena belum ada sumbernya.
           </p>
           <p className="mt-0.5 text-amber-800">
-            Committed and realized amounts originate in SAP. Until that
-            integration exists, TANIA displays nothing rather than a zero, an
-            estimate or a carried-forward figure. An unknown amount and a zero
-            amount are different facts, and treating the first as the second
-            understates commitment.
+            Nilai komitmen dan realisasi berasal dari SAP. Sampai integrasi
+            tersebut tersedia, TANIA tidak menampilkan apa pun — bukan nol,
+            estimasi, atau angka yang dibawa dari periode sebelumnya. Nilai yang
+            tidak diketahui dan nilai nol adalah fakta yang berbeda, dan
+            menyamakan keduanya membuat komitmen tampak lebih kecil.
           </p>
         </div>
       </div>
 
       <SectionCard
-        title="Integration boundary"
-        description="What TANIA owns, and what it does not."
+        title="Batas integrasi"
+        description="Apa yang dimiliki TANIA, dan apa yang tidak."
       >
         <ul className="divide-y divide-slate-100">
           {financeSystems.map((system) => {
@@ -97,12 +97,12 @@ export default async function BudgetPage() {
                 <div className="min-w-0">
                   <p className="text-sm font-medium text-slate-900">{system.name}</p>
                   <p className="mt-0.5 text-xs text-slate-600">
-                    System of record for: {system.owns.join(", ")}.
+                    Sistem acuan untuk: {system.owns.join(", ")}.
                   </p>
                   {state === "not-specified" ? (
                     <p className="mt-1 text-xs text-slate-500">
-                      No integration has been specified. This requires
-                      commissioning, not configuration.
+                      Belum ada integrasi yang ditentukan. Ini memerlukan
+                      pengadaan, bukan sekadar konfigurasi.
                     </p>
                   ) : null}
                 </div>
@@ -114,29 +114,29 @@ export default async function BudgetPage() {
       </SectionCard>
 
       <SectionCard
-        title="What TANIA stores"
-        description="The schema exists; the data does not."
+        title="Yang disimpan TANIA"
+        description="Skemanya sudah ada; datanya belum."
         headingLevel={3}
       >
         <ul className="space-y-1.5 text-sm text-slate-600">
           <li>
-            <strong className="text-slate-800">Planned amount</strong> — entered
-            in TANIA, owned by TANIA.
+            <strong className="text-slate-800">Nilai rencana</strong> — diinput
+            di TANIA, dimiliki TANIA.
           </li>
           <li>
-            <strong className="text-slate-800">Committed and realized</strong> —
-            stored only alongside their source and sync time. A database
-            constraint rejects an external figure with no stated provenance,
-            because an unattributable financial figure is indistinguishable
-            from a fabricated one.
+            <strong className="text-slate-800">Komitmen dan realisasi</strong> —
+            hanya disimpan bersama sumber dan waktu sinkronisasinya. Constraint
+            database menolak angka eksternal tanpa provenance yang jelas,
+            karena angka keuangan yang tidak dapat ditelusuri asalnya tidak
+            dapat dibedakan dari angka rekaan.
           </li>
           <li>
-            <strong className="text-slate-800">Thresholds</strong> —
-            configurable per organization. Alerts fire only on known figures.
+            <strong className="text-slate-800">Ambang batas</strong> —
+            dapat dikonfigurasi per organisasi. Peringatan hanya muncul untuk angka yang diketahui.
           </li>
           <li>
-            <strong className="text-slate-800">Reallocation</strong> — recorded
-            as a proposal and audited on decision. Money never moves silently.
+            <strong className="text-slate-800">Realokasi</strong> — dicatat
+            sebagai usulan dan diaudit saat diputuskan. Dana tidak pernah berpindah diam-diam.
           </li>
         </ul>
       </SectionCard>

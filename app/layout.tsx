@@ -20,7 +20,7 @@ export default async function RootLayout({
   // would carry no nonce and its scripts would be blocked.
   await connection();
   return (
-    <html lang="en">
+    <html lang="id">
       <body className="min-h-screen bg-white text-slate-900 antialiased">
         {children}
       </body>

@@ -10,14 +10,14 @@ describe("primary navigation", () => {
     for (const expected of [
       "Executive Dashboard",
       "Talent",
-      "Performance",
+      "Kinerja",
       "Capability",
-      "Development",
-      "Work & Assignment",
-      "Projects",
-      "Business Impact",
-      "AI Assistant",
-      "Administration",
+      "Pengembangan",
+      "Penugasan",
+      "Proyek",
+      "Dampak Bisnis",
+      "Asisten AI",
+      "Administrasi",
     ]) {
       expect(labels).toContain(expected);
     }

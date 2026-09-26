@@ -74,9 +74,9 @@ export function MetricCard({
               </p>
               {typeof delta === "number" ? <DeltaIndicator delta={delta} /> : null}
               <p className="mt-1 text-xs text-slate-500">
-                {point.provenance.source} · as of{" "}
+                {point.provenance.source} · per{" "}
                 {point.provenance.asOf.slice(0, 10)}
-                {point.provenance.validated ? " · validated" : " · unvalidated"}
+                {point.provenance.validated ? " · tervalidasi" : " · belum tervalidasi"}
               </p>
             </>
           ) : (
@@ -116,7 +116,7 @@ function DeltaIndicator({ delta }: { delta: number }) {
         {delta}%
       </span>
       <span className="sr-only">
-        {rising ? "increase" : "decrease"} versus previous period
+        {rising ? "naik" : "turun"} dibandingkan periode sebelumnya
       </span>
     </p>
   );

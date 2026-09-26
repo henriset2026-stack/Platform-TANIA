@@ -66,8 +66,8 @@ export default async function DashboardPage() {
       <div className="mx-auto max-w-6xl">
         <PageHeader title="Dashboard" />
         <EmptyState
-          title="Not signed in"
-          description="Sign in with your Telkom account to see your dashboard."
+          title="Belum masuk"
+          description="Masuk dengan akun Telkom Anda untuk melihat dashboard Anda."
         />
       </div>
     );
@@ -101,18 +101,18 @@ export default async function DashboardPage() {
 
   const showChapterTotals = view.scope === "aggregate" || view.scope === "platform";
   // A withheld figure says so; it never renders as 0 or a dash that reads as zero.
-  const withheld = (value: number | null) => (value === null ? "Hidden (under 5)" : String(value));
+  const withheld = (value: number | null) => (value === null ? "Disembunyikan (di bawah 5)" : String(value));
   const chapterColumns: readonly Column<ChapterSummaryRow>[] = [
     { id: "chapter", header: "Chapter", cell: (r) => r.organizationName },
-    { id: "headcount", header: "Active people", align: "end", cell: (r) => String(r.activeHeadcount) },
-    { id: "assessed", header: "Capability-assessed", align: "end", cell: (r) => withheld(r.talentsAssessed) },
-    { id: "assignments", header: "Active assignments", align: "end", cell: (r) => withheld(r.activeAssignments) },
-    { id: "overallocated", header: "Over-allocated", align: "end", cell: (r) => withheld(r.overallocatedPeople) },
-    { id: "projects", header: "Active projects", align: "end", cell: (r) => String(r.activeProjects) },
+    { id: "headcount", header: "Talent aktif", align: "end", cell: (r) => String(r.activeHeadcount) },
+    { id: "assessed", header: "Capability terasesmen", align: "end", cell: (r) => withheld(r.talentsAssessed) },
+    { id: "assignments", header: "Penugasan aktif", align: "end", cell: (r) => withheld(r.activeAssignments) },
+    { id: "overallocated", header: "Alokasi berlebih", align: "end", cell: (r) => withheld(r.overallocatedPeople) },
+    { id: "projects", header: "Proyek aktif", align: "end", cell: (r) => String(r.activeProjects) },
   ];
 
   const projectColumns: readonly Column<ProjectRow>[] = [
-    { id: "name", header: "Project", cell: (p) => p.name },
+    { id: "name", header: "Proyek", cell: (p) => p.name },
     {
       id: "status",
       header: "Status",
@@ -129,8 +129,8 @@ export default async function DashboardPage() {
 
       {view.sections.length === 0 ? (
         <EmptyState
-          title="No dashboard sections available"
-          description="Your account holds no read permissions for chapter intelligence. Contact an administrator if this is unexpected."
+          title="Tidak ada bagian dashboard yang tersedia"
+          description="Akun Anda tidak memiliki izin baca untuk intelijen chapter. Hubungi administrator jika ini tidak semestinya."
         />
       ) : null}
 
@@ -140,34 +140,34 @@ export default async function DashboardPage() {
           id="chapter-intelligence"
           className="mb-3 text-sm font-medium tracking-wide text-slate-500 uppercase"
         >
-          Chapter Intelligence
+          Intelijen Chapter
         </h2>
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {isSectionVisible(view, "talent_health") ? (
             <MetricCard
-              label="Talent Health"
+              label="Kesehatan Talent"
               icon={Users}
               tone="info"
               point={headcount}
-              description="Active people in scope."
+              description="Talent aktif dalam cakupan."
             />
           ) : null}
           {isSectionVisible(view, "performance") ? (
             <MetricCard
-              label="Performance"
+              label="Kinerja"
               icon={TrendingUp}
               tone="success"
               point={performance}
-              description="Weighted composite. Weights are configuration, not policy (PRD §6.1)."
+              description="Komposit berbobot. Bobot adalah konfigurasi, bukan kebijakan (PRD §6.1)."
             />
           ) : null}
           {isSectionVisible(view, "capability") ? (
             <MetricCard
-              label="Capability Coverage"
+              label="Cakupan Capability"
               icon={Layers}
               tone="info"
               point={coverage}
-              description="Share of required capabilities met at target level."
+              description="Porsi capability yang dibutuhkan yang terpenuhi pada level target."
             />
           ) : null}
           {isSectionVisible(view, "workload") ? (
@@ -176,21 +176,21 @@ export default async function DashboardPage() {
               icon={GraduationCap}
               tone="warning"
               point={mapLive(workload, (rows) => rows.length)}
-              description="People with an active assignment."
+              description="Talent dengan penugasan aktif."
             />
           ) : null}
           {isSectionVisible(view, "ai_augmentation") ? (
             <MetricCard
-              label="AI Augmentation"
+              label="Augmentasi AI"
               icon={Sparkles}
               tone="info"
               point={augmentation}
-              description="Measured AI leverage across the chapter."
+              description="Pemanfaatan AI yang terukur di seluruh chapter."
             />
           ) : null}
           {isSectionVisible(view, "business_impact") ? (
             <MetricCard
-              label="Business Impact"
+              label="Dampak Bisnis"
               icon={Target}
               tone="success"
               point={impact}
@@ -201,7 +201,7 @@ export default async function DashboardPage() {
                   maximumFractionDigits: 0,
                 }).format(v)
               }
-              description="Human-validated impact only (PRD §35)."
+              description="Hanya dampak yang divalidasi manusia (PRD §35)."
             />
           ) : null}
         </div>
@@ -219,11 +219,11 @@ export default async function DashboardPage() {
 
         {isSectionVisible(view, "critical_insights") ? (
           <SectionCard
-            title="Capability Gaps"
-            description="Required level minus current proven level, prioritised by criticality and urgency (PRD §7.3)."
+            title="Gap Capability"
+            description="Level yang dibutuhkan dikurangi level terbukti saat ini, diprioritaskan menurut tingkat kritis dan urgensi (PRD §7.3)."
           >
             <DataTable
-              caption="Critical capability gaps"
+              caption="Gap capability kritis"
               columns={[
                 { id: "capability", header: "Capability", cell: (r) => r.capability },
                 {
@@ -235,39 +235,39 @@ export default async function DashboardPage() {
               ]}
               data={gaps}
               getRowId={(r) => r.capability}
-              emptyTitle="No capability gaps recorded"
+              emptyTitle="Belum ada gap capability yang tercatat"
             />
           </SectionCard>
         ) : null}
 
         {showChapterTotals ? (
           <SectionCard
-            title="Chapter Totals"
-            description="Counts only, computed in the database. Figures describing fewer than five people are withheld."
+            title="Total per Chapter"
+            description="Hanya jumlah, dihitung di database. Angka yang menggambarkan kurang dari lima orang disembunyikan."
             action={<Users aria-hidden="true" className="size-4 text-slate-400" />}
           >
             <DataTable
-              caption="Totals per chapter"
+              caption="Total per chapter"
               columns={chapterColumns}
               data={chapterTotals}
               getRowId={(r) => r.organizationId}
-              emptyTitle="No chapters in scope"
+              emptyTitle="Tidak ada chapter dalam cakupan"
             />
           </SectionCard>
         ) : null}
 
         {isSectionVisible(view, "project_intelligence") ? (
           <SectionCard
-            title="Project Intelligence"
-            description="Active and planned projects in scope."
+            title="Intelijen Proyek"
+            description="Proyek aktif dan terencana dalam cakupan."
             action={<FolderKanban aria-hidden="true" className="size-4 text-slate-400" />}
           >
             <DataTable
-              caption="Active projects"
+              caption="Proyek aktif"
               columns={projectColumns}
               data={projects}
               getRowId={(p) => p.id}
-              emptyTitle="No active projects"
+              emptyTitle="Tidak ada proyek aktif"
             />
           </SectionCard>
         ) : null}

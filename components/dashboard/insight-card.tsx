@@ -66,7 +66,7 @@ export function InsightCard({
         <span className="mt-1 block text-xs text-slate-400">
           {source}
           {typeof confidence === "number"
-            ? ` · ${confidence}% confidence`
+            ? ` · tingkat keyakinan ${confidence}%`
             : null}
         </span>
       </span>

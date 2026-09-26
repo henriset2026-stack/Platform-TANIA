@@ -15,7 +15,7 @@ import {
   type TalentCapabilityDetail,
 } from "@/lib/capability/queries";
 
-export const metadata: Metadata = { title: "Talent capabilities · TANIA" };
+export const metadata: Metadata = { title: "Capability talent · TANIA" };
 
 /**
  * Talent capability detail.
@@ -45,13 +45,13 @@ export default async function TalentCapabilitiesPage({
     { id: "domain", header: "Domain", cell: (r) => r.domainName, hideOnMobile: true },
     {
       id: "claimed",
-      header: "Claimed",
+      header: "Diklaim",
       align: "end",
       cell: (r) => <span className="tabular-nums">L{r.claimedLevel}</span>,
     },
     {
       id: "proven",
-      header: "Proven",
+      header: "Terbukti",
       align: "end",
       cell: (r) => (
         <span
@@ -60,14 +60,14 @@ export default async function TalentCapabilitiesPage({
         >
           L{r.provenLevel}
           {!r.proven ? (
-            <span className="ml-1 text-xs text-amber-700">unproven</span>
+            <span className="ml-1 text-xs text-amber-700">belum terbukti</span>
           ) : null}
         </span>
       ),
     },
     {
       id: "evidence",
-      header: "Evidence",
+      header: "Bukti",
       align: "end",
       cell: (r) => (
         <span className="tabular-nums text-slate-600">
@@ -82,7 +82,7 @@ export default async function TalentCapabilitiesPage({
       align: "end",
       cell: (r) =>
         r.status === null ? (
-          <span className="text-slate-400">no target</span>
+          <span className="text-slate-400">tanpa target</span>
         ) : (
           <CapabilityStatusBadge status={r.status} />
         ),
@@ -92,38 +92,38 @@ export default async function TalentCapabilitiesPage({
   return (
     <div className="mx-auto max-w-5xl space-y-6">
       <PageHeader
-        title="Capability profile"
-        description="Claimed level against the level the evidence proves."
+        title="Profil capability"
+        description="Level yang diklaim terhadap level yang dibuktikan oleh bukti."
       />
 
       <SectionCard
-        title="Capabilities"
-        description="Proven level is derived from validated evidence of application. Certification alone caps a capability at L2 (PRD §7.1)."
+        title="Capability"
+        description="Level terbukti diturunkan dari bukti penerapan yang tervalidasi. Sertifikasi saja membatasi capability pada L2 (PRD §7.1)."
       >
         <DataTable
-          caption="Talent capability profile"
+          caption="Profil capability talent"
           columns={columns}
           data={detail}
           getRowId={(r) => r.id}
-          emptyTitle="No capabilities assessed"
-          emptyDescription="No capability has been claimed for this person yet."
+          emptyTitle="Belum ada capability yang diases"
+          emptyDescription="Belum ada capability yang diklaim untuk talent ini."
         />
       </SectionCard>
 
-      <SectionCard title="How proven level is determined" headingLevel={3}>
+      <SectionCard title="Cara level terbukti ditentukan" headingLevel={3}>
         <ul className="space-y-1.5 text-sm text-slate-600">
           <li>
-            <StatusBadge tone="success">Proven</StatusBadge> — validated
-            evidence of application exists at the claimed level.
+            <StatusBadge tone="success">Terbukti</StatusBadge> — terdapat bukti
+            penerapan tervalidasi pada level yang diklaim.
           </li>
           <li>
-            <StatusBadge tone="warning">Capped at L2</StatusBadge> — validated
-            evidence shows knowledge (for example a certificate) but not
-            application.
+            <StatusBadge tone="warning">Dibatasi di L2</StatusBadge> — bukti
+            tervalidasi menunjukkan pengetahuan (misalnya sertifikat), tetapi
+            belum penerapan.
           </li>
           <li>
-            <StatusBadge tone="neutral">L1</StatusBadge> — no validated
-            evidence. Pending, rejected and withdrawn evidence does not count.
+            <StatusBadge tone="neutral">L1</StatusBadge> — tidak ada bukti
+            tervalidasi. Bukti yang menunggu, ditolak, atau ditarik tidak dihitung.
           </li>
         </ul>
       </SectionCard>

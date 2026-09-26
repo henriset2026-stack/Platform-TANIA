@@ -44,7 +44,7 @@ export function GapHeatmap({
         <thead>
           <tr>
             <th scope="col" className="w-40 text-left text-xs font-medium text-slate-500">
-              <span className="sr-only">Group</span>
+              <span className="sr-only">Kelompok</span>
             </th>
             {columns.map((column) => (
               <th
@@ -73,7 +73,7 @@ export function GapHeatmap({
                     <td key={column.id} className="px-1">
                       <span
                         className="flex h-8 items-center justify-center rounded border border-dashed border-slate-200 text-xs text-slate-300"
-                        aria-label={`${row.label}, ${column.label}: no requirement`}
+                        aria-label={`${row.label}, ${column.label}: tidak ada kebutuhan`}
                       >
                         —
                       </span>

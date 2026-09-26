@@ -10,10 +10,10 @@ const VALIDATION: Record<
   ValidationStatus,
   { label: string; tone: Tone; icon: LucideIcon }
 > = {
-  pending: { label: "Pending validation", tone: "warning", icon: Clock },
-  validated: { label: "Validated", tone: "success", icon: CircleCheck },
-  rejected: { label: "Rejected", tone: "danger", icon: CircleSlash },
-  withdrawn: { label: "Withdrawn", tone: "neutral", icon: CircleSlash },
+  pending: { label: "Menunggu validasi", tone: "warning", icon: Clock },
+  validated: { label: "Tervalidasi", tone: "success", icon: CircleCheck },
+  rejected: { label: "Ditolak", tone: "danger", icon: CircleSlash },
+  withdrawn: { label: "Ditarik", tone: "neutral", icon: CircleSlash },
 };
 
 /**
@@ -78,7 +78,7 @@ export function EvidenceCard({
 
       <dl className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500">
         <div className="flex gap-1">
-          <dt className="font-medium">Source</dt>
+          <dt className="font-medium">Sumber</dt>
           <dd>
             {sourceType}
             {sourceReference ? ` · ${sourceReference}` : null}
@@ -86,7 +86,7 @@ export function EvidenceCard({
         </div>
         {occurredAt ? (
           <div className="flex gap-1">
-            <dt className="font-medium">Occurred</dt>
+            <dt className="font-medium">Terjadi</dt>
             <dd>
               <time dateTime={occurredAt}>{occurredAt.slice(0, 10)}</time>
             </dd>
@@ -94,15 +94,15 @@ export function EvidenceCard({
         ) : null}
         {validatedBy ? (
           <div className="flex gap-1">
-            <dt className="font-medium">Validated by</dt>
+            <dt className="font-medium">Divalidasi oleh</dt>
             <dd>{validatedBy}</dd>
           </div>
         ) : null}
         {origin !== "human" ? (
           <div className="flex gap-1">
-            <dt className="font-medium">Origin</dt>
+            <dt className="font-medium">Asal</dt>
             <dd className="text-amber-700">
-              {origin === "ai_generated" ? "AI-generated" : "System"}
+              {origin === "ai_generated" ? "Dihasilkan AI" : "Sistem"}
             </dd>
           </div>
         ) : null}
@@ -115,9 +115,9 @@ export function EvidenceCard({
           rel="noopener noreferrer"
           className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-[var(--color-telkom-blue-600)] hover:underline"
         >
-          View evidence
+          Lihat bukti
           <ExternalLink aria-hidden="true" className="size-3" />
-          <span className="sr-only">(opens in a new tab)</span>
+          <span className="sr-only">(terbuka di tab baru)</span>
         </a>
       ) : null}
     </article>

@@ -44,7 +44,7 @@ export default async function FeasibilityPage() {
     return (
       <div className="mx-auto max-w-6xl">
         <PageHeader title="Feasibility" />
-        <EmptyState title="Not signed in" />
+        <EmptyState title="Belum masuk" />
       </div>
     );
   }
@@ -54,8 +54,8 @@ export default async function FeasibilityPage() {
       <div className="mx-auto max-w-6xl">
         <PageHeader title="Feasibility" />
         <EmptyState
-          title="Not authorized"
-          description="Your account does not hold project.read."
+          title="Tidak berwenang"
+          description="Akun Anda tidak memiliki izin project.read."
         />
       </div>
     );
@@ -65,26 +65,26 @@ export default async function FeasibilityPage() {
   const canDecide = can(context, "project.update").allowed;
 
   const columns: readonly Column<FeasibilityRow>[] = [
-    { id: "title", header: "Case", cell: (a) => a.title },
+    { id: "title", header: "Kasus", cell: (a) => a.title },
     {
       id: "customer",
-      header: "Customer",
+      header: "Pelanggan",
       cell: (a) => a.customerName ?? "—",
       hideOnMobile: true,
     },
     {
       id: "score",
-      header: "Score",
+      header: "Skor",
       align: "end",
       cell: (a) =>
         a.totalScore === null ? (
-          <span className="text-slate-400">not scored</span>
+          <span className="text-slate-400">belum dinilai</span>
         ) : (
           <span className="tabular-nums">
             {a.totalScore}
             {a.scoreCoverage !== null && a.scoreCoverage < MIN_FEASIBILITY_COVERAGE * 100 ? (
               <span className="ml-1 text-xs text-amber-700">
-                ({a.scoreCoverage}% covered)
+                (cakupan {a.scoreCoverage}%)
               </span>
             ) : null}
           </span>
@@ -92,7 +92,7 @@ export default async function FeasibilityPage() {
     },
     {
       id: "stage",
-      header: "Stage",
+      header: "Tahap",
       align: "end",
       cell: (a) => (
         <StatusBadge tone={STAGE_TONE[a.stage] ?? "neutral"}>{a.stageLabel}</StatusBadge>
@@ -104,12 +104,12 @@ export default async function FeasibilityPage() {
     <div className="mx-auto max-w-6xl space-y-6">
       <PageHeader
         title="Feasibility"
-        description="Intake, scoring, resource check, business case, decision, delivery and post-delivery review."
+        description="Intake, penilaian skor, cek sumber daya, business case, keputusan, delivery, dan tinjauan pasca-delivery."
       />
 
       <SectionCard
         title="Pipeline"
-        description="A case may be rejected at any stage before decision. Stopping work early is always permitted."
+        description="Kasus dapat ditolak di tahap mana pun sebelum keputusan. Menghentikan pekerjaan lebih awal selalu diperbolehkan."
       >
         <ol className="flex flex-wrap items-center gap-x-2 gap-y-2">
           {FEASIBILITY_STAGES.filter((s) => s !== "rejected").map((stage, index, all) => (
@@ -128,44 +128,44 @@ export default async function FeasibilityPage() {
       </SectionCard>
 
       <SectionCard
-        title="Cases"
+        title="Kasus"
         description={
           canDecide
-            ? "You hold project.update and may decide cases within your organization."
-            : "You do not hold project.update. Cases are visible but cannot be decided by you."
+            ? "Anda memiliki izin project.update dan dapat memutuskan kasus dalam organisasi Anda."
+            : "Anda tidak memiliki izin project.update. Kasus dapat dilihat, tetapi tidak dapat Anda putuskan."
         }
       >
         <DataTable
-          caption="Feasibility cases"
+          caption="Kasus Feasibility"
           columns={columns}
           data={assessments}
           getRowId={(a) => a.id}
-          emptyTitle="No feasibility cases"
-          emptyDescription="No case exists within your authorized scope."
+          emptyTitle="Belum ada kasus Feasibility"
+          emptyDescription="Belum ada kasus dalam cakupan yang Anda berwenang."
         />
       </SectionCard>
 
-      <SectionCard title="How scoring works" headingLevel={3}>
+      <SectionCard title="Cara penilaian skor" headingLevel={3}>
         <ul className="space-y-1.5 text-sm text-slate-600">
           <li>
-            Criteria and weights are <strong className="text-slate-800">configurable</strong>,
-            with approve and review thresholds set per profile. Scoring a
-            business case decides whether work happens, so the model is not
-            hard-coded.
+            Kriteria dan bobot <strong className="text-slate-800">dapat dikonfigurasi</strong>,
+            dengan ambang persetujuan dan tinjauan per profil. Skor business
+            case menentukan apakah pekerjaan dijalankan, sehingga modelnya tidak
+            di-hard-code.
           </li>
           <li>
-            Risk-style criteria are inverted, so a high risk score lowers the
-            total rather than raising it.
+            Kriteria bertipe risiko dibalik, sehingga skor risiko tinggi
+            menurunkan total, bukan menaikkannya.
           </li>
           <li>
-            An unscored criterion is <strong className="text-slate-800">excluded</strong>,
-            not counted as zero — and below {MIN_FEASIBILITY_COVERAGE * 100}%
-            coverage no recommendation is made at all.
+            Kriteria yang belum dinilai <strong className="text-slate-800">dikecualikan</strong>,
+            tidak dihitung sebagai nol — dan di bawah cakupan {MIN_FEASIBILITY_COVERAGE * 100}%
+            tidak ada rekomendasi sama sekali.
           </li>
           <li>
-            A score is a <strong className="text-slate-800">recommendation</strong>.
-            Approving or rejecting a case is a human action, and every decision
-            is written to the audit log by a database trigger.
+            Skor adalah <strong className="text-slate-800">rekomendasi</strong>.
+            Menyetujui atau menolak kasus adalah tindakan manusia, dan setiap
+            keputusan dicatat ke log audit oleh trigger database.
           </li>
         </ul>
       </SectionCard>

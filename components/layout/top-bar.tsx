@@ -33,8 +33,8 @@ export async function TopBar({ availableNav }: { availableNav: readonly string[]
         variant="ghost"
         size="icon"
         disabled
-        title="Search — Phase 7"
-        aria-label="Search (not yet available)"
+        title="Cari — Fase 7"
+        aria-label="Cari (belum tersedia)"
       >
         <Search aria-hidden="true" className="size-4" />
       </Button>
@@ -42,8 +42,8 @@ export async function TopBar({ availableNav }: { availableNav: readonly string[]
         variant="ghost"
         size="icon"
         disabled
-        title="AI Assistant — Phase 15"
-        aria-label="AI Assistant (not yet available)"
+        title="Asisten AI — Fase 15"
+        aria-label="Asisten AI (belum tersedia)"
       >
         <Sparkles aria-hidden="true" className="size-4" />
       </Button>
@@ -51,23 +51,23 @@ export async function TopBar({ availableNav }: { availableNav: readonly string[]
         variant="ghost"
         size="icon"
         disabled
-        title="Notifications — Phase 19"
-        aria-label="Notifications (not yet available)"
+        title="Notifikasi — Fase 19"
+        aria-label="Notifikasi (belum tersedia)"
       >
         <Bell aria-hidden="true" className="size-4" />
       </Button>
 
       {context ? (
         <UserIdentity
-          name={context.email || "Signed in"}
+          name={context.email || "Sudah masuk"}
           role={view?.title}
           size="sm"
           className="ml-2"
         />
       ) : (
         <div
-          aria-label="Not signed in"
-          title="No active session"
+          aria-label="Belum masuk"
+          title="Tidak ada sesi aktif"
           className="ml-1 flex size-8 items-center justify-center rounded-full border border-dashed border-slate-300 text-[10px] font-medium text-slate-400"
         >
           —

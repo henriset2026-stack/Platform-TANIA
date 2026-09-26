@@ -27,7 +27,7 @@ export function SidebarNav({
   const pathname = usePathname();
 
   return (
-    <nav aria-label="Primary" className="px-2 py-3">
+    <nav aria-label="Utama" className="px-2 py-3">
       <ul className="space-y-0.5">
         {PRIMARY_NAV.map((item) => {
           const isAvailable = available.includes(item.id);

@@ -203,7 +203,7 @@ export async function getChapterSummaries(
   view: DashboardView,
 ): Promise<DataPoint<readonly ChapterSummaryRow[]>> {
   if (view.scope !== "aggregate" && view.scope !== "platform") {
-    return { state: "restricted", reason: "Chapter totals are an executive and platform view." };
+    return { state: "restricted", reason: "Total chapter hanya untuk tampilan executive dan platform." };
   }
   return guarded("chapter_summary() — migration 20260924100003", async () => {
     const supabase = await createClient();
@@ -434,8 +434,8 @@ export async function getAlerts(
     value: [
       {
         id: "overallocation",
-        title: `${overallocated.length} ${overallocated.length === 1 ? "person is" : "people are"} over-allocated`,
-        detail: "Total active assignment allocation exceeds 100%.",
+        title: `${overallocated.length} orang mengalami alokasi berlebih`,
+        detail: "Total alokasi penugasan aktif melebihi 100%.",
         tone: "warning",
       },
     ],

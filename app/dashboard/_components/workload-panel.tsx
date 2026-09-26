@@ -23,14 +23,14 @@ export function WorkloadPanel({
       title="Workload"
       description={
         allowsDrilldown
-          ? "Active assignment allocation per person"
-          : "Aggregated allocation. Individual records are not shown at this scope."
+          ? "Alokasi penugasan aktif per orang"
+          : "Alokasi teragregasi. Data individu tidak ditampilkan pada cakupan ini."
       }
     >
       {!isLive(data) ? (
         <DataStateNotice point={data} />
       ) : data.value.length === 0 ? (
-        <p className="text-sm text-slate-500">No active assignments.</p>
+        <p className="text-sm text-slate-500">Tidak ada penugasan aktif.</p>
       ) : (
         <ul className="space-y-3">
           {data.value.slice(0, 8).map((row) => {
@@ -38,11 +38,11 @@ export function WorkloadPanel({
             return (
               <li key={row.profileId} className="flex items-center gap-3">
                 <span className="w-40 shrink-0 truncate text-sm text-slate-700">
-                  {allowsDrilldown ? row.name : "Team member"}
+                  {allowsDrilldown ? row.name : "Anggota tim"}
                 </span>
                 <ProgressMeter
                   value={Math.min(row.allocationPct, 100)}
-                  label={`${allowsDrilldown ? row.name : "Team member"} allocation`}
+                  label={`Alokasi ${allowsDrilldown ? row.name : "anggota tim"}`}
                   showValue={false}
                   className="flex-1"
                 />

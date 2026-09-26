@@ -34,12 +34,12 @@ const ICONS: Record<QuickAction["icon"], LucideIcon> = {
 
 /** State copy from PRD §80.3. */
 const STATE_COPY: Record<TaniaState, string> = {
-  idle: "Online",
-  greeting: "Hi, I'm TANIA. How can I help you today?",
-  listening: "Listening…",
-  thinking: "Analyzing your request…",
-  answering: "Answering",
-  expanded: "Online",
+  idle: "Daring",
+  greeting: "Halo, saya TANIA. Ada yang bisa saya bantu hari ini?",
+  listening: "Mendengarkan…",
+  thinking: "Menganalisis permintaan Anda…",
+  answering: "Menjawab",
+  expanded: "Daring",
 };
 
 /**
@@ -141,7 +141,7 @@ export function AssistantPanel({
           {
             id: crypto.randomUUID(),
             role: "assistant",
-            content: body.error?.message ?? "TANIA could not answer that request.",
+            content: body.error?.message ?? "TANIA tidak dapat menjawab permintaan tersebut.",
             evidence: [],
             citations: [],
             toolsUsed: [],
@@ -164,7 +164,7 @@ export function AssistantPanel({
           evidence: body.response!.evidence ?? [],
           citations: (body.response!.citations ?? []).map((c, i) => ({
             ordinal: c.ordinal ?? i + 1,
-            source: c.source ?? "Source",
+            source: c.source ?? "Sumber",
           })),
           toolsUsed: body.response!.toolsUsed ?? [],
           requiresApproval: body.response!.requiresApproval ?? false,
@@ -179,7 +179,7 @@ export function AssistantPanel({
         {
           id: crypto.randomUUID(),
           role: "assistant",
-          content: "The request could not be sent. Nothing was changed.",
+          content: "Permintaan tidak dapat dikirim. Tidak ada yang diubah.",
           evidence: [],
           citations: [],
           toolsUsed: [],
@@ -200,7 +200,7 @@ export function AssistantPanel({
           setOpen(true);
           setState("greeting");
         }}
-        title="Ask TANIA"
+        title="Tanya TANIA"
         className={cn(
           "fixed right-6 bottom-6 z-40 flex items-center gap-2.5 rounded-full",
           "border border-slate-200 bg-white py-2 pr-4 pl-2 shadow-lg",
@@ -209,9 +209,9 @@ export function AssistantPanel({
       >
         <TaniaAvatar state="idle" size="md" />
         <span className="text-sm font-medium text-[var(--color-telkom-navy)]">
-          Ask TANIA
+          Tanya TANIA
         </span>
-        <span className="sr-only">Open the TANIA assistant</span>
+        <span className="sr-only">Buka asisten TANIA</span>
       </button>
     );
   }
@@ -219,7 +219,7 @@ export function AssistantPanel({
   return (
     <div
       role="complementary"
-      aria-label="TANIA assistant"
+      aria-label="Asisten TANIA"
       className={cn(
         "fixed right-6 bottom-6 z-40 flex flex-col overflow-hidden",
         "rounded-[var(--radius-card)] border border-slate-200 bg-white shadow-2xl",
@@ -236,7 +236,7 @@ export function AssistantPanel({
           </p>
           <p aria-live="polite" className="truncate text-xs text-slate-500">
             {state === "greeting" && greetingName
-              ? `Hi ${greetingName}, how can I help you today?`
+              ? `Halo ${greetingName}, ada yang bisa saya bantu hari ini?`
               : STATE_COPY[state]}
           </p>
         </div>
@@ -244,7 +244,7 @@ export function AssistantPanel({
           variant="ghost"
           size="icon"
           onClick={() => setExpanded((v) => !v)}
-          aria-label={expanded ? "Collapse assistant" : "Expand assistant"}
+          aria-label={expanded ? "Ciutkan asisten" : "Perluas asisten"}
         >
           {expanded ? (
             <Minimize2 aria-hidden="true" className="size-4" />
@@ -256,7 +256,7 @@ export function AssistantPanel({
           variant="ghost"
           size="icon"
           onClick={() => setOpen(false)}
-          aria-label="Close assistant"
+          aria-label="Tutup asisten"
         >
           <X aria-hidden="true" className="size-4" />
         </Button>
@@ -266,18 +266,18 @@ export function AssistantPanel({
         ref={logRef}
         role="log"
         aria-live="polite"
-        aria-label="Conversation"
+        aria-label="Percakapan"
         className="min-h-0 flex-1 space-y-3 overflow-y-auto px-4 py-3"
       >
         {turns.length === 0 ? (
           <div className="space-y-3">
             <p className="text-sm text-slate-600">
-              Ask about talent, capability, performance, development or work.
-              I answer only from what you are authorized to see.
+              Tanyakan tentang talent, capability, kinerja, pengembangan, atau
+              penugasan. Saya hanya menjawab dari data yang berhak Anda lihat.
             </p>
             <div>
               <p className="mb-1.5 text-xs font-medium text-slate-500">
-                Suggested for {context.label}
+                Saran untuk {context.label}
               </p>
               <ul className="space-y-1.5">
                 {prompts.map((prompt) => (
@@ -304,7 +304,7 @@ export function AssistantPanel({
               aria-hidden="true"
               className="size-2 animate-pulse rounded-full bg-amber-500"
             />
-            Analyzing your request…
+            Menganalisis permintaan Anda…
           </p>
         ) : null}
       </div>
@@ -341,7 +341,7 @@ export function AssistantPanel({
         }}
       >
         <label htmlFor={inputId} className="sr-only">
-          Ask TANIA
+          Tanya TANIA
         </label>
         <input
           id={inputId}
@@ -350,7 +350,7 @@ export function AssistantPanel({
           onChange={(event) => setDraft(event.target.value)}
           onFocus={() => setState((s) => (s === "idle" ? "listening" : s))}
           onBlur={() => setState((s) => (s === "listening" ? "idle" : s))}
-          placeholder="Ask TANIA anything…"
+          placeholder="Tanyakan apa saja kepada TANIA…"
           disabled={state === "thinking"}
           className="min-w-0 flex-1 rounded-[var(--radius-control)] border border-slate-200 px-3 py-2 text-sm disabled:bg-slate-50"
         />
@@ -358,7 +358,7 @@ export function AssistantPanel({
           type="submit"
           size="icon"
           disabled={state === "thinking" || draft.trim().length === 0}
-          aria-label="Send"
+          aria-label="Kirim"
         >
           <SendHorizontal aria-hidden="true" className="size-4" />
         </Button>
@@ -397,7 +397,7 @@ function Turn({ turn }: { turn: AssistantTurn }) {
 
       {turn.requiresApproval ? (
         <p className="mt-2">
-          <StatusBadge tone="warning">Awaiting your approval</StatusBadge>
+          <StatusBadge tone="warning">Menunggu persetujuan Anda</StatusBadge>
         </p>
       ) : null}
 
@@ -413,13 +413,13 @@ function Turn({ turn }: { turn: AssistantTurn }) {
 
       {turn.toolsUsed.length > 0 ? (
         <p className="mt-1.5 text-xs text-slate-500">
-          Used: {turn.toolsUsed.join(", ")}
+          Digunakan: {turn.toolsUsed.join(", ")}
         </p>
       ) : null}
 
       {turn.correlationId ? (
         <p className="mt-1.5 font-mono text-[10px] text-slate-400">
-          Reference: {turn.correlationId}
+          Referensi: {turn.correlationId}
         </p>
       ) : null}
     </div>

@@ -106,6 +106,9 @@ Not decisions — a gap list for planning. All **PLANNED**.
 
 1. **R-10** Indonesian UI: `lang="id"` together with translating visible copy — flipping the attribute
    alone would make screen readers read English text with Indonesian pronunciation.
+   **PARTIALLY IMPLEMENTED (2026-09-26):** `lang="id"`, all page and component copy, navigation,
+   empty states and UI label maps, following `docs/product/UI_GLOSSARY_ID.md`. Remaining items are
+   listed there under "Not yet translated".
 2. **R-06** Move `UTILIZATION_BANDS` to a configuration row; seed the default performance and
    feasibility weight profiles.
 3. **R-03** Invite-only email / magic link behind a configuration flag that switches off once Entra

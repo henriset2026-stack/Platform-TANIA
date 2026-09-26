@@ -124,7 +124,7 @@ describe("individual drill-down", () => {
 describe("view copy", () => {
   it("tells an executive that individual records are excluded", () => {
     const view = resolveDashboardView(context(["EXECUTIVE"], ALL_READS));
-    expect(view.subtitle.toLowerCase()).toContain("individual");
+    expect(view.subtitle.toLowerCase()).toContain("individu");
   });
 
   it("gives every scope a distinct title", () => {

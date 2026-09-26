@@ -31,7 +31,7 @@ import {
 import { isLive, mapLive } from "@/types/data";
 import type { WorkStatus } from "@/types/status";
 
-export const metadata: Metadata = { title: "Talent passport · TANIA" };
+export const metadata: Metadata = { title: "Paspor talent · TANIA" };
 
 /**
  * S04 — Digital Talent Passport (TANIA_PRD_v2.0.md §28).
@@ -104,7 +104,7 @@ export default async function TalentPassportPage({
     },
     {
       id: "status",
-      header: "Assessment",
+      header: "Asesmen",
       align: "end",
       cell: (c) => (
         // Provisional is the default: a level is a claim until evidence
@@ -119,11 +119,11 @@ export default async function TalentPassportPage({
   ];
 
   const assignmentColumns: readonly Column<AssignmentRow>[] = [
-    { id: "project", header: "Project", cell: (a) => a.projectName },
-    { id: "role", header: "Role", cell: (a) => a.roleName ?? "—", hideOnMobile: true },
+    { id: "project", header: "Proyek", cell: (a) => a.projectName },
+    { id: "role", header: "Peran", cell: (a) => a.roleName ?? "—", hideOnMobile: true },
     {
       id: "allocation",
-      header: "Allocation",
+      header: "Alokasi",
       align: "end",
       cell: (a) => `${Math.round(a.allocationPct)}%`,
     },
@@ -136,29 +136,29 @@ export default async function TalentPassportPage({
   ];
 
   const performanceColumns: readonly Column<PerformanceEvidenceRow>[] = [
-    { id: "dimension", header: "Dimension", cell: (p) => p.dimension },
-    { id: "metric", header: "Metric", cell: (p) => p.metric ?? "—", hideOnMobile: true },
+    { id: "dimension", header: "Dimensi", cell: (p) => p.dimension },
+    { id: "metric", header: "Metrik", cell: (p) => p.metric ?? "—", hideOnMobile: true },
     {
       id: "value",
-      header: "Value",
+      header: "Nilai",
       align: "end",
       cell: (p) => (p.value === null ? "—" : `${p.value}${p.unit ? ` ${p.unit}` : ""}`),
     },
     {
       id: "origin",
-      header: "Origin",
+      header: "Asal",
       align: "end",
       cell: (p) => (
         // An AI-generated claim must never be indistinguishable from a human
         // assertion (CLAUDE.md §16).
         <StatusBadge tone={p.origin === "ai_generated" ? "warning" : "neutral"}>
-          {p.origin === "ai_generated" ? "AI-generated" : p.origin}
+          {p.origin === "ai_generated" ? "Dibuat AI" : p.origin}
         </StatusBadge>
       ),
     },
     {
       id: "validation",
-      header: "Validation",
+      header: "Validasi",
       align: "end",
       cell: (p) => (
         <StatusBadge tone={p.validationStatus === "validated" ? "success" : "warning"}>
@@ -169,11 +169,11 @@ export default async function TalentPassportPage({
   ];
 
   const developmentColumns: readonly Column<DevelopmentPlanRow>[] = [
-    { id: "title", header: "Plan", cell: (d) => d.title },
+    { id: "title", header: "Rencana", cell: (d) => d.title },
     {
       id: "progress",
-      header: "Progress",
-      cell: (d) => <ProgressMeter value={d.completionPct} label={`${d.title} progress`} />,
+      header: "Progres",
+      cell: (d) => <ProgressMeter value={d.completionPct} label={`Progres ${d.title}`} />,
       width: "35%",
       hideOnMobile: true,
     },
@@ -188,12 +188,12 @@ export default async function TalentPassportPage({
   return (
     <div className="mx-auto max-w-5xl space-y-6">
       <PageHeader
-        title={person?.fullName ?? "Talent passport"}
-        description="Digital Talent Passport"
+        title={person?.fullName ?? "Paspor talent"}
+        description="Paspor Talent Digital"
       />
 
       {/* Identity · Role · Organization · Experience */}
-      <SectionCard title="Identity">
+      <SectionCard title="Identitas">
         {!isLive(identity) ? (
           <DataStateNotice point={identity} />
         ) : (
@@ -204,17 +204,17 @@ export default async function TalentPassportPage({
               avatarUrl={person!.avatarUrl ?? undefined}
             />
             <dl className="grid gap-x-6 gap-y-2 text-sm sm:grid-cols-2">
-              <Field label="Employee ID" value={person!.employeeId} />
+              <Field label="ID karyawan" value={person!.employeeId} />
               <Field label="Email" value={person!.email} />
               <Field label="Grade" value={person!.grade} />
-              <Field label="Department" value={person!.department} />
-              <Field label="Career level" value={person!.careerLevel} />
+              <Field label="Departemen" value={person!.department} />
+              <Field label="Level karier" value={person!.careerLevel} />
               <Field
-                label="Experience"
+                label="Pengalaman"
                 value={
                   person!.yearsExperience === null
                     ? null
-                    : `${person!.yearsExperience} years`
+                    : `${person!.yearsExperience} tahun`
                 }
               />
             </dl>
@@ -225,24 +225,24 @@ export default async function TalentPassportPage({
         )}
       </SectionCard>
 
-      <SectionCard title="Capabilities" description="Current proven level against target.">
+      <SectionCard title="Capability" description="Level terbukti saat ini terhadap target.">
         <DataTable
-          caption="Capability profile"
+          caption="Profil capability"
           columns={capabilityColumns}
           data={capabilities}
           getRowId={(c) => c.id}
-          emptyTitle="No capabilities assessed"
+          emptyTitle="Belum ada capability yang diases"
         />
       </SectionCard>
 
       <SectionCard
-        title="Certifications"
-        description="Certification is evidence, not capability (PRD §7.1). Each carries its own validation status."
+        title="Sertifikasi"
+        description="Sertifikasi adalah bukti, bukan capability (PRD §7.1). Masing-masing memiliki status validasi sendiri."
       >
         {!isLive(certifications) ? (
           <DataStateNotice point={certifications} />
         ) : certifications.value.length === 0 ? (
-          <p className="text-sm text-slate-500">No certifications recorded.</p>
+          <p className="text-sm text-slate-500">Belum ada sertifikasi yang tercatat.</p>
         ) : (
           <div className="grid gap-3 md:grid-cols-2">
             {certifications.value.map((c) => (
@@ -261,11 +261,11 @@ export default async function TalentPassportPage({
         )}
       </SectionCard>
 
-      <SectionCard title="Evidence" description="Applied capability evidence.">
+      <SectionCard title="Bukti" description="Bukti penerapan capability.">
         {!isLive(evidence) ? (
           <DataStateNotice point={evidence} />
         ) : evidence.value.length === 0 ? (
-          <p className="text-sm text-slate-500">No capability evidence recorded.</p>
+          <p className="text-sm text-slate-500">Belum ada bukti capability yang tercatat.</p>
         ) : (
           <div className="grid gap-3 md:grid-cols-2">
             {evidence.value.slice(0, 6).map((e) => (
@@ -285,48 +285,48 @@ export default async function TalentPassportPage({
       </SectionCard>
 
       <SectionCard
-        title="Performance"
-        description="Sensitive. Visible only within strict scope."
+        title="Kinerja"
+        description="Sensitif. Hanya terlihat dalam cakupan ketat."
       >
         <DataTable
-          caption="Performance evidence"
+          caption="Bukti kinerja"
           columns={performanceColumns}
           data={performance}
           getRowId={(p) => p.id}
-          emptyTitle="No performance evidence"
+          emptyTitle="Belum ada bukti kinerja"
         />
       </SectionCard>
 
-      <SectionCard title="Projects and assignments">
+      <SectionCard title="Proyek dan penugasan">
         <DataTable
-          caption="Assignment history"
+          caption="Riwayat penugasan"
           columns={assignmentColumns}
           data={assignments}
           getRowId={(a) => a.id}
-          emptyTitle="No assignments"
+          emptyTitle="Belum ada penugasan"
         />
       </SectionCard>
 
       <SectionCard
-        title="Development"
-        description="Sensitive. Development plans are strict scope."
+        title="Pengembangan"
+        description="Sensitif. Rencana pengembangan termasuk cakupan ketat."
       >
         <DataTable
-          caption="Development plans"
+          caption="Rencana pengembangan"
           columns={developmentColumns}
           data={development}
           getRowId={(d) => d.id}
-          emptyTitle="No development plans"
+          emptyTitle="Belum ada rencana pengembangan"
         />
       </SectionCard>
 
-      <SectionCard title="AI Augmentation" description="Measured AI leverage.">
+      <SectionCard title="Augmentasi AI" description="Pemanfaatan AI yang terukur.">
         {!isLive(augmentation) ? (
           <DataStateNotice point={augmentation} />
         ) : (
           <dl className="grid gap-x-6 gap-y-2 text-sm sm:grid-cols-2">
             <Field
-              label="Overall score"
+              label="Skor keseluruhan"
               value={
                 augmentation.value.overallScore === null
                   ? null
@@ -334,7 +334,7 @@ export default async function TalentPassportPage({
               }
             />
             <Field
-              label="Evidence count"
+              label="Jumlah bukti"
               value={String(augmentation.value.evidenceCount)}
             />
           </dl>
@@ -342,23 +342,23 @@ export default async function TalentPassportPage({
       </SectionCard>
 
       <SectionCard
-        title="Business Impact"
-        description="Only human-validated impact is counted (PRD §35)."
+        title="Dampak bisnis"
+        description="Hanya dampak yang divalidasi manusia yang dihitung (PRD §35)."
       >
         <DataTable
-          caption="Business impact"
+          caption="Dampak bisnis"
           columns={[
-            { id: "metric", header: "Metric", cell: (b) => b.metricName },
-            { id: "type", header: "Type", cell: (b) => b.impactType, hideOnMobile: true },
+            { id: "metric", header: "Metrik", cell: (b) => b.metricName },
+            { id: "type", header: "Jenis", cell: (b) => b.impactType, hideOnMobile: true },
             {
               id: "actual",
-              header: "Actual",
+              header: "Aktual",
               align: "end",
               cell: (b) => (b.actual === null ? "—" : `${b.actual}${b.unit ? ` ${b.unit}` : ""}`),
             },
             {
               id: "validation",
-              header: "Validation",
+              header: "Validasi",
               align: "end",
               cell: (b) => (
                 <StatusBadge tone={b.validationStatus === "validated" ? "success" : "warning"}>
@@ -369,7 +369,7 @@ export default async function TalentPassportPage({
           ]}
           data={mapLive(impact, (rows) => rows)}
           getRowId={(b) => b.id}
-          emptyTitle="No business impact recorded"
+          emptyTitle="Belum ada dampak bisnis yang tercatat"
         />
       </SectionCard>
     </div>

@@ -39,7 +39,7 @@ export default async function TalentDirectoryPage({
     return (
       <div className="mx-auto max-w-6xl">
         <PageHeader title="Talent" />
-        <EmptyState title="Not signed in" description="Sign in to view talent." />
+        <EmptyState title="Belum masuk" description="Masuk untuk melihat talent." />
       </div>
     );
   }
@@ -52,8 +52,8 @@ export default async function TalentDirectoryPage({
       <div className="mx-auto max-w-6xl">
         <PageHeader title="Talent" />
         <EmptyState
-          title="Not authorized"
-          description="Your account does not hold talent.read."
+          title="Tidak berwenang"
+          description="Akun Anda tidak memiliki izin talent.read."
         />
       </div>
     );
@@ -71,13 +71,13 @@ export default async function TalentDirectoryPage({
   const columns: readonly Column<TalentListRow>[] = [
     {
       id: "person",
-      header: "Name",
+      header: "Nama",
       cell: (row) =>
         view.allowsIndividualDrilldown ? (
           <Link
             href={`/talent/${row.id}`}
             className="hover:underline"
-            aria-label={`Open passport for ${row.fullName}`}
+            aria-label={`Buka paspor ${row.fullName}`}
           >
             <UserIdentity
               name={row.fullName}
@@ -93,13 +93,13 @@ export default async function TalentDirectoryPage({
     },
     {
       id: "employeeId",
-      header: "Employee ID",
+      header: "ID karyawan",
       cell: (row) => row.employeeId ?? "—",
       hideOnMobile: true,
     },
     {
       id: "department",
-      header: "Department",
+      header: "Departemen",
       cell: (row) => row.department ?? "—",
       hideOnMobile: true,
     },
@@ -125,20 +125,20 @@ export default async function TalentDirectoryPage({
         title="Talent"
         description={
           view.allowsIndividualDrilldown
-            ? "People within your authorized scope."
-            : "Aggregated view. Individual passports are not available at executive scope."
+            ? "Talent dalam cakupan akses Anda."
+            : "Tampilan agregat. Paspor individu tidak tersedia pada cakupan eksekutif."
         }
       />
 
       <TalentFilters squads={isLive(squads) ? squads.value : []} />
 
       <DataTable
-        caption="Talent directory"
+        caption="Direktori talent"
         columns={columns}
         data={rows}
         getRowId={(row) => row.id}
-        emptyTitle="No talent found"
-        emptyDescription="No records match these filters within your authorized scope."
+        emptyTitle="Talent tidak ditemukan"
+        emptyDescription="Tidak ada data yang cocok dengan filter ini dalam cakupan akses Anda."
       />
 
       {isLive(result) ? (

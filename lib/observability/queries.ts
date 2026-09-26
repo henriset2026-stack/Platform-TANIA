@@ -41,7 +41,7 @@ export type AuditAccess =
 export async function requireAuditAccess(): Promise<AuditAccess> {
   const context = await requireAuthContext().catch(() => null);
   if (!context) {
-    return { allowed: false, reason: "You are not signed in." };
+    return { allowed: false, reason: "Anda belum masuk." };
   }
 
   if (hasPermission(context, "admin.audit")) {
@@ -50,7 +50,7 @@ export async function requireAuditAccess(): Promise<AuditAccess> {
       userId: context.userId,
       audience: {
         kind: "full",
-        detail: "Showing all recorded activity (admin.audit).",
+        detail: "Menampilkan seluruh aktivitas yang tercatat (admin.audit).",
       },
     };
   }
@@ -62,7 +62,7 @@ export async function requireAuditAccess(): Promise<AuditAccess> {
       audience: {
         kind: "own",
         detail:
-          "Showing your own AI activity (ai.view_audit). Chapter-wide audit needs admin.audit.",
+          "Menampilkan aktivitas AI Anda sendiri (ai.view_audit). Audit seluruh chapter memerlukan admin.audit.",
       },
     };
   }
@@ -70,7 +70,7 @@ export async function requireAuditAccess(): Promise<AuditAccess> {
   return {
     allowed: false,
     reason:
-      "Viewing the audit trail requires admin.audit, or ai.view_audit for your own activity.",
+      "Melihat jejak audit memerlukan admin.audit, atau ai.view_audit untuk aktivitas Anda sendiri.",
   };
 }
 

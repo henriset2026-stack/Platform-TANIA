@@ -24,7 +24,7 @@ export function MobileNav({ availableNav }: { availableNav: readonly string[] })
         render={
           <Button variant="ghost" size="icon" className="lg:hidden">
             <Menu aria-hidden="true" className="size-5" />
-            <span className="sr-only">Open navigation</span>
+            <span className="sr-only">Buka navigasi</span>
           </Button>
         }
       />

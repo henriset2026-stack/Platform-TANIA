@@ -41,7 +41,7 @@ export const PRIMARY_NAV: readonly NavItem[] = [
   },
   {
     id: "performance",
-    label: "Performance",
+    label: "Kinerja",
     href: "/performance",
     icon: TrendingUp,
     implementedInPhase: 9,
@@ -57,7 +57,7 @@ export const PRIMARY_NAV: readonly NavItem[] = [
   },
   {
     id: "development",
-    label: "Development",
+    label: "Pengembangan",
     href: "/development",
     icon: GraduationCap,
     implementedInPhase: 10,
@@ -65,7 +65,7 @@ export const PRIMARY_NAV: readonly NavItem[] = [
   },
   {
     id: "assignments",
-    label: "Work & Assignment",
+    label: "Penugasan",
     href: "/assignments",
     icon: ClipboardList,
     implementedInPhase: 11,
@@ -73,7 +73,7 @@ export const PRIMARY_NAV: readonly NavItem[] = [
   },
   {
     id: "projects",
-    label: "Projects",
+    label: "Proyek",
     href: "/projects",
     icon: FolderKanban,
     implementedInPhase: 12,
@@ -81,7 +81,7 @@ export const PRIMARY_NAV: readonly NavItem[] = [
   },
   {
     id: "business-impact",
-    label: "Business Impact",
+    label: "Dampak Bisnis",
     href: "/business-impact",
     icon: Target,
     implementedInPhase: 12,
@@ -89,7 +89,7 @@ export const PRIMARY_NAV: readonly NavItem[] = [
   },
   {
     id: "ai",
-    label: "AI Assistant",
+    label: "Asisten AI",
     href: "/ai",
     icon: Sparkles,
     implementedInPhase: 15,
@@ -107,7 +107,7 @@ export const PRIMARY_NAV: readonly NavItem[] = [
   },
   {
     id: "settings",
-    label: "Administration",
+    label: "Administrasi",
     href: "/settings",
     icon: Settings,
     implementedInPhase: 21,

@@ -315,6 +315,8 @@ because the thing under test is the database's own row filtering.
 |---|---|---|
 | `TANIA_PRD_v2.0.md` | Product + engineering requirements, §1–§79. 3,405 lines. | 64 KB |
 | `TANIA_PRD_v2.0_working.md` | **Superset of the above.** Identical through §79, then adds §80–§92. 3,698 lines. | 72 KB |
+| `PRD-TANIA.md` | Portal product definition v1.2 (module IDs ACC/TM/TP/TJ/TC/WL/TS/PF/BC/ED/TD/AV, C- and D-series decisions). Indonesian. | 34 KB |
+| `docs/product/PRD_V1_2_RECONCILIATION.md` | How each v1.2 ↔ v2.0 conflict was ruled (R-01..R-11), role mapping, config defaults, v1.2 scope gaps. | 9 KB |
 | `TANIA_RBAC_RLS_MATRIX.md` | Role × permission matrix, scope rules, data sensitivity classes, RLS test matrix. | 5.7 KB |
 | `TANIA_SUPABASE_RLS.sql` | Executable security baseline: RBAC catalog, helper functions, policies for 32 tables. | 36 KB |
 | `AGENTS.md` | Agent/tool engineering rules — the deepest source on tool contracts, risk tiers, provenance, idempotency. 31 sections. | 21 KB |
@@ -393,14 +395,16 @@ assistant behavior per page (§21, line 848). Read it, not just the PRD, before 
 When sources conflict:
 
 1. Explicit user request in the current task
-2. `TANIA_PRD_v2.0.md` (use `_working` for §80–§92 homepage/avatar topics)
-3. `TANIA_RBAC_RLS_MATRIX.md`
-4. `TANIA_SUPABASE_RLS.sql`
-5. `AGENTS.md` (authoritative for agent/tool behavior)
-6. `ARCHITECTURE.md` (authoritative for JARVIS runtime)
-7. This file
-8. Existing implementation
-9. General engineering assumptions
+2. `docs/product/PRD_V1_2_RECONCILIATION.md` — only where one of its rulings covers the question
+3. `TANIA_PRD_v2.0.md` (use `_working` for §80–§92 homepage/avatar topics)
+4. `TANIA_RBAC_RLS_MATRIX.md`
+5. `TANIA_SUPABASE_RLS.sql`
+6. `AGENTS.md` (authoritative for agent/tool behavior)
+7. `ARCHITECTURE.md` (authoritative for JARVIS runtime)
+8. `PRD-TANIA.md` v1.2 — product scope and requirement IDs where v2.0 is silent
+9. This file
+10. Existing implementation
+11. General engineering assumptions
 
 Do not silently replace a source-defined requirement with a generic best practice. If a source is
 incomplete or self-contradictory, surface the conflict before making a high-impact architectural change.
